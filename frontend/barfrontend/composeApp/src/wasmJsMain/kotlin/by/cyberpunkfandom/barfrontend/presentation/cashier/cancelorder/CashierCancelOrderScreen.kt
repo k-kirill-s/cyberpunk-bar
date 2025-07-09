@@ -1,0 +1,297 @@
+package by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import barfrontend.composeapp.generated.resources.Res
+import barfrontend.composeapp.generated.resources.back_24dp
+import by.cyberpunkfandom.barfrontend.core.format
+import by.cyberpunkfandom.barfrontend.domain.Order
+import by.cyberpunkfandom.barfrontend.domain.OrderFull
+import by.cyberpunkfandom.barfrontend.domain.PositionExtraItem
+import by.cyberpunkfandom.barfrontend.domain.PositionItem
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppDashedHorizontalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppVerticalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.DividerType
+import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
+import org.jetbrains.compose.resources.painterResource
+
+@Composable
+fun CashierCancelOrderScreen(
+    onBackRequest: () -> Unit,
+    viewModel: CashierCancelOrderViewModel,
+) {
+    CashierCancelOrderScreen(
+        onBackClick = onBackRequest,
+        orders = viewModel.orders.collectAsStateWithLifecycle().value,
+        onOrderClick = viewModel::onOrderClick,
+        selectedOrderId = viewModel.selectedOrderId.collectAsStateWithLifecycle().value,
+        selectedOrder = viewModel.selectedOrder.collectAsStateWithLifecycle().value,
+        isDeleteLoading = viewModel.isDeleteLoading.collectAsStateWithLifecycle().value,
+        onDeleteClick = viewModel::onDeleteClick,
+    )
+}
+
+@Composable
+private fun CashierCancelOrderScreen(
+    onBackClick: () -> Unit,
+    orders: List<Order>,
+    onOrderClick: (orderId: Int) -> Unit,
+    selectedOrderId: Int?,
+    selectedOrder: OrderFull?,
+    isDeleteLoading: Boolean,
+    onDeleteClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        AppTopBar(
+            modifier = Modifier.fillMaxWidth(),
+            title = "Отмена заказов",
+            leftIcon = painterResource(Res.drawable.back_24dp),
+            onLeftIconClick = onBackClick,
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+            OrdersList(
+                orders = orders,
+                selectedOrderId = selectedOrderId,
+                onOrderClick = onOrderClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            )
+            AppVerticalDivider()
+            OrderDetails(
+                order = selectedOrder,
+                isDeleteLoading = isDeleteLoading,
+                onDeleteClick = onDeleteClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun OrdersList(
+    orders: List<Order>,
+    onOrderClick: (orderId: Int) -> Unit,
+    selectedOrderId: Int?,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(modifier = modifier) {
+        items(orders) { order ->
+            val isSelected = order.id == selectedOrderId
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(AppTheme.dimensions.itemHeight)
+                        .background(color = if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
+                        .clickable(onClick = { onOrderClick(order.id) })
+                        .padding(horizontal = AppTheme.dimensions.basePadding),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(
+                        text = order.name,
+                        style = AppTheme.typography.title,
+                    )
+                }
+
+                AppHorizontalDivider()
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrderDetails(
+    order: OrderFull?,
+    isDeleteLoading: Boolean,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (order == null) {
+        Spacer(modifier)
+        return
+    }
+
+    Column(modifier) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(AppTheme.dimensions.itemHeight),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Заказ ${order.name}",
+                style = AppTheme.typography.title,
+            )
+        }
+        AppHorizontalDivider()
+        OrderDetailsPositions(
+            order = order,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        )
+        AppHorizontalDivider()
+        OrderDetailsBottomBar(
+            price = order.price,
+            isDeleteLoading = isDeleteLoading,
+            onDeleteClick = onDeleteClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(AppTheme.dimensions.bottomBarHeight),
+        )
+    }
+}
+
+@Composable
+private fun OrderDetailsPositions(
+    order: OrderFull,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(modifier = modifier) {
+        order.positionItems.forEachIndexed { positionItemIndex, positionItem ->
+            item {
+                AppHorizontalDivider(type = DividerType.THIN)
+            }
+            item {
+                PositionItemRow(
+                    positionItem = positionItem,
+                    index = positionItemIndex,
+                )
+            }
+
+            positionItem.extraItems.forEachIndexed { positionExtraItemIndex, positionExtraItem ->
+                item {
+                    AppDashedHorizontalDivider(type = DividerType.THIN)
+                }
+                item {
+                    PositionExtraItemRow(
+                        positionExtraItem = positionExtraItem,
+                        positionItemIndex = positionItemIndex,
+                        index = positionExtraItemIndex,
+                    )
+                }
+            }
+        }
+
+        item {
+            AppHorizontalDivider(type = DividerType.THIN)
+        }
+    }
+}
+
+@Composable
+private fun PositionItemRow(
+    positionItem: PositionItem,
+    index: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(AppTheme.dimensions.itemHeight)
+            .padding(horizontal = AppTheme.dimensions.basePadding),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "${index + 1} ${positionItem.position.name}",
+            modifier = Modifier.weight(1f),
+            style = AppTheme.typography.title,
+        )
+        Spacer(Modifier.width(AppTheme.dimensions.basePadding))
+        Text(
+            text = positionItem.price.format(2),
+            style = AppTheme.typography.title,
+        )
+    }
+}
+
+@Composable
+private fun PositionExtraItemRow(
+    positionExtraItem: PositionExtraItem,
+    positionItemIndex: Int,
+    index: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(AppTheme.dimensions.itemHeight)
+            .padding(horizontal = AppTheme.dimensions.basePadding),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Spacer(Modifier.width(AppTheme.dimensions.basePadding * 2))
+        Text(
+            text = "${positionItemIndex + 1}.${index + 1} ${positionExtraItem.positionExtra.name}",
+            modifier = Modifier.weight(1f),
+            style = AppTheme.typography.title,
+        )
+        Spacer(Modifier.width(AppTheme.dimensions.basePadding))
+        Text(
+            text = positionExtraItem.price.format(2),
+            style = AppTheme.typography.title,
+        )
+    }
+}
+
+@Composable
+private fun OrderDetailsBottomBar(
+    price: Float,
+    isDeleteLoading: Boolean,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = price.format(2),
+                style = AppTheme.typography.big,
+            )
+        }
+
+        AppBoxButton(
+            title = "Удалить",
+            onClick = onDeleteClick,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            color = AppTheme.colorScheme.red,
+            isLoading = isDeleteLoading,
+        )
+    }
+}

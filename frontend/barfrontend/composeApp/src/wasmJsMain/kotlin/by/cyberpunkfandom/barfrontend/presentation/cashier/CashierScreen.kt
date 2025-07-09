@@ -11,6 +11,8 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.cashierAd
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.navigateToCashierAddPosition
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.cashierAddPositionExtraComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.navigateToCashierAddPositionExtra
+import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.cashierCancelOrderComposable
+import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.navigateToCashierCancelOrder
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderRoute
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.cashierCreateOrderComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.navigateToCashierCreateOrder
@@ -36,7 +38,9 @@ fun CashierScreen(
                 currentOrderId = orderId
                 navController.navigateToCashierCreateOrder(orderId)
             },
-            onCancelOrderRequest = {},
+            onCancelOrderRequest = {
+                navController.navigateToCashierCancelOrder()
+            },
             onTogglePositionsRequest = {},
             onToggleExtraRequest = {},
         )
@@ -81,6 +85,12 @@ fun CashierScreen(
                         }
                     }
                 }
+            }
+        )
+
+        cashierCancelOrderComposable(
+            onBackRequest = {
+                navController.popBackStack()
             }
         )
     }

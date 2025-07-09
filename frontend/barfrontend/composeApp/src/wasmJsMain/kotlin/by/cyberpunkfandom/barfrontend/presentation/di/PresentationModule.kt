@@ -3,6 +3,7 @@ package by.cyberpunkfandom.barfrontend.presentation.di
 import by.cyberpunkfandom.barfrontend.presentation.cashier.CashierViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.CashierAddPositionViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.CashierAddPositionExtraViewModel
+import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.CashierCancelOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
@@ -39,4 +40,5 @@ val presentationModule = module {
             positionExtraItemsRepository = get(),
         )
     }
+    viewModelOf(::CashierCancelOrderViewModel)
 }

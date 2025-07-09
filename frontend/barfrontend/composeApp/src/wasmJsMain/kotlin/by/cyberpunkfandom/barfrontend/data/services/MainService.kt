@@ -1,5 +1,6 @@
 package by.cyberpunkfandom.barfrontend.data.services
 
+import by.cyberpunkfandom.barfrontend.data.models.OrderDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderFullDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionExtraDto
@@ -17,6 +18,10 @@ class MainService(private val httpClient: HttpClient) {
 
     // ---------------------------------------------------------------------------------------------------------------
     // ORDERS
+    suspend fun getActiveOrders(): List<OrderDto> {
+        return httpClient.get("orders/active").body()
+    }
+
     suspend fun getOrder(id: Int): OrderFullDto {
         return httpClient.get("orders/$id").body()
     }
@@ -27,6 +32,10 @@ class MainService(private val httpClient: HttpClient) {
 
     suspend fun formOrder(orderId: Int): OrderFullDto {
         return httpClient.post("/orders/${orderId}/form").body()
+    }
+
+    suspend fun deleteOrder(orderId: Int) {
+        return httpClient.delete("/orders/${orderId}").body()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
