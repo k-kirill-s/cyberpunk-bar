@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -59,7 +61,8 @@ private fun CashierHomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(AppTheme.dimensions.basePadding),
+                .padding(AppTheme.dimensions.basePadding)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding)
         ) {
             AppBigButton(

@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
@@ -142,26 +142,35 @@ private fun OrderDetails(
         return
     }
 
-    Column(modifier) {
-        Box(
+    Column(modifier = modifier) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(AppTheme.dimensions.itemHeight),
-            contentAlignment = Alignment.Center,
+                .weight(1f)
         ) {
-            Text(
-                text = "Заказ ${order.name}",
-                style = AppTheme.typography.title,
-            )
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(AppTheme.dimensions.itemHeight),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "Заказ ${order.name}",
+                        style = AppTheme.typography.title,
+                    )
+                }
+            }
+
+            item {
+                AppHorizontalDivider()
+            }
+
+            orderDetailsPositionsItems(order)
         }
+
         AppHorizontalDivider()
-        OrderDetailsPositions(
-            order = order,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        )
-        AppHorizontalDivider()
+
         OrderDetailsBottomBar(
             price = order.price,
             isDeleteLoading = isDeleteLoading,
@@ -173,40 +182,34 @@ private fun OrderDetails(
     }
 }
 
-@Composable
-private fun OrderDetailsPositions(
-    order: OrderFull,
-    modifier: Modifier = Modifier,
-) {
-    LazyColumn(modifier = modifier) {
-        order.positionItems.forEachIndexed { positionItemIndex, positionItem ->
-            item {
-                AppHorizontalDivider(type = DividerType.THIN)
-            }
-            item {
-                PositionItemRow(
-                    positionItem = positionItem,
-                    index = positionItemIndex,
-                )
-            }
-
-            positionItem.extraItems.forEachIndexed { positionExtraItemIndex, positionExtraItem ->
-                item {
-                    AppDashedHorizontalDivider(type = DividerType.THIN)
-                }
-                item {
-                    PositionExtraItemRow(
-                        positionExtraItem = positionExtraItem,
-                        positionItemIndex = positionItemIndex,
-                        index = positionExtraItemIndex,
-                    )
-                }
-            }
-        }
-
+private fun LazyListScope.orderDetailsPositionsItems(order: OrderFull) {
+    order.positionItems.forEachIndexed { positionItemIndex, positionItem ->
         item {
             AppHorizontalDivider(type = DividerType.THIN)
         }
+        item {
+            PositionItemRow(
+                positionItem = positionItem,
+                index = positionItemIndex,
+            )
+        }
+
+        positionItem.extraItems.forEachIndexed { positionExtraItemIndex, positionExtraItem ->
+            item {
+                AppDashedHorizontalDivider(type = DividerType.THIN)
+            }
+            item {
+                PositionExtraItemRow(
+                    positionExtraItem = positionExtraItem,
+                    positionItemIndex = positionItemIndex,
+                    index = positionExtraItemIndex,
+                )
+            }
+        }
+    }
+
+    item {
+        AppHorizontalDivider(type = DividerType.THIN)
     }
 }
 

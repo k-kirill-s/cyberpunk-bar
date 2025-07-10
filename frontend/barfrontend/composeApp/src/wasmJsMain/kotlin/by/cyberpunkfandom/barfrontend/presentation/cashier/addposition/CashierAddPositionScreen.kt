@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -151,30 +153,38 @@ private fun ItemDetails(
         Spacer(modifier)
     } else {
         Column(modifier = modifier) {
-            Spacer(Modifier.height(AppTheme.dimensions.basePadding))
-
-            // title
-            Text(
-                text = position.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AppTheme.dimensions.basePadding),
-                textAlign = TextAlign.Center,
-                style = AppTheme.typography.title,
-            )
-
-            Spacer(Modifier.height(AppTheme.dimensions.basePadding))
-
-            // description
-            Text(
-                text = position.description,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(horizontal = AppTheme.dimensions.basePadding),
-                textAlign = TextAlign.Justify,
-                style = AppTheme.typography.body,
-            )
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Spacer(Modifier.height(AppTheme.dimensions.basePadding))
+
+                // title
+                Text(
+                    text = position.name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppTheme.dimensions.basePadding),
+                    textAlign = TextAlign.Center,
+                    style = AppTheme.typography.title,
+                )
+
+                Spacer(Modifier.height(AppTheme.dimensions.basePadding))
+
+                // description
+                Text(
+                    text = position.description,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppTheme.dimensions.basePadding),
+                    textAlign = TextAlign.Justify,
+                    style = AppTheme.typography.body,
+                )
+
+                Spacer(Modifier.height(AppTheme.dimensions.basePadding))
+            }
 
             AppHorizontalDivider()
 

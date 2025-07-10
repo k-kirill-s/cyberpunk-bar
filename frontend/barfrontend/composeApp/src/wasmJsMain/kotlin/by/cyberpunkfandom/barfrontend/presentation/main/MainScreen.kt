@@ -34,8 +34,6 @@ fun MainScreen(
                 },
                 onOpenCollectorRequest = {
                 },
-                onOpenAdminRequest = {
-                },
                 onOpenBoardRequest = {
                 },
             )
