@@ -9,9 +9,10 @@ class PositionExtraRepository(
     private val positionExtraMapper: PositionExtraMapper,
 ) {
 
-    suspend fun getPositionExtra(): List<PositionExtra> {
+    suspend fun getPositionExtra(withNotActive: Boolean = false): List<PositionExtra> {
         val dtoList = mainService.getPositionExtra()
         return dtoList.map { positionExtraMapper.getDomain(it) }
+            .filter { withNotActive || it.isActive }
     }
 
     suspend fun setPositionExtraIsActive(positionExtraId: String, isActive: Boolean): PositionExtra {

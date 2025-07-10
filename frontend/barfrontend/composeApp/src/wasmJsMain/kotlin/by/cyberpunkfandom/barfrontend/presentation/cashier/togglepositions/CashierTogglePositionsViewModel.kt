@@ -49,11 +49,11 @@ class CashierTogglePositionsViewModel(
         viewModelScope.launch(exceptionHandler) {
             when (type) {
                 CashierTogglePositionsScreenType.POSITIONS -> {
-                    items.update { positionsRepository.getPositions().map { it.toItemData() } }
+                    items.update { positionsRepository.getPositions(true).map { it.toItemData() } }
                 }
 
                 CashierTogglePositionsScreenType.POSITION_EXTRA -> {
-                    items.update { positionExtraRepository.getPositionExtra().map { it.toItemData() } }
+                    items.update { positionExtraRepository.getPositionExtra(true).map { it.toItemData() } }
                 }
             }
         }
