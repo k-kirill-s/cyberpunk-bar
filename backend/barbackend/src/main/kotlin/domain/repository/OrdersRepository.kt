@@ -9,6 +9,8 @@ interface OrdersRepository {
 
     suspend fun getActiveOrders(): List<Order>
 
+    suspend fun getOrderInProgressByWorker(workerId: Int): OrderFull?
+
     suspend fun getOrder(id: Int): OrderFull?
 
     suspend fun createOrder(): OrderFull
@@ -19,7 +21,7 @@ interface OrdersRepository {
 
     suspend fun formOrder(id: Int): OrderFull
 
-    suspend fun startOrder(id: Int): OrderFull
+    suspend fun startOrder(id: Int, workerId: Int): OrderFull
 
     suspend fun finishOrder(id: Int): OrderFull
 

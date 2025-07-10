@@ -5,6 +5,7 @@ import by.cyberpunkfandom.controller.mappers.OrderFullDtoMapper
 import by.cyberpunkfandom.domain.repository.OrdersRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
@@ -27,6 +28,14 @@ fun Application.ordersRouting() {
         get("/orders/active") {
             val activeOrders = ordersRepository.getActiveOrders()
             val dto = activeOrders.map { orderDtoMapper.getDto(it) }
+            call.respond(dto)
+        }
+
+        get("/orders/by_worker") {
+            val formParameters = call.receiveParameters()
+            val workerId = requireNotNull(formParameters["worker_id"]).toInt()
+            val activeOrderByWorker = ordersRepository.getOrderInProgressByWorker(workerId)
+            val dto = listOfNotNull(activeOrderByWorker?.let { orderFullDtoMapper.getDto(it) })
             call.respond(dto)
         }
 
@@ -64,7 +73,11 @@ fun Application.ordersRouting() {
 
         post("/orders/{id}/start") {
             val id = requireNotNull(call.parameters["id"]).toInt()
-            val order = ordersRepository.startOrder(id)
+
+            val formParameters = call.receiveParameters()
+            val workerId = requireNotNull(formParameters["worker_id"]).toInt()
+
+            val order = ordersRepository.startOrder(id = id, workerId = workerId)
             val dto = orderFullDtoMapper.getDto(order)
             call.respond(dto)
         }

@@ -11,4 +11,5 @@ fun Application.configureRouting() {
     positionItemsRouting()
     positionExtraItemsRouting()
     ordersDiscountsRouting()
+    workersRouting()
 }

@@ -12,4 +12,5 @@ val controllerKoinModule = module {
     singleOf(::OrderFullDtoMapper)
     singleOf(::PositionItemDtoMapper)
     singleOf(::PositionExtraItemDtoMapper)
+    singleOf(::WorkerDtoMapper)
 }

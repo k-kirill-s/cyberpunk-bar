@@ -37,6 +37,22 @@ class OrdersRepositoryImpl(
             .map { orderMapper.getDomain(it) }
     }
 
+    override suspend fun getOrderInProgressByWorker(workerId: Int): OrderFull? = suspendTransaction {
+        val orderId = OrdersTable.join(
+            OrderStatusChangedEventsTable,
+            JoinType.INNER,
+            additionalConstraint = { OrdersTable.lastStatusChangedEvent eq OrderStatusChangedEventsTable.id },
+        )
+            .selectAll()
+            .where { (OrderStatusChangedEventsTable.status eq OrderStatus.STARTED.name) and (OrdersTable.workerId eq workerId) }
+            .map { it[OrdersTable.id].value }
+            .firstOrNull()
+
+        orderId
+            ?.let { OrderFullEntity.findById(it) }
+            ?.let { orderFullMapper.getDomain(it) }
+    }
+
     override suspend fun getOrder(id: Int): OrderFull? = suspendTransaction {
         getOrderFull(id)
     }
@@ -56,14 +72,17 @@ class OrdersRepositoryImpl(
             .firstOrNull() as Int?
             ?: 0
 
-        OrdersTable.update(where = { OrdersTable.id eq id} ) {
+        OrdersTable.update(where = { OrdersTable.id eq id }) {
             it[this.formedIndex] = maxFormedIndex + 1
         }
 
         changeOrderStatus(id, OrderStatus.FORMED)
     }
 
-    override suspend fun startOrder(id: Int): OrderFull = suspendTransaction {
+    override suspend fun startOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
+        OrdersTable.update(where = { OrdersTable.id eq id }) {
+            it[this.workerId] = workerId
+        }
         changeOrderStatus(id, OrderStatus.STARTED)
     }
 

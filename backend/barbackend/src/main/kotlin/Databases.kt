@@ -8,6 +8,7 @@ import by.cyberpunkfandom.data.database.positionextra.PositionExtraTable
 import by.cyberpunkfandom.data.database.positionextraitems.PositionExtraItemsTable
 import by.cyberpunkfandom.data.database.positionitems.PositionItemsTable
 import by.cyberpunkfandom.data.database.positions.PositionsTable
+import by.cyberpunkfandom.data.database.workers.WorkersTable
 import io.ktor.server.application.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -34,6 +35,7 @@ fun Application.configureDatabases() {
             PositionExtraItemsTable,
             OrderDiscountsTable,
             OrderStatusChangedEventsTable,
+            WorkersTable,
         )
     }
 }

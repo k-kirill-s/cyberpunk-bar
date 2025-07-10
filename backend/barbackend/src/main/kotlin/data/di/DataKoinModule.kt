@@ -15,6 +15,7 @@ val dataKoinModule = module {
     singleOf(::OrderFullMapper)
     singleOf(::PositionItemMapper)
     singleOf(::PositionExtraItemMapper)
+    singleOf(::WorkerMapper)
 
     singleOf(::PositionsRepositoryImpl) bind PositionsRepository::class
     singleOf(::PositionExtraRepositoryImpl) bind PositionExtraRepository::class
@@ -23,4 +24,5 @@ val dataKoinModule = module {
     singleOf(::PositionItemsRepositoryImpl) bind PositionItemsRepository::class
     singleOf(::PositionExtraItemsRepositoryImpl) bind PositionExtraItemsRepository::class
     singleOf(::OrderDiscountsRepositoryImpl) bind OrderDiscountsRepository::class
+    singleOf(::WorkersRepositoryImpl) bind WorkersRepository::class
 }
