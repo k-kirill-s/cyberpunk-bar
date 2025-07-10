@@ -12,6 +12,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.http.HttpMethod
 import io.ktor.http.parameters
 
 class MainService(private val httpClient: HttpClient) {
@@ -74,10 +75,32 @@ class MainService(private val httpClient: HttpClient) {
         return httpClient.get("positions").body()
     }
 
+    suspend fun setPositionIsActive(positionId: String, isActive: Boolean): PositionDto {
+        return httpClient.submitForm(
+            url = "positions/${positionId}",
+            formParameters = parameters {
+                append("is_active", isActive.toString())
+            }
+        ) {
+            method = HttpMethod.Patch
+        }.body()
+    }
+
     // ---------------------------------------------------------------------------------------------------------------
     // POSITION EXTRA
 
     suspend fun getPositionExtra(): List<PositionExtraDto> {
         return httpClient.get("position_extra").body()
+    }
+
+    suspend fun setPositionExtraIsActive(positionExtraId: String, isActive: Boolean): PositionExtraDto {
+        return httpClient.submitForm(
+            url = "position_extra/${positionExtraId}",
+            formParameters = parameters {
+                append("is_active", isActive.toString())
+            }
+        ) {
+            method = HttpMethod.Patch
+        }.body()
     }
 }

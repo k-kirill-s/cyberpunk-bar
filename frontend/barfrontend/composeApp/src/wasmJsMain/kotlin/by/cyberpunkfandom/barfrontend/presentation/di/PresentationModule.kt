@@ -6,6 +6,7 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.Cash
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.CashierCancelOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeViewModel
+import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingViewModel
 import org.koin.core.module.dsl.viewModel
@@ -41,4 +42,11 @@ val presentationModule = module {
         )
     }
     viewModelOf(::CashierCancelOrderViewModel)
+    viewModel { parameters ->
+        CashierTogglePositionsViewModel(
+            type = parameters.get(),
+            positionsRepository = get(),
+            positionExtraRepository = get(),
+        )
+    }
 }

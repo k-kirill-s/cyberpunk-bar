@@ -13,4 +13,9 @@ class PositionsRepository(
         val dtoList = mainService.getPositions()
         return dtoList.map { positionMapper.getDomain(it) }
     }
+
+    suspend fun setPositionIsActive(positionId: String, isActive: Boolean): Position {
+        val dto = mainService.setPositionIsActive(positionId, isActive)
+        return positionMapper.getDomain(dto)
+    }
 }

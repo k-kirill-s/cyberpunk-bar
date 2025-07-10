@@ -18,6 +18,9 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.cashierCr
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.navigateToCashierCreateOrder
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeRoute
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.cashierHomeComposable
+import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsScreenType
+import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.cashierTogglePositionsComposable
+import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.navigateToCashierTogglePositions
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -41,8 +44,12 @@ fun CashierScreen(
             onCancelOrderRequest = {
                 navController.navigateToCashierCancelOrder()
             },
-            onTogglePositionsRequest = {},
-            onToggleExtraRequest = {},
+            onTogglePositionsRequest = {
+                navController.navigateToCashierTogglePositions(CashierTogglePositionsScreenType.POSITIONS)
+            },
+            onToggleExtraRequest = {
+                navController.navigateToCashierTogglePositions(CashierTogglePositionsScreenType.POSITION_EXTRA)
+            },
         )
 
         cashierCreateOrderComposable(
@@ -89,6 +96,12 @@ fun CashierScreen(
         )
 
         cashierCancelOrderComposable(
+            onBackRequest = {
+                navController.popBackStack()
+            }
+        )
+
+        cashierTogglePositionsComposable(
             onBackRequest = {
                 navController.popBackStack()
             }

@@ -13,4 +13,9 @@ class PositionExtraRepository(
         val dtoList = mainService.getPositionExtra()
         return dtoList.map { positionExtraMapper.getDomain(it) }
     }
+
+    suspend fun setPositionExtraIsActive(positionExtraId: String, isActive: Boolean): PositionExtra {
+        val dto = mainService.setPositionExtraIsActive(positionExtraId, isActive)
+        return positionExtraMapper.getDomain(dto)
+    }
 }
