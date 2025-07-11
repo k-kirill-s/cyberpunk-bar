@@ -21,7 +21,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MainRoutingScreen(
     onOpenCashierRequest: () -> Unit,
-    onOpenCollectorRequest: () -> Unit,
+    onOpenWorkerRequest: () -> Unit,
     onOpenBoardRequest: () -> Unit,
     viewModel: MainRoutingViewModel = koinViewModel(),
 ) {
@@ -44,7 +44,7 @@ fun MainRoutingScreen(
 
             Button(
                 text = "Сборщик",
-                onClick = onOpenCollectorRequest,
+                onClick = onOpenWorkerRequest,
             )
 
             Button(

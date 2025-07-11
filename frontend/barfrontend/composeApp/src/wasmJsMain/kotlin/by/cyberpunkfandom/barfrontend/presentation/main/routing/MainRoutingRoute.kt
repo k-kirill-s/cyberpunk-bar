@@ -11,13 +11,13 @@ data object MainRoutingRoute
 
 fun NavGraphBuilder.mainRoutingComposable(
     onOpenCashierRequest: () -> Unit,
-    onOpenCollectorRequest: () -> Unit,
+    onOpenWorkerRequest: () -> Unit,
     onOpenBoardRequest: () -> Unit,
 ) {
     composable<MainRoutingRoute> { _ ->
         MainRoutingScreen(
             onOpenCashierRequest = onOpenCashierRequest,
-            onOpenCollectorRequest = onOpenCollectorRequest,
+            onOpenWorkerRequest = onOpenWorkerRequest,
             onOpenBoardRequest = onOpenBoardRequest,
         )
     }

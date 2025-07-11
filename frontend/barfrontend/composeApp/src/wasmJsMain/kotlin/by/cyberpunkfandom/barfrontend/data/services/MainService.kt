@@ -6,6 +6,7 @@ import by.cyberpunkfandom.barfrontend.data.models.PositionDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionExtraDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionExtraItemDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionItemDto
+import by.cyberpunkfandom.barfrontend.data.models.WorkerDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -98,6 +99,24 @@ class MainService(private val httpClient: HttpClient) {
             url = "position_extra/${positionExtraId}",
             formParameters = parameters {
                 append("is_active", isActive.toString())
+            }
+        ) {
+            method = HttpMethod.Patch
+        }.body()
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // WORKERS
+
+    suspend fun getWorkers(): List<WorkerDto> {
+        return httpClient.get("workers").body()
+    }
+
+    suspend fun setWorkerIsOnLine(workerId: Int, isOnLine: Boolean): WorkerDto {
+        return httpClient.submitForm(
+            url = "workers/${workerId}",
+            formParameters = parameters {
+                append("is_on_line", isOnLine.toString())
             }
         ) {
             method = HttpMethod.Patch

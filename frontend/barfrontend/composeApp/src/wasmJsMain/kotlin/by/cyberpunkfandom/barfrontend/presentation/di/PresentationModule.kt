@@ -9,6 +9,8 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeViewM
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingViewModel
+import by.cyberpunkfandom.barfrontend.presentation.worker.WorkerViewModel
+import by.cyberpunkfandom.barfrontend.presentation.worker.auth.WorkerAuthViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -49,4 +51,7 @@ val presentationModule = module {
             positionExtraRepository = get(),
         )
     }
+
+    viewModelOf(::WorkerViewModel)
+    viewModelOf(::WorkerAuthViewModel)
 }

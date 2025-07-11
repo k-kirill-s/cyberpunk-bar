@@ -12,6 +12,8 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.navigateToCashier
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingRoute
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.mainRoutingComposable
+import by.cyberpunkfandom.barfrontend.presentation.worker.navigateToWorker
+import by.cyberpunkfandom.barfrontend.presentation.worker.workerComposable
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -32,13 +34,18 @@ fun MainScreen(
                 onOpenCashierRequest = {
                     navController.navigateToCashier()
                 },
-                onOpenCollectorRequest = {
+                onOpenWorkerRequest = {
+                    navController.navigateToWorker()
                 },
                 onOpenBoardRequest = {
                 },
             )
 
             cashierComposable(
+                onBackRequest = { navController.popBackStack() }
+            )
+
+            workerComposable(
                 onBackRequest = { navController.popBackStack() }
             )
         }
