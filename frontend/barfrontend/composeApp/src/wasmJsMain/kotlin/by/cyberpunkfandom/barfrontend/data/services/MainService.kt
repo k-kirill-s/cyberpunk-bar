@@ -7,6 +7,7 @@ import by.cyberpunkfandom.barfrontend.data.models.PositionExtraDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionExtraItemDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionItemDto
 import by.cyberpunkfandom.barfrontend.data.models.WorkerDto
+import by.cyberpunkfandom.barfrontend.domain.exceptions.OrderAlreadyStartedException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -14,6 +15,7 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
 
 class MainService(private val httpClient: HttpClient) {
@@ -22,6 +24,18 @@ class MainService(private val httpClient: HttpClient) {
     // ORDERS
     suspend fun getActiveOrders(): List<OrderDto> {
         return httpClient.get("orders/active").body()
+    }
+
+    suspend fun getNextOrderToCollect(): OrderFullDto? {
+        return httpClient.get("orders/next")
+            .body<List<OrderFullDto>>()
+            .firstOrNull()
+    }
+
+    suspend fun getInProgressOrderByWorker(workerId: Int): OrderFullDto? {
+        return httpClient.get("orders/by_worker/${workerId}")
+            .body<List<OrderFullDto>>()
+            .firstOrNull()
     }
 
     suspend fun getOrder(id: Int): OrderFullDto {
@@ -34,6 +48,19 @@ class MainService(private val httpClient: HttpClient) {
 
     suspend fun formOrder(orderId: Int): OrderFullDto {
         return httpClient.post("/orders/${orderId}/form").body()
+    }
+
+    suspend fun startOrder(orderId: Int, workerId: Int): OrderFullDto {
+        val response = httpClient.submitForm(
+            url = "orders/${orderId}/start",
+            formParameters = parameters {
+                append("worker_id", workerId.toString())
+            },
+        )
+        return when (response.status) {
+            HttpStatusCode.Conflict -> throw OrderAlreadyStartedException()
+            else -> response.body()
+        }
     }
 
     suspend fun deleteOrder(orderId: Int) {

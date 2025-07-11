@@ -1,0 +1,110 @@
+package by.cyberpunkfandom.barfrontend.presentation.worker.home
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import barfrontend.composeapp.generated.resources.Res
+import barfrontend.composeapp.generated.resources.back_24dp
+import by.cyberpunkfandom.barfrontend.domain.OrderFull
+import by.cyberpunkfandom.barfrontend.domain.OrderStatus
+import by.cyberpunkfandom.barfrontend.domain.Worker
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
+import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderfinished.WorkerHomeOrderFinishedDialog
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderfinished.WorkerHomeOrderFinishedDialogState
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderstarted.WorkerHomeOrderStartedDialog
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderstarted.WorkerHomeOrderStartedDialogState
+import org.jetbrains.compose.resources.painterResource
+
+@Composable
+fun WorkerHomeScreen(
+    onBackRequest: () -> Unit,
+    onOrderStarted: (orderId: Int) -> Unit,
+    viewModel: WorkerHomeViewModel,
+) {
+    LaunchedEffect(Unit) {
+        viewModel.onOrderStarted.collect { workerId ->
+            onOrderStarted(workerId)
+        }
+    }
+
+    WorkerAuthScreen(
+        onBackClick = onBackRequest,
+        worker = viewModel.worker.collectAsStateWithLifecycle().value,
+        orderToCollect = viewModel.orderToCollect.collectAsStateWithLifecycle().value,
+        isStartOrderLoading = viewModel.isStartOrderLoading.collectAsStateWithLifecycle().value,
+        onStartOrderClick = viewModel::onStartOrderClick,
+        orderFinishedDialogState = viewModel.orderFinishedDialogState.collectAsStateWithLifecycle().value,
+        onOrderFinishedDialogDismissRequest = viewModel::onOrderFinishedDialogDismissRequest,
+        orderStartedDialogState = viewModel.orderStartedDialogState.collectAsStateWithLifecycle().value,
+        onOrderStartedDialogDismissRequest = viewModel::onOrderStartedDialogDismissRequest,
+    )
+}
+
+@Composable
+private fun WorkerAuthScreen(
+    onBackClick: () -> Unit,
+    worker: Worker?,
+    orderToCollect: OrderFull?,
+    isStartOrderLoading: Boolean,
+    onStartOrderClick: () -> Unit,
+    orderFinishedDialogState: WorkerHomeOrderFinishedDialogState?,
+    onOrderFinishedDialogDismissRequest: () -> Unit,
+    orderStartedDialogState: WorkerHomeOrderStartedDialogState?,
+    onOrderStartedDialogDismissRequest: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        AppTopBar(
+            title = worker?.name.orEmpty(),
+            leftIcon = painterResource(Res.drawable.back_24dp),
+            onLeftIconClick = onBackClick,
+        )
+
+        AppHorizontalDivider()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(AppTheme.dimensions.basePadding),
+            contentAlignment = Alignment.Center,
+        ) {
+            val (title, isAccent, enabled) = when {
+                orderToCollect == null -> Triple("Нет заказов", false, false)
+                orderToCollect.status == OrderStatus.FORMED -> Triple("Взять заказ №${orderToCollect.name}", true, true)
+                else -> Triple("Продолжить заказ №${orderToCollect.name}", true, true)
+            }
+            AppBigButton(
+                title = title,
+                onClick = onStartOrderClick,
+                modifier = Modifier.fillMaxWidth(),
+                isAccent = isAccent,
+                enabled = enabled,
+                isLoading = isStartOrderLoading,
+            )
+        }
+    }
+
+    orderFinishedDialogState?.let { state ->
+        WorkerHomeOrderFinishedDialog(
+            state = state,
+            onDismissRequest = onOrderFinishedDialogDismissRequest,
+        )
+    }
+
+    orderStartedDialogState?.let { state ->
+        WorkerHomeOrderStartedDialog(
+            state = state,
+            onDismissRequest = onOrderStartedDialogDismissRequest,
+        )
+    }
+}

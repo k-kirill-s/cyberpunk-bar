@@ -6,6 +6,8 @@ import androidx.navigation.compose.rememberNavController
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.WorkerAuthRoute
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.workerAuthComposable
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.navigateToWorkerHome
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.workerHomeComposable
 
 @Composable
 fun WorkerScreen(
@@ -22,8 +24,13 @@ fun WorkerScreen(
             workerAuthComposable(
                 onBackRequest = onBackRequest,
                 onWorkerSelected = { workerId ->
-
+                    navController.navigateToWorkerHome(workerId)
                 }
+            )
+
+            workerHomeComposable(
+                onBackRequest = onBackRequest,
+                onOrderStarted = { }
             )
         }
     }

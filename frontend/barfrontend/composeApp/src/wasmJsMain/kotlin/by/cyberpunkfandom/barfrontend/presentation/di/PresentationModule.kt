@@ -11,6 +11,7 @@ import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingViewModel
 import by.cyberpunkfandom.barfrontend.presentation.worker.WorkerViewModel
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.WorkerAuthViewModel
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.WorkerHomeViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -54,4 +55,11 @@ val presentationModule = module {
 
     viewModelOf(::WorkerViewModel)
     viewModelOf(::WorkerAuthViewModel)
+    viewModel { parameters ->
+        WorkerHomeViewModel(
+            workerId = parameters.get(),
+            ordersRepository = get(),
+            workersRepository = get(),
+        )
+    }
 }

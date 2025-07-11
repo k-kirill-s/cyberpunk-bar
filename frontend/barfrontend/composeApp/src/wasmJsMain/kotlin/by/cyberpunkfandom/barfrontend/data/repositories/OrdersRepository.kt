@@ -17,6 +17,16 @@ class OrdersRepository(
         return dtoList.map { orderMapper.getDomain(it) }
     }
 
+    suspend fun getNextOrderToCollect(): OrderFull? {
+        val dto = mainService.getNextOrderToCollect()
+        return dto?.let { orderFullMapper.getDomain(it) }
+    }
+
+    suspend fun getInProgressOrderByWorker(workerId: Int): OrderFull? {
+        val dto = mainService.getInProgressOrderByWorker(workerId)
+        return dto?.let { orderFullMapper.getDomain(it) }
+    }
+
     suspend fun getOrder(id: Int): OrderFull {
         val dto = mainService.getOrder(id)
         return orderFullMapper.getDomain(dto)
@@ -29,6 +39,11 @@ class OrdersRepository(
 
     suspend fun formOrder(orderId: Int): OrderFull {
         val dto = mainService.formOrder(orderId)
+        return orderFullMapper.getDomain(dto)
+    }
+
+    suspend fun startOrder(orderId: Int, workerId: Int): OrderFull {
+        val dto = mainService.startOrder(orderId, workerId)
         return orderFullMapper.getDomain(dto)
     }
 
