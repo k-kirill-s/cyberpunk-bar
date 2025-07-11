@@ -37,9 +37,8 @@ fun Application.ordersRouting() {
             call.respond(dto)
         }
 
-        get("/orders/by_worker") {
-            val formParameters = call.receiveParameters()
-            val workerId = requireNotNull(formParameters["worker_id"]).toInt()
+        get("/orders/by_worker/{worker_id}") {
+            val workerId = requireNotNull(call.parameters["worker_id"]).toInt()
             val activeOrderByWorker = ordersRepository.getOrderInProgressByWorker(workerId)
             val dto = listOfNotNull(activeOrderByWorker?.let { orderFullDtoMapper.getDto(it) })
             call.respond(dto)
