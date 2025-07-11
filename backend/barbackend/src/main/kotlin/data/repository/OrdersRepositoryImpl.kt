@@ -37,6 +37,23 @@ class OrdersRepositoryImpl(
             .map { orderMapper.getDomain(it) }
     }
 
+    override suspend fun getNextOrderToCollect(): OrderFull? = suspendTransaction {
+        val orderId = OrdersTable.join(
+            OrderStatusChangedEventsTable,
+            JoinType.INNER,
+            additionalConstraint = { OrdersTable.lastStatusChangedEvent eq OrderStatusChangedEventsTable.id },
+        )
+            .selectAll()
+            .where { OrderStatusChangedEventsTable.status eq OrderStatus.FORMED.name }
+            .orderBy(OrderStatusChangedEventsTable.happenedAt to SortOrder.ASC)
+            .map { it[OrdersTable.id].value }
+            .firstOrNull()
+
+        orderId
+            ?.let { OrderFullEntity.findById(it) }
+            ?.let { orderFullMapper.getDomain(it) }
+    }
+
     override suspend fun getOrderInProgressByWorker(workerId: Int): OrderFull? = suspendTransaction {
         val orderId = OrdersTable.join(
             OrderStatusChangedEventsTable,
@@ -80,6 +97,9 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun startOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
+        val order = requireNotNull(OrderFullEntity.findById(id))
+        require(order.worker == null)
+
         OrdersTable.update(where = { OrdersTable.id eq id }) {
             it[this.workerId] = workerId
         }

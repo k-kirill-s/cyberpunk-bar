@@ -31,6 +31,12 @@ fun Application.ordersRouting() {
             call.respond(dto)
         }
 
+        get("/orders/next") {
+            val nextOrderToCollect = ordersRepository.getNextOrderToCollect()
+            val dto = listOfNotNull(nextOrderToCollect?.let { orderFullDtoMapper.getDto(it) })
+            call.respond(dto)
+        }
+
         get("/orders/by_worker") {
             val formParameters = call.receiveParameters()
             val workerId = requireNotNull(formParameters["worker_id"]).toInt()
@@ -77,9 +83,13 @@ fun Application.ordersRouting() {
             val formParameters = call.receiveParameters()
             val workerId = requireNotNull(formParameters["worker_id"]).toInt()
 
-            val order = ordersRepository.startOrder(id = id, workerId = workerId)
-            val dto = orderFullDtoMapper.getDto(order)
-            call.respond(dto)
+            try {
+                val order = ordersRepository.startOrder(id = id, workerId = workerId)
+                val dto = orderFullDtoMapper.getDto(order)
+                call.respond(dto)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.Conflict)
+            }
         }
 
         post("/orders/{id}/finish") {
