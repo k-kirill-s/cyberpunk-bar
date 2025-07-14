@@ -10,6 +10,8 @@ import by.cyberpunkfandom.barfrontend.presentation.worker.home.navigateToWorkerH
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.workerHomeComposable
 import by.cyberpunkfandom.barfrontend.presentation.worker.order.navigateToWorkerOrder
 import by.cyberpunkfandom.barfrontend.presentation.worker.order.workerOrderComposable
+import by.cyberpunkfandom.barfrontend.presentation.worker.positiondetails.navigateToWorkerPositionDetails
+import by.cyberpunkfandom.barfrontend.presentation.worker.positiondetails.workerPositionDetailsComposable
 
 @Composable
 fun WorkerScreen(
@@ -44,8 +46,14 @@ fun WorkerScreen(
                 onOrderFinished = {
                     // todo
                 },
-                onPositionDetailsRequest = {
-                    // todo
+                onPositionDetailsRequest = { positionId ->
+                    navController.navigateToWorkerPositionDetails(positionId)
+                }
+            )
+
+            workerPositionDetailsComposable(
+                onBackRequest = {
+                    navController.popBackStack()
                 }
             )
         }

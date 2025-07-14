@@ -13,6 +13,7 @@ import by.cyberpunkfandom.barfrontend.presentation.worker.WorkerViewModel
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.WorkerAuthViewModel
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.WorkerHomeViewModel
 import by.cyberpunkfandom.barfrontend.presentation.worker.order.WorkerOrderViewModel
+import by.cyberpunkfandom.barfrontend.presentation.worker.positiondetails.WorkerPositionDetailsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -67,6 +68,12 @@ val presentationModule = module {
         WorkerOrderViewModel(
             orderId = parameters.get(),
             ordersRepository = get(),
+        )
+    }
+    viewModel { parameters ->
+        WorkerPositionDetailsViewModel(
+            positionId = parameters.get(),
+            positionsRepository = get(),
         )
     }
 }
