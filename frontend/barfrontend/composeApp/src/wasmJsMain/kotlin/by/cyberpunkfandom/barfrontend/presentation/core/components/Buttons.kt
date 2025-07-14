@@ -19,7 +19,7 @@ fun AppBigButton(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isAccent: Boolean = false,
+    color: Color = AppTheme.colorScheme.surface,
     enabled: Boolean = true,
     isLoading: Boolean = false,
 ) {
@@ -27,7 +27,7 @@ fun AppBigButton(
         modifier = modifier
             .height(AppTheme.dimensions.bigButtonHeight)
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(if (isAccent) AppTheme.colorScheme.accent else AppTheme.colorScheme.surface)
+            .background(color)
             .clickable(enabled = enabled && !isLoading, onClick = onClick)
             .padding(AppTheme.dimensions.basePadding),
         contentAlignment = Alignment.Center,

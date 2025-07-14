@@ -36,7 +36,7 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun WorkerOrderScreen(
     onCloseRequest: () -> Unit,
-    onOrderFinished: () -> Unit,
+    onOrderFinished: (Int) -> Unit,
     onPositionDetailsRequest: (positionId: String) -> Unit,
     viewModel: WorkerOrderViewModel,
 ) {
@@ -47,8 +47,8 @@ fun WorkerOrderScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.onOrderFinished.collect {
-            onOrderFinished()
+        viewModel.onOrderFinished.collect { orderId ->
+            onOrderFinished(orderId)
         }
     }
 

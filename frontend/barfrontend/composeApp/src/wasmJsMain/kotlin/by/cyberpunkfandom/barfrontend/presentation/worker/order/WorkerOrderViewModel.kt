@@ -26,8 +26,8 @@ class WorkerOrderViewModel(
     private val _onCloseRequest: Channel<Unit> = Channel(Channel.BUFFERED)
     val onCloseRequest: Flow<Unit> = _onCloseRequest.receiveAsFlow()
 
-    private val _onOrderFinished: Channel<Unit> = Channel(Channel.BUFFERED)
-    val onOrderFinished: Flow<Unit> = _onOrderFinished.receiveAsFlow()
+    private val _onOrderFinished: Channel<Int> = Channel(Channel.BUFFERED)
+    val onOrderFinished: Flow<Int> = _onOrderFinished.receiveAsFlow()
 
     private val _onPositionDetailsRequest: Channel<String> = Channel(Channel.BUFFERED)
     val onPositionDetailsRequest: Flow<String> = _onPositionDetailsRequest.receiveAsFlow()
@@ -49,7 +49,7 @@ class WorkerOrderViewModel(
     }
 
     fun onDoneClick() {
-        _onOrderFinished.trySend(Unit)
+        _onOrderFinished.trySend(orderId)
     }
 
     fun onPositionDetailsClick(position: Position) {

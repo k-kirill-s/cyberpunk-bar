@@ -69,7 +69,7 @@ private fun CashierHomeScreen(
                 title = "Создать заказ",
                 onClick = onCreateOrderClick,
                 modifier = Modifier.fillMaxWidth(),
-                isAccent = true,
+                color = AppTheme.colorScheme.accent,
             )
 
             AppBigButton(

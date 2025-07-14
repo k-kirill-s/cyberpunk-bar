@@ -78,16 +78,16 @@ private fun WorkerAuthScreen(
                 .padding(AppTheme.dimensions.basePadding),
             contentAlignment = Alignment.Center,
         ) {
-            val (title, isAccent, enabled) = when {
-                orderToCollect == null -> Triple("Нет заказов", false, false)
-                orderToCollect.status == OrderStatus.FORMED -> Triple("Взять заказ №${orderToCollect.name}", true, true)
-                else -> Triple("Продолжить заказ №${orderToCollect.name}", true, true)
+            val (title, color, enabled) = when {
+                orderToCollect == null -> Triple("Нет заказов", AppTheme.colorScheme.surface, false)
+                orderToCollect.status == OrderStatus.FORMED -> Triple("Взять заказ №${orderToCollect.name}", AppTheme.colorScheme.accent, true)
+                else -> Triple("Продолжить заказ №${orderToCollect.name}", AppTheme.colorScheme.accent, true)
             }
             AppBigButton(
                 title = title,
                 onClick = onStartOrderClick,
                 modifier = Modifier.fillMaxWidth(),
-                isAccent = isAccent,
+                color = color,
                 enabled = enabled,
                 isLoading = isStartOrderLoading,
             )

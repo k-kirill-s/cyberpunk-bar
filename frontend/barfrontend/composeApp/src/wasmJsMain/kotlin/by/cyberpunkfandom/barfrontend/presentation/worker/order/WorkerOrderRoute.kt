@@ -14,7 +14,7 @@ data class WorkerOrderRoute(val orderId: Int)
 
 fun NavGraphBuilder.workerOrderComposable(
     onCloseRequest: () -> Unit,
-    onOrderFinished: () -> Unit,
+    onOrderFinished: (orderId: Int) -> Unit,
     onPositionDetailsRequest: (positionId: String) -> Unit,
 ) {
     composable<WorkerOrderRoute> { navBackStackEntry ->

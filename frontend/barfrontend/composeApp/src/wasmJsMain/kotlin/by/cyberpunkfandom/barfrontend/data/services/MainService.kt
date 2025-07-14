@@ -63,6 +63,10 @@ class MainService(private val httpClient: HttpClient) {
         }
     }
 
+    suspend fun finishOrder(orderId: Int): OrderFullDto {
+        return httpClient.post("/orders/${orderId}/finish").body()
+    }
+
     suspend fun deleteOrder(orderId: Int) {
         return httpClient.delete("/orders/${orderId}").body()
     }
