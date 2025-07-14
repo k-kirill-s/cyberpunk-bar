@@ -8,6 +8,8 @@ import by.cyberpunkfandom.barfrontend.presentation.worker.auth.WorkerAuthRoute
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.workerAuthComposable
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.navigateToWorkerHome
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.workerHomeComposable
+import by.cyberpunkfandom.barfrontend.presentation.worker.order.navigateToWorkerOrder
+import by.cyberpunkfandom.barfrontend.presentation.worker.order.workerOrderComposable
 
 @Composable
 fun WorkerScreen(
@@ -30,7 +32,21 @@ fun WorkerScreen(
 
             workerHomeComposable(
                 onBackRequest = onBackRequest,
-                onOrderStarted = { }
+                onOrderStarted = { orderId ->
+                    navController.navigateToWorkerOrder(orderId)
+                }
+            )
+
+            workerOrderComposable(
+                onCloseRequest = {
+                    navController.popBackStack(route = WorkerAuthRoute, inclusive = false)
+                },
+                onOrderFinished = {
+                    // todo
+                },
+                onPositionDetailsRequest = {
+                    // todo
+                }
             )
         }
     }

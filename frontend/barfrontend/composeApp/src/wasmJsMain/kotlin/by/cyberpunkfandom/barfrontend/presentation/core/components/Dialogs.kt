@@ -21,6 +21,8 @@ fun AppAlertDialog(
     textStyle: TextStyle = AppTheme.typography.title,
     confirmButtonText: String = "ОК",
     onConfirmButtonClick: () -> Unit = onDismissRequest,
+    dismissButtonText: String? = null,
+    onDismissButtonClick: () -> Unit = onDismissRequest,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -30,6 +32,16 @@ fun AppAlertDialog(
                     text = confirmButtonText,
                     style = AppTheme.typography.title,
                 )
+            }
+        },
+        dismissButton = dismissButtonText?.let {
+            {
+                TextButton(onClick = onDismissButtonClick) {
+                    Text(
+                        text = dismissButtonText,
+                        style = AppTheme.typography.title,
+                    )
+                }
             }
         },
         title = {
