@@ -1,5 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.worker
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +34,8 @@ fun WorkerScreen(
         NavHost(
             navController = navController,
             startDestination = WorkerAuthRoute,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
         ) {
 
             workerAuthComposable(

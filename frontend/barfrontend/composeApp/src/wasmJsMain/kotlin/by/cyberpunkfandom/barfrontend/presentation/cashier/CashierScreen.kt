@@ -1,5 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.cashier
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +38,8 @@ fun CashierScreen(
     NavHost(
         navController = navController,
         startDestination = CashierHomeRoute,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
     ) {
         cashierHomeComposable(
             onBackRequest = onBackRequest,
