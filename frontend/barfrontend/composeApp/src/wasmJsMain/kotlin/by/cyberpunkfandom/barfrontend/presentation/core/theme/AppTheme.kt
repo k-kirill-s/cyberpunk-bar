@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.material.materialThemeColorScheme
 
 private val tabletAppDimensions = AppDimensions(
@@ -34,14 +35,24 @@ private val phoneAppDimensions = AppDimensions(
 )
 
 private val tabletAppTypography = AppTypography(
-    title = Typography().headlineLarge,
+    displayLarge = Typography().displayLarge.copy(
+        fontSize = 140.sp,
+        lineHeight = 150.sp,
+    ),
+    display = Typography().displayLarge.copy(
+        fontSize = 110.sp,
+        lineHeight = 116.sp,
+    ),
     big = Typography().displayMedium,
+    title = Typography().headlineLarge,
     body = Typography().headlineSmall,
 )
 
 private val phoneAppTypography = AppTypography(
-    title = Typography().headlineSmall,
+    displayLarge = Typography().displayLarge,
+    display = Typography().displayMedium,
     big = Typography().displaySmall,
+    title = Typography().headlineSmall,
     body = Typography().labelLarge,
 )
 

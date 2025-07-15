@@ -8,6 +8,7 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCr
 import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.CashierGiveAwayOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsViewModel
+import by.cyberpunkfandom.barfrontend.presentation.infoboard.InfoBoardViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingViewModel
 import by.cyberpunkfandom.barfrontend.presentation.worker.WorkerViewModel
@@ -85,4 +86,6 @@ val presentationModule = module {
             ordersRepository = get(),
         )
     }
+
+    viewModelOf(::InfoBoardViewModel)
 }

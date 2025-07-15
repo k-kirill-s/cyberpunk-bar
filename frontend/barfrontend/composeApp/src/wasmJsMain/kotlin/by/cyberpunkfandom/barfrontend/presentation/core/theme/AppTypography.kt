@@ -7,15 +7,19 @@ import androidx.compose.ui.text.TextStyle
 
 @Stable
 class AppTypography(
-    val title: TextStyle,
+    val displayLarge: TextStyle,
+    val display: TextStyle,
     val big: TextStyle,
+    val title: TextStyle,
     val body: TextStyle,
 )
 
 internal val LocalAppTypography = staticCompositionLocalOf {
     AppTypography(
-        title = Typography().titleLarge,
+        displayLarge = Typography().titleLarge,
+        display = Typography().titleLarge,
         big = Typography().titleLarge,
+        title = Typography().titleLarge,
         body = Typography().titleLarge,
     )
 }

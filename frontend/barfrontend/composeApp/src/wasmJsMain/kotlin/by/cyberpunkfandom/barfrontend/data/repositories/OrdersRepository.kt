@@ -14,7 +14,9 @@ class OrdersRepository(
 
     suspend fun getActiveOrders(): List<Order> {
         val dtoList = mainService.getActiveOrders()
-        return dtoList.map { orderMapper.getDomain(it) }
+        return dtoList
+            .map { orderMapper.getDomain(it) }
+            .sortedBy { it.name }
     }
 
     suspend fun getNextOrderToCollect(): OrderFull? {

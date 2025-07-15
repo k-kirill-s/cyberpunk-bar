@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cashierComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.navigateToCashier
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
+import by.cyberpunkfandom.barfrontend.presentation.infoboard.infoBoardComposable
+import by.cyberpunkfandom.barfrontend.presentation.infoboard.navigateToInfoBoard
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingRoute
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.mainRoutingComposable
 import by.cyberpunkfandom.barfrontend.presentation.worker.navigateToWorker
@@ -42,6 +44,7 @@ fun MainScreen(
                     navController.navigateToWorker()
                 },
                 onOpenBoardRequest = {
+                    navController.navigateToInfoBoard()
                 },
             )
 
@@ -52,6 +55,8 @@ fun MainScreen(
             workerComposable(
                 onBackRequest = { navController.popBackStack() }
             )
+
+            infoBoardComposable()
         }
     }
 }
