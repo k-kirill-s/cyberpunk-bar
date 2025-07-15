@@ -52,6 +52,11 @@ class OrdersRepository(
         return orderFullMapper.getDomain(dto)
     }
 
+    suspend fun giveAwayOrder(orderId: Int): OrderFull {
+        val dto = mainService.giveAwayOrder(orderId)
+        return orderFullMapper.getDomain(dto)
+    }
+
     suspend fun deleteOrder(orderId: Int) {
         mainService.deleteOrder(orderId)
     }

@@ -12,6 +12,7 @@ data object CashierHomeRoute
 fun NavGraphBuilder.cashierHomeComposable(
     onBackRequest: () -> Unit,
     onOpenCreateOrderRequest: (orderId: Int) -> Unit,
+    onGiveAwayOrderRequest: () -> Unit,
     onCancelOrderRequest: () -> Unit,
     onTogglePositionsRequest: () -> Unit,
     onToggleExtraRequest: () -> Unit,
@@ -20,6 +21,7 @@ fun NavGraphBuilder.cashierHomeComposable(
         CashierHomeScreen(
             onBackRequest = onBackRequest,
             onOpenCreateOrderRequest = onOpenCreateOrderRequest,
+            onGiveAwayOrderRequest = onGiveAwayOrderRequest,
             onCancelOrderRequest = onCancelOrderRequest,
             onTogglePositionsRequest = onTogglePositionsRequest,
             onToggleExtraRequest = onToggleExtraRequest,

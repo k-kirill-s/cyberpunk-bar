@@ -5,6 +5,7 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.CashierAd
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.CashierAddPositionExtraViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.CashierCancelOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderViewModel
+import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.CashierGiveAwayOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
@@ -47,6 +48,7 @@ val presentationModule = module {
             positionExtraItemsRepository = get(),
         )
     }
+    viewModelOf(::CashierGiveAwayOrderViewModel)
     viewModelOf(::CashierCancelOrderViewModel)
     viewModel { parameters ->
         CashierTogglePositionsViewModel(

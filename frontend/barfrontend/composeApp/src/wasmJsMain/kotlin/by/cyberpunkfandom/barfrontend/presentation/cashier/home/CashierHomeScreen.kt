@@ -22,6 +22,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun CashierHomeScreen(
     onBackRequest: () -> Unit,
     onOpenCreateOrderRequest: (orderId: Int) -> Unit,
+    onGiveAwayOrderRequest: () -> Unit,
     onCancelOrderRequest: () -> Unit,
     onTogglePositionsRequest: () -> Unit,
     onToggleExtraRequest: () -> Unit,
@@ -34,6 +35,7 @@ fun CashierHomeScreen(
     CashierHomeScreen(
         onBackClick = onBackRequest,
         onCreateOrderClick = viewModel::onCreateOrderClick,
+        onGiveAwayOrderClick = onGiveAwayOrderRequest,
         onCancelOrderClick = onCancelOrderRequest,
         onTogglePositionsClick = onTogglePositionsRequest,
         onToggleExtraClick = onToggleExtraRequest,
@@ -44,6 +46,7 @@ fun CashierHomeScreen(
 private fun CashierHomeScreen(
     onBackClick: () -> Unit,
     onCreateOrderClick: () -> Unit,
+    onGiveAwayOrderClick: () -> Unit,
     onCancelOrderClick: () -> Unit,
     onTogglePositionsClick: () -> Unit,
     onToggleExtraClick: () -> Unit,
@@ -73,10 +76,18 @@ private fun CashierHomeScreen(
             )
 
             AppBigButton(
+                title = "Выдача заказа",
+                onClick = onGiveAwayOrderClick,
+                modifier = Modifier.fillMaxWidth(),
+                color = AppTheme.colorScheme.green,
+            )
+
+            AppBigButton(
                 title = "Отменить заказ",
                 onClick = onCancelOrderClick,
                 modifier = Modifier.fillMaxWidth(),
-            )
+                color = AppTheme.colorScheme.red,
+                )
 
             AppBigButton(
                 title = "Включить/выключить позиции",

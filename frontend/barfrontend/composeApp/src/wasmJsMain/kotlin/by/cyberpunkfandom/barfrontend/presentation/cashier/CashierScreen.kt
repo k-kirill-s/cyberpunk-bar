@@ -16,6 +16,8 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.navigateT
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderRoute
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.cashierCreateOrderComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.navigateToCashierCreateOrder
+import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.cashierGiveAwayOrderComposable
+import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.navigateToCashierGiveAwayOrder
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeRoute
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.cashierHomeComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsScreenType
@@ -40,6 +42,9 @@ fun CashierScreen(
             onOpenCreateOrderRequest = { orderId ->
                 currentOrderId = orderId
                 navController.navigateToCashierCreateOrder(orderId)
+            },
+            onGiveAwayOrderRequest = {
+                navController.navigateToCashierGiveAwayOrder()
             },
             onCancelOrderRequest = {
                 navController.navigateToCashierCancelOrder()
@@ -92,6 +97,12 @@ fun CashierScreen(
                         }
                     }
                 }
+            }
+        )
+
+        cashierGiveAwayOrderComposable(
+            onBackRequest = {
+                navController.popBackStack()
             }
         )
 
