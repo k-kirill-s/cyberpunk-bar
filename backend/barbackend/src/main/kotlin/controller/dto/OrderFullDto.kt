@@ -11,5 +11,4 @@ data class OrderFullDto(
     val status: String,
     val price: Float,
     val positionItems: List<PositionItemDto>,
-    val discounts: List<DiscountDto>,
 )

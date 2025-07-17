@@ -1,7 +1,5 @@
 package by.cyberpunkfandom.data.database.orders
 
-import by.cyberpunkfandom.data.database.discounts.DiscountEntity
-import by.cyberpunkfandom.data.database.orderdiscounts.OrderDiscountsTable
 import by.cyberpunkfandom.data.database.orderevents.OrderStatusChangedEventEntity
 import by.cyberpunkfandom.data.database.positionitems.PositionItemEntity
 import by.cyberpunkfandom.data.database.positionitems.PositionItemsTable
@@ -19,8 +17,6 @@ class OrderFullEntity(id: EntityID<Int>) : IntEntity(id) {
     val lastStatusChangedEvent by OrderStatusChangedEventEntity optionalReferencedOn OrdersTable.lastStatusChangedEvent
 
     val positionItems by PositionItemEntity referrersOn PositionItemsTable.order
-
-    val discounts by DiscountEntity via OrderDiscountsTable
 
     val worker by WorkerEntity optionalReferencedOn OrdersTable.workerId
 

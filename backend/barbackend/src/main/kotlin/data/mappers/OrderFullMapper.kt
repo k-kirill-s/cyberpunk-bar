@@ -5,10 +5,7 @@ import by.cyberpunkfandom.domain.models.OrderFull
 import by.cyberpunkfandom.domain.models.OrderStatus
 import java.time.Instant
 
-class OrderFullMapper(
-    private val positionItemMapper: PositionItemMapper,
-    private val discountMapper: DiscountMapper,
-) {
+class OrderFullMapper(private val positionItemMapper: PositionItemMapper) {
 
     fun getDomain(entity: OrderFullEntity): OrderFull {
         return OrderFull(
@@ -18,7 +15,6 @@ class OrderFullMapper(
             updatedAt = Instant.ofEpochMilli(entity.lastStatusChangedEvent?.happenedAt ?: entity.createdAt),
             status = entity.lastStatusChangedEvent?.status?.let { OrderStatus.valueOf(it) } ?: OrderStatus.CREATED,
             positionItems = entity.positionItems.map { positionItemMapper.getDomain(it) },
-            discounts = entity.discounts.map { discountMapper.getDomain(it) },
         )
     }
 }

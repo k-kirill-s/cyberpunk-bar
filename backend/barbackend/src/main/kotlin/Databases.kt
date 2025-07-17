@@ -1,7 +1,5 @@
 package by.cyberpunkfandom
 
-import by.cyberpunkfandom.data.database.discounts.DiscountsTable
-import by.cyberpunkfandom.data.database.orderdiscounts.OrderDiscountsTable
 import by.cyberpunkfandom.data.database.orderevents.OrderStatusChangedEventsTable
 import by.cyberpunkfandom.data.database.orders.OrdersTable
 import by.cyberpunkfandom.data.database.positionextra.PositionExtraTable
@@ -29,11 +27,9 @@ fun Application.configureDatabases() {
         SchemaUtils.create(
             PositionsTable,
             PositionExtraTable,
-            DiscountsTable,
             OrdersTable,
             PositionItemsTable,
             PositionExtraItemsTable,
-            OrderDiscountsTable,
             OrderStatusChangedEventsTable,
             WorkersTable,
         )

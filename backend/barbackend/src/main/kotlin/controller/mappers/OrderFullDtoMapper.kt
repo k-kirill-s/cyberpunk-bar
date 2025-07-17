@@ -3,10 +3,7 @@ package by.cyberpunkfandom.controller.mappers
 import by.cyberpunkfandom.controller.dto.OrderFullDto
 import by.cyberpunkfandom.domain.models.OrderFull
 
-class OrderFullDtoMapper(
-    private val positionItemDtoMapper: PositionItemDtoMapper,
-    private val discountDtoMapper: DiscountDtoMapper,
-) {
+class OrderFullDtoMapper(private val positionItemDtoMapper: PositionItemDtoMapper) {
 
     fun getDto(domain: OrderFull): OrderFullDto {
         return OrderFullDto(
@@ -17,7 +14,6 @@ class OrderFullDtoMapper(
             status = domain.status.name,
             price = domain.price,
             positionItems = domain.positionItems.map { positionItemDtoMapper.getDto(it) },
-            discounts = domain.discounts.map { discountDtoMapper.getDto(it) },
         )
     }
 }

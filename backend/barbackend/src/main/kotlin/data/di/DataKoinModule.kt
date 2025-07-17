@@ -10,7 +10,6 @@ import org.koin.dsl.module
 val dataKoinModule = module {
     singleOf(::PositionMapper)
     singleOf(::PositionExtraMapper)
-    singleOf(::DiscountMapper)
     singleOf(::OrderMapper)
     singleOf(::OrderFullMapper)
     singleOf(::PositionItemMapper)
@@ -19,10 +18,8 @@ val dataKoinModule = module {
 
     singleOf(::PositionsRepositoryImpl) bind PositionsRepository::class
     singleOf(::PositionExtraRepositoryImpl) bind PositionExtraRepository::class
-    singleOf(::DiscountsRepositoryImpl) bind DiscountsRepository::class
     singleOf(::OrdersRepositoryImpl) bind OrdersRepository::class
     singleOf(::PositionItemsRepositoryImpl) bind PositionItemsRepository::class
     singleOf(::PositionExtraItemsRepositoryImpl) bind PositionExtraItemsRepository::class
-    singleOf(::OrderDiscountsRepositoryImpl) bind OrderDiscountsRepository::class
     singleOf(::WorkersRepositoryImpl) bind WorkersRepository::class
 }

@@ -7,7 +7,6 @@ import org.koin.dsl.module
 val controllerKoinModule = module {
     singleOf(::PositionDtoMapper)
     singleOf(::PositionExtraDtoMapper)
-    singleOf(::DiscountDtoMapper)
     singleOf(::OrderDtoMapper)
     singleOf(::OrderFullDtoMapper)
     singleOf(::PositionItemDtoMapper)
