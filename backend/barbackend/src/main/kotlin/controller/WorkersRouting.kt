@@ -1,6 +1,8 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.WorkerDtoMapper
+import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.WorkersRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,39 +20,42 @@ fun Application.workersRouting() {
 
     routing {
         get("workers") {
-            val workersDto = workersRepository.getWorkers()
-                .map { workerDtoMapper.getDto(it) }
+            val workers = workersRepository.getWorkers()
+
+            val workersDto = workers.map { workerDtoMapper.getDto(it) }
             call.respond(workersDto)
         }
 
         post("workers") {
             val formParameters = call.receiveParameters()
-            val name = requireNotNull(formParameters["name"])
-            val workerDto = workersRepository.addWorker(name = name)
-                .let { workerDtoMapper.getDto(it) }
+            val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
+            val worker = workersRepository.addWorker(name = name)
+            val workerDto = workerDtoMapper.getDto(worker)
             call.respond(workerDto)
         }
 
         patch("workers/{id}") {
-            val id = requireNotNull(call.parameters["id"]).toInt()
+            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val isOnLine = formParameters["is_on_line"]?.toBoolean()
-            val workerDto = workersRepository.updateWorker(
+
+            val worker = workersRepository.updateWorker(
                 id = id,
                 name = name,
                 isOnLine = isOnLine,
-            )?.let { workerDtoMapper.getDto(it) }
-            if (workerDto != null) {
-                call.respond(workerDto)
-            } else {
-                call.respond(HttpStatusCode.BadRequest)
-            }
+            )
+
+            val workerDto = workerDtoMapper.getDto(worker)
+            call.respond(workerDto)
         }
 
         delete("workers/{id}") {
-            val id = requireNotNull(call.parameters["id"]).toInt()
+            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
             workersRepository.deleteWorker(id)
+
             call.respond(HttpStatusCode.NoContent)
         }
     }

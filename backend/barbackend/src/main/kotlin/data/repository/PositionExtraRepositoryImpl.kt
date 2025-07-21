@@ -36,12 +36,12 @@ class PositionExtraRepositoryImpl(
         name: String?,
         price: Float?,
         isActive: Boolean?
-    ): PositionExtra? = suspendTransaction {
+    ): PositionExtra = suspendTransaction {
         val entity = PositionExtraEntity.findByIdAndUpdate(id = id) { itemExtra ->
             name?.let { itemExtra.name = it }
             price?.let { itemExtra.price = it }
             isActive?.let { itemExtra.isActive = it }
-        }
-        entity?.let { positionExtraMapper.getDomain(it) }
+        }!!
+        positionExtraMapper.getDomain(entity)
     }
 }

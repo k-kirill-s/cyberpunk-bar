@@ -1,6 +1,8 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.PositionDtoMapper
+import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.PositionsRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,48 +20,53 @@ fun Application.positionsRouting() {
 
     routing {
         get("/positions") {
-            val positionsDto = positionsRepository.getPositions()
-                .map { positionDtoMapper.getDto(it) }
+            val positions = positionsRepository.getPositions()
+
+            val positionsDto = positions.map { positionDtoMapper.getDto(it) }
             call.respond(positionsDto)
         }
 
         post("positions") {
             val formParameters = call.receiveParameters()
-            val id = requireNotNull(formParameters["id"])
-            val name = requireNotNull(formParameters["name"])
+            val id = formParameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val description = formParameters["description"].orEmpty()
-            val price = requireNotNull(formParameters["price"]).toFloat()
-            val positionDto = positionsRepository.addPosition(
+            val price = formParameters["price"]?.toFloat() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
+            val position = positionsRepository.addPosition(
                 id = id,
                 name = name,
                 description = description,
                 price = price,
-            ).let { positionDtoMapper.getDto(it) }
+            )
+
+            val positionDto = positionDtoMapper.getDto(position)
             call.respond(positionDto)
         }
 
         patch("positions/{id}") {
-            val id = requireNotNull(call.parameters["id"])
+            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val price = formParameters["price"]?.toFloat()
             val isActive = formParameters["is_active"]?.toBoolean()
-            val positionDto = positionsRepository.updatePosition(
+
+            val position = positionsRepository.updatePosition(
                 id = id,
                 name = name,
                 price = price,
                 isActive = isActive,
-            )?.let { positionDtoMapper.getDto(it) }
-            if (positionDto != null) {
-                call.respond(positionDto)
-            } else {
-                call.respond(HttpStatusCode.BadRequest)
-            }
+            )
+
+            val positionDto = positionDtoMapper.getDto(position)
+            call.respond(positionDto)
         }
 
         delete("positions/{id}") {
-            val id = requireNotNull(call.parameters["id"])
+            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
             positionsRepository.deletePosition(id)
+
             call.respond(HttpStatusCode.NoContent)
         }
     }

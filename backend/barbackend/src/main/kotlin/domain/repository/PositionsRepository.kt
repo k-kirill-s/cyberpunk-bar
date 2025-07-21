@@ -22,5 +22,5 @@ interface PositionsRepository {
         name: String?,
         price: Float?,
         isActive: Boolean?,
-    ): Position?
+    ): Position
 }

@@ -1,7 +1,9 @@
 package by.cyberpunkfandom
 
 import by.cyberpunkfandom.controller.di.controllerKoinModule
+import by.cyberpunkfandom.controller.dto.ErrorDto
 import by.cyberpunkfandom.data.di.dataKoinModule
+import by.cyberpunkfandom.domain.exceptions.GeneralException
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -38,7 +40,11 @@ fun Application.module() {
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            if (cause is GeneralException) {
+                call.respond(HttpStatusCode.InternalServerError, ErrorDto(cause.code.name))
+            } else {
+                call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            }
         }
     }
 

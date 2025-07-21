@@ -22,12 +22,12 @@ class WorkersRepositoryImpl(
         workerMapper.getDomain(newEntity)
     }
 
-    override suspend fun updateWorker(id: Int, name: String?, isOnLine: Boolean?): Worker? = suspendTransaction {
+    override suspend fun updateWorker(id: Int, name: String?, isOnLine: Boolean?): Worker = suspendTransaction {
         val entity = WorkerEntity.findByIdAndUpdate(id = id) { worker ->
             name?.let { worker.name = it }
             isOnLine?.let { worker.isOnLine = it }
-        }
-        entity?.let { workerMapper.getDomain(it) }
+        }!!
+        workerMapper.getDomain(entity)
     }
 
     override suspend fun deleteWorker(id: Int): Unit = suspendTransaction {

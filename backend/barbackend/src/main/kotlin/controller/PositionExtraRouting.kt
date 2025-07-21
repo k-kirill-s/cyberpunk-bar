@@ -1,6 +1,8 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.PositionExtraDtoMapper
+import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.PositionExtraRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,43 +20,47 @@ fun Application.positionExtraRouting() {
 
     routing {
         get("/position_extra") {
-            val positionExtraDto = positionExtraRepository.getPositionExtra()
-                .map { positionExtraDtoMapper.getDto(it) }
+            val positionExtra = positionExtraRepository.getPositionExtra()
+
+            val positionExtraDto = positionExtra.map { positionExtraDtoMapper.getDto(it) }
             call.respond(positionExtraDto)
         }
 
         post("position_extra") {
             val formParameters = call.receiveParameters()
-            val id = requireNotNull(formParameters["id"])
-            val name = requireNotNull(formParameters["name"])
-            val price = requireNotNull(formParameters["price"]).toFloat()
-            val positionExtraDto = positionExtraRepository.addPositionExtra(id, name, price)
-                .let { positionExtraDtoMapper.getDto(it) }
+            val id = formParameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val price = formParameters["price"]?.toFloat() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
+            val positionExtra = positionExtraRepository.addPositionExtra(id, name, price)
+
+            val positionExtraDto = positionExtraDtoMapper.getDto(positionExtra)
             call.respond(positionExtraDto)
         }
 
         patch("position_extra/{id}") {
-            val id = requireNotNull(call.parameters["id"])
+            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val price = formParameters["price"]?.toFloat()
             val isActive = formParameters["is_active"]?.toBoolean()
-            val positionExtraDto = positionExtraRepository.updatePositionExtra(
+
+            val positionExtra = positionExtraRepository.updatePositionExtra(
                 id = id,
                 name = name,
                 price = price,
                 isActive = isActive,
-            )?.let { positionExtraDtoMapper.getDto(it) }
-            if (positionExtraDto != null) {
-                call.respond(positionExtraDto)
-            } else {
-                call.respond(HttpStatusCode.BadRequest)
-            }
+            )
+
+            val positionExtraDto = positionExtraDtoMapper.getDto(positionExtra)
+            call.respond(positionExtraDto)
         }
 
         delete("position_extra/{id}") {
-            val id = requireNotNull(call.parameters["id"])
+            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
             positionExtraRepository.deletePositionExtra(id)
+
             call.respond(HttpStatusCode.NoContent)
         }
     }

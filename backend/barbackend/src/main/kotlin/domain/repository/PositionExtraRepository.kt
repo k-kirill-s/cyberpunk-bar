@@ -21,5 +21,5 @@ interface PositionExtraRepository {
         name: String?,
         price: Float?,
         isActive: Boolean?,
-    ): PositionExtra?
+    ): PositionExtra
 }

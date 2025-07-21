@@ -12,7 +12,7 @@ interface WorkersRepository {
         id: Int,
         name: String?,
         isOnLine: Boolean?,
-    ): Worker?
+    ): Worker
 
     suspend fun deleteWorker(id: Int)
 }

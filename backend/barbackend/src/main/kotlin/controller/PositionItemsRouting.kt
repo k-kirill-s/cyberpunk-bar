@@ -1,6 +1,8 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.PositionItemDtoMapper
+import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.PositionItemsRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -17,27 +19,33 @@ fun Application.positionItemsRouting() {
 
     routing {
         get("/orders/{order_id}/position_items") {
-            val orderId = requireNotNull(call.parameters["order_id"]).toInt()
+            val orderId = call.parameters["order_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
             val positionItems = positionItemsRepository.getPositionItems(orderId)
+
             val positionItemsDto = positionItems.map { positionItemDtoMapper.getDto(it) }
             call.respond(positionItemsDto)
         }
 
         post("/orders/{order_id}/position_items") {
-            val orderId = requireNotNull(call.parameters["order_id"]).toInt()
+            val orderId = call.parameters["order_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
-            val positionId = requireNotNull(formParameters["position_id"])
+            val positionId = formParameters["position_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
             val positionItem = positionItemsRepository.addPositionItem(
                 orderId = orderId,
                 positionId = positionId
             )
+
             val positionItemDto = positionItemDtoMapper.getDto(positionItem)
             call.respond(positionItemDto)
         }
 
         delete("/position_items/{id}") {
-            val id = requireNotNull(call.parameters["id"]).toInt()
+            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+
             positionItemsRepository.deletePositionItem(id)
+
             call.respond(HttpStatusCode.NoContent)
         }
     }

@@ -7,6 +7,8 @@ import by.cyberpunkfandom.data.database.orders.OrdersTable
 import by.cyberpunkfandom.data.database.suspendTransaction
 import by.cyberpunkfandom.data.mappers.OrderFullMapper
 import by.cyberpunkfandom.data.mappers.OrderMapper
+import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.models.Order
 import by.cyberpunkfandom.domain.models.OrderFull
 import by.cyberpunkfandom.domain.models.OrderStatus
@@ -19,71 +21,53 @@ class OrdersRepositoryImpl(
 ) : OrdersRepository {
 
     override suspend fun getOrders(): List<Order> = suspendTransaction {
-        OrderEntity.all().map { orderMapper.getDomain(it) }
-    }
-
-    override suspend fun getActiveOrders(): List<Order> = suspendTransaction {
-        val activeStatuses = OrderStatus.entries.filter { it.isActive }.map { it.name }
-        val activeOrderIds = OrdersTable.join(
-            OrderStatusChangedEventsTable,
-            JoinType.INNER,
-            additionalConstraint = { OrdersTable.lastStatusChangedEvent eq OrderStatusChangedEventsTable.id },
-        )
-            .selectAll()
-            .where { OrderStatusChangedEventsTable.status inList activeStatuses }
-            .map { it[OrdersTable.id].value }
-
-        OrderEntity.find { OrdersTable.id inList activeOrderIds }
+        val query = getOrdersQuery()
+        OrderEntity.wrapRows(query)
+            .toList()
             .map { orderMapper.getDomain(it) }
     }
 
-    override suspend fun getNextOrderToCollect(): OrderFull? = suspendTransaction {
-        val orderId = OrdersTable.join(
-            OrderStatusChangedEventsTable,
-            JoinType.INNER,
-            additionalConstraint = { OrdersTable.lastStatusChangedEvent eq OrderStatusChangedEventsTable.id },
-        )
-            .selectAll()
-            .where { OrderStatusChangedEventsTable.status eq OrderStatus.FORMED.name }
-            .orderBy(OrderStatusChangedEventsTable.happenedAt to SortOrder.ASC)
-            .map { it[OrdersTable.id].value }
+    override suspend fun getActiveOrders(): List<Order> = suspendTransaction {
+        val query = getOrdersQuery(OrderStatus.entries.filter { it.isActive })
+        OrderEntity.wrapRows(query)
+            .toList()
+            .map { orderMapper.getDomain(it) }
+    }
+
+    override suspend fun getNextOrderToCollect(): OrderFull = suspendTransaction {
+        val query = getOrdersQuery(listOf(OrderStatus.FORMED))
+        OrderFullEntity.wrapRows(query)
             .firstOrNull()
-
-        orderId
-            ?.let { OrderFullEntity.findById(it) }
             ?.let { orderFullMapper.getDomain(it) }
+            ?: throw GeneralException(ExceptionCodes.ORDER_NOT_FOUND)
     }
 
-    override suspend fun getOrderInProgressByWorker(workerId: Int): OrderFull? = suspendTransaction {
-        val orderId = OrdersTable.join(
-            OrderStatusChangedEventsTable,
-            JoinType.INNER,
-            additionalConstraint = { OrdersTable.lastStatusChangedEvent eq OrderStatusChangedEventsTable.id },
-        )
-            .selectAll()
-            .where { (OrderStatusChangedEventsTable.status eq OrderStatus.STARTED.name) and (OrdersTable.workerId eq workerId) }
-            .map { it[OrdersTable.id].value }
-            .firstOrNull()
-
-        orderId
-            ?.let { OrderFullEntity.findById(it) }
+    override suspend fun getOrderInProgressByWorker(workerId: Int): OrderFull = suspendTransaction {
+        val query = getOrdersQuery(listOf(OrderStatus.STARTED))
+        OrderFullEntity.wrapRows(query)
+            .firstOrNull { it.worker?.id?.value == workerId }
             ?.let { orderFullMapper.getDomain(it) }
+            ?: throw GeneralException(ExceptionCodes.ORDER_NOT_FOUND)
     }
 
-    override suspend fun getOrder(id: Int): OrderFull? = suspendTransaction {
-        getOrderFull(id)
-    }
+    override suspend fun getOrder(id: Int): OrderFull = suspendTransaction { getOrderFull(id) }
 
     override suspend fun createOrder(): OrderFull = suspendTransaction {
         val entity = OrderFullEntity.new {}
-        requireNotNull(getOrderFull(entity.id.value))
+        changeOrderStatus(entity.id.value, OrderStatus.CREATED)
+        orderFullMapper.getDomain(entity)
     }
 
     override suspend fun deleteOrder(id: Int): Unit = suspendTransaction {
+        assertOrder(id) {}
         OrderEntity.findById(id)?.delete()
     }
 
     override suspend fun formOrder(id: Int): OrderFull = suspendTransaction {
+        assertOrder(id) { order ->
+            checkOrderStatus(order, OrderStatus.CREATED)
+        }
+
         val maxFormedIndex = OrdersTable.select(OrdersTable.formedIndex.max())
             .map { it[OrdersTable.formedIndex.max()] }
             .firstOrNull() as Int?
@@ -97,8 +81,9 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun startOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
-        val order = requireNotNull(OrderFullEntity.findById(id))
-        require(order.worker == null)
+        assertOrder(id) { order ->
+            checkOrderStatus(order, OrderStatus.FORMED)
+        }
 
         OrdersTable.update(where = { OrdersTable.id eq id }) {
             it[this.workerId] = workerId
@@ -107,14 +92,25 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun finishOrder(id: Int): OrderFull = suspendTransaction {
+        assertOrder(id) { order ->
+            checkOrderStatus(order, OrderStatus.STARTED)
+        }
         changeOrderStatus(id, OrderStatus.FINISHED)
     }
 
     override suspend fun giveOrder(id: Int): OrderFull = suspendTransaction {
+        assertOrder(id) { order ->
+            checkOrderStatus(order, OrderStatus.FINISHED)
+        }
         changeOrderStatus(id, OrderStatus.GIVEN)
     }
 
     override suspend fun declineOrder(id: Int): OrderFull = suspendTransaction {
+        assertOrder(id) { order ->
+            if (order.lastStatusChangedEvent?.status in listOf(OrderStatus.GIVEN, OrderStatus.FINISHED).map { it.name }) {
+                throw GeneralException(ExceptionCodes.ORDER_IN_INCOMPATIBLE_STATUS)
+            }
+        }
         changeOrderStatus(id, OrderStatus.DECLINED)
     }
 
@@ -126,11 +122,30 @@ class OrdersRepositoryImpl(
         OrdersTable.update(where = { OrdersTable.id eq orderId }) {
             it[this.lastStatusChangedEvent] = eventId
         }
-        return requireNotNull(getOrderFull(orderId))
+        return getOrderFull(orderId)
     }
 
-    private fun getOrderFull(orderId: Int): OrderFull? {
-        val orderFullEntity = OrderFullEntity.findById(orderId) ?: return null
+    private fun getOrderFull(orderId: Int): OrderFull {
+        val orderFullEntity = OrderFullEntity.findById(orderId) ?: throw GeneralException(ExceptionCodes.ORDER_NOT_FOUND)
         return orderFullMapper.getDomain(orderFullEntity)
+    }
+
+    private fun getOrdersQuery(statuses: List<OrderStatus> = OrderStatus.entries): Query {
+        return OrdersTable
+            .innerJoin(OrderStatusChangedEventsTable, { lastStatusChangedEvent }, { id })
+            .select(OrdersTable.columns)
+            .where { OrderStatusChangedEventsTable.status inList statuses.map { it.name } }
+            .orderBy(OrderStatusChangedEventsTable.happenedAt)
+    }
+
+    private fun assertOrder(id: Int, assert: (OrderFullEntity) -> Unit) {
+        val order = OrderFullEntity.findById(id) ?: throw GeneralException(ExceptionCodes.ORDER_NOT_FOUND)
+        assert(order)
+    }
+
+    private fun checkOrderStatus(order: OrderFullEntity, status: OrderStatus) {
+        if (order.lastStatusChangedEvent?.status != status.name) {
+            throw GeneralException(ExceptionCodes.ORDER_IN_INCOMPATIBLE_STATUS)
+        }
     }
 }

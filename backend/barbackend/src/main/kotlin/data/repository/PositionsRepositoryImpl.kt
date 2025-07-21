@@ -38,12 +38,12 @@ class PositionsRepositoryImpl(
         name: String?,
         price: Float?,
         isActive: Boolean?
-    ): Position? = suspendTransaction {
+    ): Position = suspendTransaction {
         val entity = PositionEntity.findByIdAndUpdate(id = id) { barPosition ->
             name?.let { barPosition.name = it }
             price?.let { barPosition.price = it }
             isActive?.let { barPosition.isActive = it }
-        }
-        entity?.let { positionMapper.getDomain(it) }
+        }!!
+        positionMapper.getDomain(entity)
     }
 }
