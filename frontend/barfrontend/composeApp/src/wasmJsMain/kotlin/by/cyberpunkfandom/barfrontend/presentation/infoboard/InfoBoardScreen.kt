@@ -38,125 +38,63 @@ private fun InfoBoardScreen(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        FormedOrdersBox(
+        OrdersBox(
             ordersNames = formedOrdersNames,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-        )
-
-        AppVerticalDivider()
-
-        StartedOrdersBox(
-            ordersNames = startedOrdersNames,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-        )
-
-        AppVerticalDivider()
-
-        FinishedOrdersBox(
-            ordersNames = finishedOrdersNames,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-        )
-    }
-}
-
-@Composable
-private fun FormedOrdersBox(
-    ordersNames: List<String>,
-    modifier: Modifier = Modifier,
-) {
-    OrdersBoxScaffold(
-        title = "В очереди",
-        modifier = modifier,
-    ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            val firstOrdersNames = ordersNames.take(5)
-            val secondOrderNames = ordersNames.drop(5).take(5)
-            val thirdOrderNames = ordersNames.drop(10).take(5)
-
-            OrdersNamesColumn(
-                ordersNames = firstOrdersNames,
-                textStyle = AppTheme.typography.display,
-                textColor = AppTheme.colorScheme.text,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
-
-            OrdersNamesColumn(
-                ordersNames = secondOrderNames,
-                textStyle = AppTheme.typography.display,
-                textColor = AppTheme.colorScheme.text,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
-
-            OrdersNamesColumn(
-                ordersNames = thirdOrderNames,
-                textStyle = AppTheme.typography.display,
-                textColor = AppTheme.colorScheme.text,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
-        }
-    }
-}
-
-@Composable
-private fun StartedOrdersBox(
-    ordersNames: List<String>,
-    modifier: Modifier = Modifier,
-) {
-    OrdersBoxScaffold(
-        title = "В процессе",
-        modifier = modifier
-    ) {
-        OrdersNamesColumn(
-            ordersNames = ordersNames,
-            textStyle = AppTheme.typography.display,
+            title = "В очереди",
             textColor = AppTheme.colorScheme.text,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+        )
+
+        AppVerticalDivider()
+
+        OrdersBox(
+            ordersNames = startedOrdersNames,
+            title = "В процессе",
+            textColor = AppTheme.colorScheme.text,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+        )
+
+        AppVerticalDivider()
+
+        OrdersBox(
+            ordersNames = finishedOrdersNames,
+            title = "Готовы",
+            textColor = AppTheme.colorScheme.green,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
         )
     }
 }
 
 @Composable
-private fun FinishedOrdersBox(
+private fun OrdersBox(
     ordersNames: List<String>,
+    title: String,
+    textColor: Color,
     modifier: Modifier = Modifier,
 ) {
     OrdersBoxScaffold(
-        title = "Готовы",
+        title = title,
         modifier = modifier,
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            val firstOrdersNames = ordersNames.take(5)
-            val secondOrderNames = ordersNames.drop(5).take(5)
-
-            OrdersNamesColumn(
-                ordersNames = firstOrdersNames,
-                textStyle = AppTheme.typography.displayLarge,
-                textColor = AppTheme.colorScheme.green,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
-
-            OrdersNamesColumn(
-                ordersNames = secondOrderNames,
-                textStyle = AppTheme.typography.display,
-                textColor = AppTheme.colorScheme.green,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
+            val chunkedOrdersNames = ordersNames.chunked(5)
+            val textStyle = if (chunkedOrdersNames.size > 2) AppTheme.typography.display else AppTheme.typography.displayLarge
+            chunkedOrdersNames.take(3).forEach { ordersNames ->
+                OrdersNamesColumn(
+                    ordersNames = ordersNames,
+                    textStyle = textStyle,
+                    textColor = textColor,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                )
+            }
         }
     }
 }
