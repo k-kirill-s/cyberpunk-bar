@@ -60,7 +60,7 @@ class OrdersRepositoryImpl(
 
     override suspend fun deleteOrder(id: Int): Unit = suspendTransaction {
         assertOrder(id) {}
-        OrderEntity.findById(id)?.delete()
+        OrderFullEntity.findById(id)?.delete()
     }
 
     override suspend fun formOrder(id: Int): OrderFull = suspendTransaction {
