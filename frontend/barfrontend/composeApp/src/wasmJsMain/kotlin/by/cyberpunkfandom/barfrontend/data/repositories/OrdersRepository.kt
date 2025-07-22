@@ -5,6 +5,8 @@ import by.cyberpunkfandom.barfrontend.data.mappers.OrderMapper
 import by.cyberpunkfandom.barfrontend.data.services.MainService
 import by.cyberpunkfandom.barfrontend.domain.Order
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 
 class OrdersRepository(
     private val mainService: MainService,
@@ -20,13 +22,29 @@ class OrdersRepository(
     }
 
     suspend fun getNextOrderToCollect(): OrderFull? {
-        val dto = mainService.getNextOrderToCollect()
-        return dto?.let { orderFullMapper.getDomain(it) }
+        return try {
+            val dto = mainService.getNextOrderToCollect()
+            orderFullMapper.getDomain(dto)
+        } catch (e: GeneralException) {
+            if (e.code == ExceptionCodes.ORDER_NOT_FOUND) {
+                null
+            } else {
+                throw e
+            }
+        }
     }
 
     suspend fun getInProgressOrderByWorker(workerId: Int): OrderFull? {
-        val dto = mainService.getInProgressOrderByWorker(workerId)
-        return dto?.let { orderFullMapper.getDomain(it) }
+        return try {
+            val dto = mainService.getInProgressOrderByWorker(workerId)
+            orderFullMapper.getDomain(dto)
+        } catch (e: GeneralException) {
+            if (e.code == ExceptionCodes.ORDER_NOT_FOUND) {
+                null
+            } else {
+                throw e
+            }
+        }
     }
 
     suspend fun getOrder(id: Int): OrderFull {

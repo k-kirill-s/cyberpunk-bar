@@ -3,6 +3,8 @@ package by.cyberpunkfandom.barfrontend.presentation.cashier.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +21,15 @@ class CashierHomeViewModel(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Napier.e("error", throwable)
+        if (throwable is GeneralException) {
+            _onError.trySend(throwable.code)
+        } else {
+            _onError.trySend(ExceptionCodes.UNKNOWN)
+        }
     }
+
+    private val _onError: Channel<ExceptionCodes> = Channel(Channel.BUFFERED)
+    val onError: Flow<ExceptionCodes> = _onError.receiveAsFlow()
 
     private val _onOpenCreateOrderRequest: Channel<Int> = Channel(Channel.BUFFERED)
     val onOpenCreateOrderRequest: Flow<Int> = _onOpenCreateOrderRequest.receiveAsFlow()

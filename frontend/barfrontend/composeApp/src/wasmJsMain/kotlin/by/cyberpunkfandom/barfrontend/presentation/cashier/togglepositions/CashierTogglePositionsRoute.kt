@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -13,6 +14,7 @@ import org.koin.core.parameter.parametersOf
 internal data class CashierTogglePositionsRoute(val type: String)
 
 internal fun NavGraphBuilder.cashierTogglePositionsComposable(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
 ) {
     composable<CashierTogglePositionsRoute> { navBackStackEntry ->
@@ -21,6 +23,7 @@ internal fun NavGraphBuilder.cashierTogglePositionsComposable(
             parameters = { parametersOf(CashierTogglePositionsScreenType.valueOf(route.type)) }
         )
         CashierTogglePositionsScreen(
+            onError = onError,
             onBackRequest = onBackRequest,
             viewModel = viewModel,
         )

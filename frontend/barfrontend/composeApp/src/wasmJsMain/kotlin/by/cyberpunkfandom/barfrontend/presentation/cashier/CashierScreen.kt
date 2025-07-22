@@ -2,13 +2,20 @@ package by.cyberpunkfandom.barfrontend.presentation.cashier
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.cashierAddPositionComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.navigateToCashierAddPosition
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.cashierAddPositionExtraComposable
@@ -25,6 +32,7 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.home.cashierHomeCompo
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsScreenType
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.cashierTogglePositionsComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.navigateToCashierTogglePositions
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -34,92 +42,115 @@ fun CashierScreen(
 ) {
     var currentOrderId by remember { mutableStateOf<Int?>(null) }
 
-    val navController = rememberNavController()
-    NavHost(
-        navController = navController,
-        startDestination = CashierHomeRoute,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None },
+    val scope = rememberCoroutineScope()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    fun showErrorSnackbar(code: ExceptionCodes) {
+        scope.launch {
+            snackbarHostState.showSnackbar(message = code.message)
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
     ) {
-        cashierHomeComposable(
-            onBackRequest = onBackRequest,
-            onOpenCreateOrderRequest = { orderId ->
-                currentOrderId = orderId
-                navController.navigateToCashierCreateOrder(orderId)
-            },
-            onGiveAwayOrderRequest = {
-                navController.navigateToCashierGiveAwayOrder()
-            },
-            onCancelOrderRequest = {
-                navController.navigateToCashierCancelOrder()
-            },
-            onTogglePositionsRequest = {
-                navController.navigateToCashierTogglePositions(CashierTogglePositionsScreenType.POSITIONS)
-            },
-            onToggleExtraRequest = {
-                navController.navigateToCashierTogglePositions(CashierTogglePositionsScreenType.POSITION_EXTRA)
-            },
-        )
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = CashierHomeRoute,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
+            cashierHomeComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = onBackRequest,
+                onOpenCreateOrderRequest = { orderId ->
+                    currentOrderId = orderId
+                    navController.navigateToCashierCreateOrder(orderId)
+                },
+                onGiveAwayOrderRequest = {
+                    navController.navigateToCashierGiveAwayOrder()
+                },
+                onCancelOrderRequest = {
+                    navController.navigateToCashierCancelOrder()
+                },
+                onTogglePositionsRequest = {
+                    navController.navigateToCashierTogglePositions(CashierTogglePositionsScreenType.POSITIONS)
+                },
+                onToggleExtraRequest = {
+                    navController.navigateToCashierTogglePositions(CashierTogglePositionsScreenType.POSITION_EXTRA)
+                },
+            )
 
-        cashierCreateOrderComposable(
-            onCloseRequest = { navController.popBackStack() },
-            onAddPositionRequest = {
-                currentOrderId?.let { navController.navigateToCashierAddPosition(it) }
-            },
-            onAddPositionExtraRequest = { positionItemId ->
-                navController.navigateToCashierAddPositionExtra(positionItemId)
-            },
-            onOrderFormed = {
-                navController.popBackStack(CashierHomeRoute, inclusive = false)
-            }
-        )
+            cashierCreateOrderComposable(
+                onError = { showErrorSnackbar(it) },
+                onCloseRequest = { navController.popBackStack() },
+                onAddPositionRequest = {
+                    currentOrderId?.let { navController.navigateToCashierAddPosition(it) }
+                },
+                onAddPositionExtraRequest = { positionItemId ->
+                    navController.navigateToCashierAddPositionExtra(positionItemId)
+                },
+                onOrderFormed = {
+                    navController.popBackStack(CashierHomeRoute, inclusive = false)
+                }
+            )
 
-        cashierAddPositionComposable(
-            onBackRequest = { navController.popBackStack() },
-            onPositionItemAdded = { positionItemId ->
-                navController.navigateToCashierAddPositionExtra(
-                    positionItemId = positionItemId
-                )
-            },
-        )
+            cashierAddPositionComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = { navController.popBackStack() },
+                onPositionItemAdded = { positionItemId ->
+                    navController.navigateToCashierAddPositionExtra(
+                        positionItemId = positionItemId
+                    )
+                },
+            )
 
-        cashierAddPositionExtraComposable(
-            onBackRequest = {
-                currentOrderId?.let { orderId ->
-                    navController.navigateToCashierCreateOrder(orderId = orderId) {
-                        popUpTo(CashierCreateOrderRoute(orderId)) {
-                            inclusive = true
+            cashierAddPositionExtraComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = {
+                    currentOrderId?.let { orderId ->
+                        navController.navigateToCashierCreateOrder(orderId = orderId) {
+                            popUpTo(CashierCreateOrderRoute(orderId)) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                },
+                onPositionExtraItemAdded = { positionExtraItemId ->
+                    currentOrderId?.let { orderId ->
+                        navController.navigateToCashierCreateOrder(orderId = orderId) {
+                            popUpTo(CashierCreateOrderRoute(orderId)) {
+                                inclusive = true
+                            }
                         }
                     }
                 }
-            },
-            onPositionExtraItemAdded = { positionExtraItemId ->
-                currentOrderId?.let { orderId ->
-                    navController.navigateToCashierCreateOrder(orderId = orderId) {
-                        popUpTo(CashierCreateOrderRoute(orderId)) {
-                            inclusive = true
-                        }
-                    }
+            )
+
+            cashierGiveAwayOrderComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = {
+                    navController.popBackStack()
                 }
-            }
-        )
+            )
 
-        cashierGiveAwayOrderComposable(
-            onBackRequest = {
-                navController.popBackStack()
-            }
-        )
+            cashierCancelOrderComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = {
+                    navController.popBackStack()
+                }
+            )
 
-        cashierCancelOrderComposable(
-            onBackRequest = {
-                navController.popBackStack()
-            }
-        )
-
-        cashierTogglePositionsComposable(
-            onBackRequest = {
-                navController.popBackStack()
-            }
-        )
+            cashierTogglePositionsComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }

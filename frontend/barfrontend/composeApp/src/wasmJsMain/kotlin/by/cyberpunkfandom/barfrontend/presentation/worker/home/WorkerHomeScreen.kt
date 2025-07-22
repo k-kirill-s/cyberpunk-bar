@@ -15,22 +15,30 @@ import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.OrderStatus
 import by.cyberpunkfandom.barfrontend.domain.Worker
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderfinished.WorkerHomeOrderFinishedDialog
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderfinished.WorkerHomeOrderFinishedDialogState
-import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderstarted.WorkerHomeOrderStartedDialog
-import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderstarted.WorkerHomeOrderStartedDialogState
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderstarted.WorkerHomeOrderStartedOrCancelledDialog
+import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderstarted.WorkerHomeOrderStartedOrCancelledDialogState
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun WorkerHomeScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     onOrderStarted: (orderId: Int) -> Unit,
     viewModel: WorkerHomeViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.onOrderStarted.collect { workerId ->
             onOrderStarted(workerId)
@@ -45,7 +53,7 @@ fun WorkerHomeScreen(
         onStartOrderClick = viewModel::onStartOrderClick,
         orderFinishedDialogState = viewModel.orderFinishedDialogState.collectAsStateWithLifecycle().value,
         onOrderFinishedDialogDismissRequest = viewModel::onOrderFinishedDialogDismissRequest,
-        orderStartedDialogState = viewModel.orderStartedDialogState.collectAsStateWithLifecycle().value,
+        orderStartedOrCancelledDialogState = viewModel.orderStartedOrCancelledDialogState.collectAsStateWithLifecycle().value,
         onOrderStartedDialogDismissRequest = viewModel::onOrderStartedDialogDismissRequest,
     )
 }
@@ -59,7 +67,7 @@ private fun WorkerAuthScreen(
     onStartOrderClick: () -> Unit,
     orderFinishedDialogState: WorkerHomeOrderFinishedDialogState?,
     onOrderFinishedDialogDismissRequest: () -> Unit,
-    orderStartedDialogState: WorkerHomeOrderStartedDialogState?,
+    orderStartedOrCancelledDialogState: WorkerHomeOrderStartedOrCancelledDialogState?,
     onOrderStartedDialogDismissRequest: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -101,8 +109,8 @@ private fun WorkerAuthScreen(
         )
     }
 
-    orderStartedDialogState?.let { state ->
-        WorkerHomeOrderStartedDialog(
+    orderStartedOrCancelledDialogState?.let { state ->
+        WorkerHomeOrderStartedOrCancelledDialog(
             state = state,
             onDismissRequest = onOrderStartedDialogDismissRequest,
         )

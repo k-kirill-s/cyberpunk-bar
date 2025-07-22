@@ -5,15 +5,15 @@ import androidx.compose.ui.Modifier
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppAlertDialog
 
 @Composable
-fun WorkerHomeOrderStartedDialog(
-    state: WorkerHomeOrderStartedDialogState,
+fun WorkerHomeOrderStartedOrCancelledDialog(
+    state: WorkerHomeOrderStartedOrCancelledDialogState,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AppAlertDialog(
         onDismissRequest = onDismissRequest,
         title = "Ошибка",
-        text = "Заказ №${state.orderName} уже начат",
+        text = "Заказ №${state.orderName} уже начат или отменен",
         modifier = modifier,
     )
 }

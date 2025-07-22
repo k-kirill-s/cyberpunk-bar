@@ -1,5 +1,6 @@
 package by.cyberpunkfandom.barfrontend.data.services
 
+import by.cyberpunkfandom.barfrontend.data.models.ErrorDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderFullDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionDto
@@ -7,13 +8,15 @@ import by.cyberpunkfandom.barfrontend.data.models.PositionExtraDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionExtraItemDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionItemDto
 import by.cyberpunkfandom.barfrontend.data.models.WorkerDto
-import by.cyberpunkfandom.barfrontend.domain.exceptions.OrderAlreadyStartedException
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
@@ -23,56 +26,48 @@ class MainService(private val httpClient: HttpClient) {
     // ---------------------------------------------------------------------------------------------------------------
     // ORDERS
     suspend fun getActiveOrders(): List<OrderDto> {
-        return httpClient.get("orders/active").body()
+        return httpClient.get("orders/active").bodyOrThrowGeneralError()
     }
 
-    suspend fun getNextOrderToCollect(): OrderFullDto? {
-        return httpClient.get("orders/next")
-            .body<List<OrderFullDto>>()
-            .firstOrNull()
+    suspend fun getNextOrderToCollect(): OrderFullDto {
+        return httpClient.get("orders/next").bodyOrThrowGeneralError()
     }
 
-    suspend fun getInProgressOrderByWorker(workerId: Int): OrderFullDto? {
-        return httpClient.get("orders/by_worker/${workerId}")
-            .body<List<OrderFullDto>>()
-            .firstOrNull()
+    suspend fun getInProgressOrderByWorker(workerId: Int): OrderFullDto {
+        return httpClient.get("orders/by_worker/${workerId}").bodyOrThrowGeneralError()
     }
 
     suspend fun getOrder(id: Int): OrderFullDto {
-        return httpClient.get("orders/$id").body()
+        return httpClient.get("orders/$id").bodyOrThrowGeneralError()
     }
 
     suspend fun createOrder(): OrderFullDto {
-        return httpClient.post("orders").body()
+        return httpClient.post("orders").bodyOrThrowGeneralError()
     }
 
     suspend fun formOrder(orderId: Int): OrderFullDto {
-        return httpClient.post("/orders/${orderId}/form").body()
+        return httpClient.post("/orders/${orderId}/form").bodyOrThrowGeneralError()
     }
 
     suspend fun startOrder(orderId: Int, workerId: Int): OrderFullDto {
-        val response = httpClient.submitForm(
+        return httpClient.submitForm(
             url = "orders/${orderId}/start",
             formParameters = parameters {
                 append("worker_id", workerId.toString())
             },
-        )
-        return when (response.status) {
-            HttpStatusCode.Conflict -> throw OrderAlreadyStartedException()
-            else -> response.body()
-        }
+        ).bodyOrThrowGeneralError()
     }
 
     suspend fun finishOrder(orderId: Int): OrderFullDto {
-        return httpClient.post("/orders/${orderId}/finish").body()
+        return httpClient.post("/orders/${orderId}/finish").bodyOrThrowGeneralError()
     }
 
     suspend fun giveAwayOrder(orderId: Int): OrderFullDto {
-        return httpClient.post("/orders/${orderId}/give").body()
+        return httpClient.post("/orders/${orderId}/give").bodyOrThrowGeneralError()
     }
 
     suspend fun deleteOrder(orderId: Int) {
-        return httpClient.delete("/orders/${orderId}").body()
+        return httpClient.delete("/orders/${orderId}").bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -83,11 +78,11 @@ class MainService(private val httpClient: HttpClient) {
             formParameters = parameters {
                 append("position_id", positionId)
             },
-        ).body()
+        ).bodyOrThrowGeneralError()
     }
 
     suspend fun deletePositionItem(positionItemId: Int) {
-        return httpClient.delete("position_items/${positionItemId}").body()
+        return httpClient.delete("position_items/${positionItemId}").bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -98,17 +93,17 @@ class MainService(private val httpClient: HttpClient) {
             formParameters = parameters {
                 append("position_extra_id", positionExtraId)
             },
-        ).body()
+        ).bodyOrThrowGeneralError()
     }
 
     suspend fun deletePositionExtraItem(positionExtraItemId: Int) {
-        return httpClient.delete("position_extra_items/${positionExtraItemId}").body()
+        return httpClient.delete("position_extra_items/${positionExtraItemId}").bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
     // POSITIONS
     suspend fun getPositions(): List<PositionDto> {
-        return httpClient.get("positions").body()
+        return httpClient.get("positions").bodyOrThrowGeneralError()
     }
 
     suspend fun setPositionIsActive(positionId: String, isActive: Boolean): PositionDto {
@@ -119,14 +114,14 @@ class MainService(private val httpClient: HttpClient) {
             }
         ) {
             method = HttpMethod.Patch
-        }.body()
+        }.bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
     // POSITION EXTRA
 
     suspend fun getPositionExtra(): List<PositionExtraDto> {
-        return httpClient.get("position_extra").body()
+        return httpClient.get("position_extra").bodyOrThrowGeneralError()
     }
 
     suspend fun setPositionExtraIsActive(positionExtraId: String, isActive: Boolean): PositionExtraDto {
@@ -137,14 +132,14 @@ class MainService(private val httpClient: HttpClient) {
             }
         ) {
             method = HttpMethod.Patch
-        }.body()
+        }.bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
     // WORKERS
 
     suspend fun getWorkers(): List<WorkerDto> {
-        return httpClient.get("workers").body()
+        return httpClient.get("workers").bodyOrThrowGeneralError()
     }
 
     suspend fun setWorkerIsOnLine(workerId: Int, isOnLine: Boolean): WorkerDto {
@@ -155,6 +150,15 @@ class MainService(private val httpClient: HttpClient) {
             }
         ) {
             method = HttpMethod.Patch
-        }.body()
+        }.bodyOrThrowGeneralError()
+    }
+
+    private suspend inline fun <reified T> HttpResponse.bodyOrThrowGeneralError(): T {
+        return if (status == HttpStatusCode.InternalServerError) {
+            val error = body<ErrorDto>()
+            throw GeneralException(ExceptionCodes.valueOf(error.code))
+        } else {
+            body()
+        }
     }
 }

@@ -30,6 +30,7 @@ import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.core.format
 import by.cyberpunkfandom.barfrontend.domain.Position
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
@@ -39,10 +40,17 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun CashierAddPositionScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     onPositionItemAdded: (positionItemId: Int) -> Unit,
     viewModel: CashierAddPositionViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.onPositionItemAdded.collect { positionItemId ->
             onPositionItemAdded(positionItemId)

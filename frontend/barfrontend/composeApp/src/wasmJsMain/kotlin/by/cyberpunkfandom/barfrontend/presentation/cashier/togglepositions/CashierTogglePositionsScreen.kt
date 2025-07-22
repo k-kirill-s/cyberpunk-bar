@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import barfrontend.composeapp.generated.resources.back_24dp
 import barfrontend.composeapp.generated.resources.check_24dp
 import barfrontend.composeapp.generated.resources.remove_24dp
 import by.cyberpunkfandom.barfrontend.core.format
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppIcon
@@ -41,9 +43,16 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun CashierTogglePositionsScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     viewModel: CashierTogglePositionsViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     CashierTogglePositionsScreen(
         type = viewModel.type,
         onBackClick = onBackRequest,

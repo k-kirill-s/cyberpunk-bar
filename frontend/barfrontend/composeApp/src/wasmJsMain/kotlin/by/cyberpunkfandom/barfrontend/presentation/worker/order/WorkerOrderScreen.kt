@@ -22,6 +22,7 @@ import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.Position
 import by.cyberpunkfandom.barfrontend.domain.PositionExtraItem
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppDashedHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
@@ -31,15 +32,23 @@ import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.components.DividerType
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import by.cyberpunkfandom.barfrontend.presentation.worker.order.composables.dialogs.close.WorkerOrderCloseDialog
+import by.cyberpunkfandom.barfrontend.presentation.worker.order.composables.dialogs.orderchanged.WorkerOrderChangedDialog
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun WorkerOrderScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onCloseRequest: () -> Unit,
     onOrderFinished: (Int) -> Unit,
     onPositionDetailsRequest: (positionId: String) -> Unit,
     viewModel: WorkerOrderViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.onCloseRequest.collect {
             onCloseRequest()
@@ -69,6 +78,8 @@ fun WorkerOrderScreen(
         isCloseDialogVisible = viewModel.isCloseDialogVisible.collectAsStateWithLifecycle().value,
         onCloseDialogDismissRequest = viewModel::onCloseDialogDismissRequest,
         onCloseDialogConfirmClick = viewModel::onCloseDialogConfirmClick,
+        isChangedDialogVisible = viewModel.isChangedDialogVisible.collectAsStateWithLifecycle().value,
+        onChangedDialogDismissRequest = viewModel::onChangedDialogDismissRequest,
     )
 }
 
@@ -84,6 +95,8 @@ private fun WorkerOrderScreen(
     isCloseDialogVisible: Boolean,
     onCloseDialogDismissRequest: () -> Unit,
     onCloseDialogConfirmClick: () -> Unit,
+    isChangedDialogVisible: Boolean,
+    onChangedDialogDismissRequest: () -> Unit,
 ) {
     order ?: run {
         Spacer(Modifier.fillMaxSize())
@@ -124,6 +137,12 @@ private fun WorkerOrderScreen(
         WorkerOrderCloseDialog(
             onDismissRequest = onCloseDialogDismissRequest,
             onConfirmClick = onCloseDialogConfirmClick,
+        )
+    }
+
+    if (isChangedDialogVisible) {
+        WorkerOrderChangedDialog(
+            onDismissRequest = onChangedDialogDismissRequest,
         )
     }
 }

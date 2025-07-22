@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -13,6 +14,7 @@ import org.koin.core.parameter.parametersOf
 data class WorkerPositionDetailsRoute(val positionId: String)
 
 fun NavGraphBuilder.workerPositionDetailsComposable(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
 ) {
     composable<WorkerPositionDetailsRoute> { navBackStackEntry ->
@@ -21,6 +23,7 @@ fun NavGraphBuilder.workerPositionDetailsComposable(
             parameters = { parametersOf(route.positionId) }
         )
         WorkerPositionDetailsScreen(
+            onError = onError,
             onBackRequest = onBackRequest,
             viewModel = viewModel,
         )

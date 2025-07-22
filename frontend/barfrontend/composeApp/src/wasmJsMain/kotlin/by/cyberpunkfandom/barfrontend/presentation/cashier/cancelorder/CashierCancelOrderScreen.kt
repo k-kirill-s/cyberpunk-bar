@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,7 @@ import by.cyberpunkfandom.barfrontend.domain.Order
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.PositionExtraItem
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppDashedHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
@@ -38,9 +40,16 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun CashierCancelOrderScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     viewModel: CashierCancelOrderViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     CashierCancelOrderScreen(
         onBackClick = onBackRequest,
         orders = viewModel.orders.collectAsStateWithLifecycle().value,

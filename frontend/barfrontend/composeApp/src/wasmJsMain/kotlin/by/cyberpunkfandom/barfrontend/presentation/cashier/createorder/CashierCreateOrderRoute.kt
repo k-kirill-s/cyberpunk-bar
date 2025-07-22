@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -13,6 +14,7 @@ import org.koin.core.parameter.parametersOf
 internal data class CashierCreateOrderRoute(val orderId: Int)
 
 internal fun NavGraphBuilder.cashierCreateOrderComposable(
+    onError: (code: ExceptionCodes) -> Unit,
     onCloseRequest: () -> Unit,
     onAddPositionRequest: () -> Unit,
     onAddPositionExtraRequest: (positionItemId: Int) -> Unit,
@@ -24,6 +26,7 @@ internal fun NavGraphBuilder.cashierCreateOrderComposable(
             parameters = { parametersOf(route.orderId) }
         )
         CashierCreateOrderScreen(
+            onError = onError,
             onCloseRequest = onCloseRequest,
             onAddPositionRequest = onAddPositionRequest,
             onAddPositionExtraRequest = onAddPositionExtraRequest,

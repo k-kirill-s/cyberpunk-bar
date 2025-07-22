@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -13,6 +14,7 @@ import org.koin.core.parameter.parametersOf
 data class WorkerHomeRoute(val workerId: Int)
 
 fun NavGraphBuilder.workerHomeComposable(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     onOrderStarted: (orderId: Int) -> Unit,
 ) {
@@ -22,6 +24,7 @@ fun NavGraphBuilder.workerHomeComposable(
             parameters = { parametersOf(route.workerId) }
         )
         WorkerHomeScreen(
+            onError = onError,
             onBackRequest = onBackRequest,
             onOrderStarted = onOrderStarted,
             viewModel = viewModel,

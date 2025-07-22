@@ -18,6 +18,7 @@ import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.close_24dp
 import by.cyberpunkfandom.barfrontend.core.format
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.CashierCreateOrderPositionExtraItemRow
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.CashierCreateOrderPositionItemRow
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.dialogs.orderformed.CashierCreateOrderOrderFormedDialog
@@ -31,12 +32,19 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CashierCreateOrderScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onCloseRequest: () -> Unit,
     onAddPositionRequest: () -> Unit,
     onAddPositionExtraRequest: (positionItemId: Int) -> Unit,
     onOrderFormed: () -> Unit,
     viewModel: CashierCreateOrderViewModel = koinViewModel(),
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.onCloseRequest.collect {
             onCloseRequest()

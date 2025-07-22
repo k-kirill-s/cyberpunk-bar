@@ -4,12 +4,14 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object CashierHomeRoute
 
 fun NavGraphBuilder.cashierHomeComposable(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     onOpenCreateOrderRequest: (orderId: Int) -> Unit,
     onGiveAwayOrderRequest: () -> Unit,
@@ -19,6 +21,7 @@ fun NavGraphBuilder.cashierHomeComposable(
 ) {
     composable<CashierHomeRoute> { _ ->
         CashierHomeScreen(
+            onError = onError,
             onBackRequest = onBackRequest,
             onOpenCreateOrderRequest = onOpenCreateOrderRequest,
             onGiveAwayOrderRequest = onGiveAwayOrderRequest,

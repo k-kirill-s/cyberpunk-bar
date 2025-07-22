@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.domain.Worker
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
@@ -22,10 +23,17 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun WorkerAuthScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     onWorkerSelected: (workerId: Int) -> Unit,
     viewModel: WorkerAuthViewModel,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.onWorkerSelected.collect { workerId ->
             onWorkerSelected(workerId)

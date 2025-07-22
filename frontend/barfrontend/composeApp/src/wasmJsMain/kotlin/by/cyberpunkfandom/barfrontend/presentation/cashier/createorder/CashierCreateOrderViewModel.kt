@@ -8,6 +8,8 @@ import by.cyberpunkfandom.barfrontend.data.repositories.PositionExtraItemsReposi
 import by.cyberpunkfandom.barfrontend.data.repositories.PositionItemsRepository
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.dialogs.orderformed.CashierCreateOrderOrderFormedDialogState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -28,7 +30,15 @@ class CashierCreateOrderViewModel(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Napier.e("error", throwable)
+        if (throwable is GeneralException) {
+            _onError.trySend(throwable.code)
+        } else {
+            _onError.trySend(ExceptionCodes.UNKNOWN)
+        }
     }
+
+    private val _onError: Channel<ExceptionCodes> = Channel(Channel.BUFFERED)
+    val onError: Flow<ExceptionCodes> = _onError.receiveAsFlow()
 
     private val _onCloseRequest: Channel<Unit> = Channel(Channel.BUFFERED)
     val onCloseRequest: Flow<Unit> = _onCloseRequest.receiveAsFlow()

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +21,15 @@ class WorkerOrderConfirmationViewModel(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Napier.e("error", throwable)
+        if (throwable is GeneralException) {
+            _onError.trySend(throwable.code)
+        } else {
+            _onError.trySend(ExceptionCodes.UNKNOWN)
+        }
     }
+
+    private val _onError: Channel<ExceptionCodes> = Channel(Channel.BUFFERED)
+    val onError: Flow<ExceptionCodes> = _onError.receiveAsFlow()
 
     private val _onBackRequest: Channel<Unit> = Channel(Channel.BUFFERED)
     val onBackRequest: Flow<Unit> = _onBackRequest.receiveAsFlow()

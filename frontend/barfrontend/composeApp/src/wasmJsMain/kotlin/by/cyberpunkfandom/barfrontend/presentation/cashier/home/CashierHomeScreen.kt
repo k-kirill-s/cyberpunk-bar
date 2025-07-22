@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
@@ -20,6 +21,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CashierHomeScreen(
+    onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
     onOpenCreateOrderRequest: (orderId: Int) -> Unit,
     onGiveAwayOrderRequest: () -> Unit,
@@ -28,6 +30,12 @@ fun CashierHomeScreen(
     onToggleExtraRequest: () -> Unit,
     viewModel: CashierHomeViewModel = koinViewModel(),
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { code ->
+            onError(code)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.onOpenCreateOrderRequest.collect { onOpenCreateOrderRequest(it) }
     }

@@ -4,11 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
+import by.cyberpunkfandom.barfrontend.domain.OrderStatus
 import by.cyberpunkfandom.barfrontend.domain.Position
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
+import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -22,7 +26,16 @@ class WorkerOrderViewModel(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Napier.e("error", throwable)
+        if (throwable is GeneralException) {
+            _onError.trySend(throwable.code)
+        } else {
+            _onError.trySend(ExceptionCodes.UNKNOWN)
+        }
     }
+
+    private val _onError: Channel<ExceptionCodes> = Channel(Channel.BUFFERED)
+    val onError: Flow<ExceptionCodes> = _onError.receiveAsFlow()
+
     private val _onCloseRequest: Channel<Unit> = Channel(Channel.BUFFERED)
     val onCloseRequest: Flow<Unit> = _onCloseRequest.receiveAsFlow()
 
@@ -38,9 +51,26 @@ class WorkerOrderViewModel(
 
     val isCloseDialogVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
+    val isChangedDialogVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     init {
         viewModelScope.launch(exceptionHandler) {
             order.emit(ordersRepository.getOrder(orderId))
+        }
+
+        checkOrderIsInProgress()
+    }
+
+    private fun checkOrderIsInProgress() {
+        viewModelScope.launch(exceptionHandler) {
+            while (true) {
+                val order = ordersRepository.getOrder(orderId)
+                if (order.status != OrderStatus.STARTED) {
+                    isChangedDialogVisible.emit(true)
+                    break
+                }
+                delay(3000L)
+            }
         }
     }
 
@@ -70,6 +100,11 @@ class WorkerOrderViewModel(
 
     fun onCloseDialogConfirmClick() {
         isCloseDialogVisible.update { false }
+        _onCloseRequest.trySend(Unit)
+    }
+
+    fun onChangedDialogDismissRequest() {
+        isChangedDialogVisible.update { false }
         _onCloseRequest.trySend(Unit)
     }
 }
