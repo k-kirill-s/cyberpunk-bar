@@ -3,4 +3,4 @@ ktor:
         modules:
             - by.cyberpunkfandom.ApplicationKt.module
     deployment:
-        port: 9090
+        port: 8080

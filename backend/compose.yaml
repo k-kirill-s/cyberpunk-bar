@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:17
-    container_name: postgres17
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,7 +11,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - "5420:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -22,7 +21,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "9090:9090"
+      - "8020:8080"
 
 volumes:
   pgdata: {}
