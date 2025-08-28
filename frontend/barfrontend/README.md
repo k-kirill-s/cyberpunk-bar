@@ -16,3 +16,20 @@ We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public S
 If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
 
 You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+
+## Docker
+
+Build and run the production bundle with Docker:
+
+1. Build image
+   - `docker build -t bar-frontend:latest .`
+2. Run container
+   - `docker run --rm -p 8080:80 bar-frontend:latest`
+
+Or use docker compose from the `frontend` folder:
+
+- `docker compose up --build`
+
+The app will be available at http://localhost:8080/.
+
+Note: The backend host/port is currently hardcoded in `composeApp/src/wasmJsMain/kotlin/by/cyberpunkfandom/barfrontend/data/di/DataNetworkModule.kt`. Adjust it as needed for your environment.

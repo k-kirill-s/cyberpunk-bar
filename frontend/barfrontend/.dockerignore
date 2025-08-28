@@ -1,0 +1,24 @@
+# VCS / IDE
+.git
+.gitignore
+.idea
+*.iml
+
+# Logs / env
+*.log
+.env
+
+# Gradle caches (keep gradle/wrapper)
+.gradle
+
+# Build outputs
+build
+composeApp/build
+
+# JS tooling caches
+kotlin-js-store
+node_modules
+
+# Misc
+Dockerfile*
+

@@ -28,7 +28,7 @@ val dataNetworkModule = module {
 
             defaultRequest {
                 host = "192.168.1.10"
-                port = 9090
+                port = 8020
             }
         }
     }
