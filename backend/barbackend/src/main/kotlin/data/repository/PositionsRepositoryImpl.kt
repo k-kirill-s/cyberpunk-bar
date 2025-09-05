@@ -36,11 +36,13 @@ class PositionsRepositoryImpl(
     override suspend fun updatePosition(
         id: String,
         name: String?,
+        description: String?,
         price: Float?,
         isActive: Boolean?
     ): Position = suspendTransaction {
         val entity = PositionEntity.findByIdAndUpdate(id = id) { barPosition ->
             name?.let { barPosition.name = it }
+            description?.let { barPosition.description = it }
             price?.let { barPosition.price = it }
             isActive?.let { barPosition.isActive = it }
         }!!

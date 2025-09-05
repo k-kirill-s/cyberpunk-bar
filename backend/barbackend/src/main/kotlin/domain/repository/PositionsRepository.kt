@@ -20,6 +20,7 @@ interface PositionsRepository {
     suspend fun updatePosition(
         id: String,
         name: String?,
+        description: String?,
         price: Float?,
         isActive: Boolean?,
     ): Position

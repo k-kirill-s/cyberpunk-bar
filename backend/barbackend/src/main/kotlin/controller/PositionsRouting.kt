@@ -48,12 +48,14 @@ fun Application.positionsRouting() {
             val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
+            val description = formParameters["description"]
             val price = formParameters["price"]?.toFloat()
             val isActive = formParameters["is_active"]?.toBoolean()
 
             val position = positionsRepository.updatePosition(
                 id = id,
                 name = name,
+                description = description,
                 price = price,
                 isActive = isActive,
             )
