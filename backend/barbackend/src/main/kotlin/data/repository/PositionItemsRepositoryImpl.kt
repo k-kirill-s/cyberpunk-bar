@@ -16,6 +16,7 @@ class PositionItemsRepositoryImpl(
 
     override suspend fun getPositionItems(orderId: Int): List<PositionItem> = suspendTransaction {
         PositionItemEntity.find { PositionItemsTable.order eq orderId }
+            .sortedBy { it.createdAtMillis }
             .map { positionItemMapper.getDomain(it) }
     }
 

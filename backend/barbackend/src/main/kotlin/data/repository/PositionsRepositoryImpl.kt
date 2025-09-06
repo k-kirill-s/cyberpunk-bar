@@ -14,6 +14,7 @@ class PositionsRepositoryImpl(
 
     override suspend fun getPositions(): List<Position> = suspendTransaction {
         PositionEntity.all()
+            .sortedBy { it.id.value }
             .map { positionMapper.getDomain(it) }
     }
 
@@ -21,6 +22,7 @@ class PositionsRepositoryImpl(
         PositionEntity
             .all()
             .filter { PositionVariantEntity.find { PositionVariantsTable.position eq it.id }.count { it.isActive } > 0 }
+            .sortedBy { it.id.value }
             .map { positionMapper.getDomain(it) }
     }
 

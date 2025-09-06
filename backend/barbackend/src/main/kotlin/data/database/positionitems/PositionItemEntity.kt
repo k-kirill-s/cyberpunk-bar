@@ -9,6 +9,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 
 class PositionItemEntity(id: EntityID<Int>) : IntEntity(id) {
 
+    val createdAtMillis by PositionItemsTable.createdAtMillis
+
     var order by OrderEntity referencedOn PositionItemsTable.order
     var position by PositionEntity referencedOn PositionItemsTable.position
     var positionVariant by PositionVariantEntity referencedOn PositionItemsTable.positionVariant

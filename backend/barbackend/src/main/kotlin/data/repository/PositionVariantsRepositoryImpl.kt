@@ -15,6 +15,7 @@ class PositionVariantsRepositoryImpl(
     override suspend fun getPositionVariants(positionId: String): List<PositionVariant> = suspendTransaction {
         PositionVariantEntity
             .find { PositionVariantsTable.position eq positionId }
+            .sortedBy { it.id.value }
             .map { positionVariantMapper.getDomain(it) }
     }
 

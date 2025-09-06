@@ -12,6 +12,7 @@ class WorkersRepositoryImpl(
 
     override suspend fun getWorkers(): List<Worker> = suspendTransaction {
         WorkerEntity.all()
+            .sortedBy { it.name }
             .map { workerMapper.getDomain(it) }
     }
 
