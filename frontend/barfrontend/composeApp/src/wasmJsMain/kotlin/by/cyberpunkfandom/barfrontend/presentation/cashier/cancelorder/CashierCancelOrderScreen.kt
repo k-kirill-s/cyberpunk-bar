@@ -54,8 +54,8 @@ fun CashierCancelOrderScreen(
         onOrderClick = viewModel::onOrderClick,
         selectedOrderId = viewModel.selectedOrderId.collectAsStateWithLifecycle().value,
         selectedOrder = viewModel.selectedOrder.collectAsStateWithLifecycle().value,
-        isDeleteLoading = viewModel.isDeleteLoading.collectAsStateWithLifecycle().value,
-        onDeleteClick = viewModel::onDeleteClick,
+        isCancelLoading = viewModel.isCancelLoading.collectAsStateWithLifecycle().value,
+        onCancelClick = viewModel::onCancelClick,
     )
 }
 
@@ -66,8 +66,8 @@ private fun CashierCancelOrderScreen(
     onOrderClick: (orderId: Int) -> Unit,
     selectedOrderId: Int?,
     selectedOrder: OrderFull?,
-    isDeleteLoading: Boolean,
-    onDeleteClick: () -> Unit,
+    isCancelLoading: Boolean,
+    onCancelClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -95,8 +95,8 @@ private fun CashierCancelOrderScreen(
             AppVerticalDivider()
             OrderDetails(
                 order = selectedOrder,
-                isDeleteLoading = isDeleteLoading,
-                onDeleteClick = onDeleteClick,
+                isCancelLoading = isCancelLoading,
+                onCancelClick = onCancelClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
@@ -140,8 +140,8 @@ private fun OrdersList(
 @Composable
 private fun OrderDetails(
     order: OrderFull?,
-    isDeleteLoading: Boolean,
-    onDeleteClick: () -> Unit,
+    isCancelLoading: Boolean,
+    onCancelClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (order == null) {
@@ -180,8 +180,8 @@ private fun OrderDetails(
 
         OrderDetailsBottomBar(
             price = order.price,
-            isDeleteLoading = isDeleteLoading,
-            onDeleteClick = onDeleteClick,
+            isCancelLoading = isCancelLoading,
+            onCancelClick = onCancelClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(AppTheme.dimensions.bottomBarHeight),
@@ -236,8 +236,8 @@ private fun PositionItemRow(
 @Composable
 private fun OrderDetailsBottomBar(
     price: Float,
-    isDeleteLoading: Boolean,
-    onDeleteClick: () -> Unit,
+    isCancelLoading: Boolean,
+    onCancelClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier) {
@@ -254,13 +254,13 @@ private fun OrderDetailsBottomBar(
         }
 
         AppBoxButton(
-            title = "Удалить",
-            onClick = onDeleteClick,
+            title = "Отменить",
+            onClick = onCancelClick,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight(),
             color = AppTheme.colorScheme.red,
-            isLoading = isDeleteLoading,
+            isLoading = isCancelLoading,
         )
     }
 }

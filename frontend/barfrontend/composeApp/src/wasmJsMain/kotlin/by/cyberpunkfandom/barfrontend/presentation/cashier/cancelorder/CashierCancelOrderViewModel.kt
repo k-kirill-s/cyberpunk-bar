@@ -39,7 +39,7 @@ class CashierCancelOrderViewModel(
 
     val selectedOrder: MutableStateFlow<OrderFull?> = MutableStateFlow(null)
 
-    val isDeleteLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isCancelLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
         viewModelScope.launch(exceptionHandler) {
@@ -55,17 +55,17 @@ class CashierCancelOrderViewModel(
         selectedOrderId.update { orderId }
     }
 
-    fun onDeleteClick() {
+    fun onCancelClick() {
         val selectedOrderId = selectedOrderId.value ?: return
 
         viewModelScope.launch(exceptionHandler) {
-            isDeleteLoading.update { true }
+            isCancelLoading.update { true }
             try {
-                ordersRepository.deleteOrder(selectedOrderId)
+                ordersRepository.declineOrder(selectedOrderId)
                 this@CashierCancelOrderViewModel.selectedOrderId.update { null }
                 updateOrders()
             } finally {
-                isDeleteLoading.update { false }
+                isCancelLoading.update { false }
             }
         }
     }

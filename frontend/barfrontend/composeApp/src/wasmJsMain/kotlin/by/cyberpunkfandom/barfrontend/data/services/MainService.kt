@@ -65,8 +65,8 @@ class MainService(private val httpClient: HttpClient) {
         return httpClient.post("/orders/${orderId}/give").bodyOrThrowGeneralError()
     }
 
-    suspend fun deleteOrder(orderId: Int) {
-        return httpClient.delete("/orders/${orderId}").bodyOrThrowGeneralError()
+    suspend fun declineOrder(orderId: Int): OrderFullDto {
+        return httpClient.post("/orders/${orderId}/decline").bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
