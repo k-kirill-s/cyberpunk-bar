@@ -27,7 +27,6 @@ fun CashierHomeScreen(
     onGiveAwayOrderRequest: () -> Unit,
     onCancelOrderRequest: () -> Unit,
     onTogglePositionsRequest: () -> Unit,
-    onToggleExtraRequest: () -> Unit,
     viewModel: CashierHomeViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -46,7 +45,6 @@ fun CashierHomeScreen(
         onGiveAwayOrderClick = onGiveAwayOrderRequest,
         onCancelOrderClick = onCancelOrderRequest,
         onTogglePositionsClick = onTogglePositionsRequest,
-        onToggleExtraClick = onToggleExtraRequest,
     )
 }
 
@@ -57,7 +55,6 @@ private fun CashierHomeScreen(
     onGiveAwayOrderClick: () -> Unit,
     onCancelOrderClick: () -> Unit,
     onTogglePositionsClick: () -> Unit,
-    onToggleExtraClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -95,17 +92,11 @@ private fun CashierHomeScreen(
                 onClick = onCancelOrderClick,
                 modifier = Modifier.fillMaxWidth(),
                 color = AppTheme.colorScheme.red,
-                )
+            )
 
             AppBigButton(
                 title = "Включить/выключить позиции",
                 onClick = onTogglePositionsClick,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            AppBigButton(
-                title = "Включить/выключить экстра",
-                onClick = onToggleExtraClick,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

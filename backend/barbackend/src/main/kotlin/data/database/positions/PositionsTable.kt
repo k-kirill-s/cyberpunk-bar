@@ -11,6 +11,4 @@ object PositionsTable : IdTable<String>("positions") {
 
     val name = text("name")
     val description = text("description")
-    val price = float("price")
-    val isActive = bool("is_active").default(true)
 }

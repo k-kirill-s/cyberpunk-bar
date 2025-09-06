@@ -1,6 +1,6 @@
 package by.cyberpunkfandom.barfrontend.domain
 
-data class PositionExtra(
+data class PositionVariant(
     val id: String,
     val name: String,
     val price: Float,

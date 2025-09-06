@@ -19,7 +19,6 @@ import barfrontend.composeapp.generated.resources.close_24dp
 import by.cyberpunkfandom.barfrontend.core.format
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.CashierCreateOrderPositionExtraItemRow
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.CashierCreateOrderPositionItemRow
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.dialogs.orderformed.CashierCreateOrderOrderFormedDialog
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.dialogs.orderformed.CashierCreateOrderOrderFormedDialogState
@@ -35,7 +34,6 @@ fun CashierCreateOrderScreen(
     onError: (code: ExceptionCodes) -> Unit,
     onCloseRequest: () -> Unit,
     onAddPositionRequest: () -> Unit,
-    onAddPositionExtraRequest: (positionItemId: Int) -> Unit,
     onOrderFormed: () -> Unit,
     viewModel: CashierCreateOrderViewModel = koinViewModel(),
 ) {
@@ -58,12 +56,6 @@ fun CashierCreateOrderScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.onAddPositionExtraRequest.collect { positionItemId ->
-            onAddPositionExtraRequest(positionItemId)
-        }
-    }
-
-    LaunchedEffect(Unit) {
         viewModel.onOrderFormed.collect {
             onOrderFormed()
         }
@@ -72,9 +64,7 @@ fun CashierCreateOrderScreen(
     CashierCreateOrderScreen(
         onCloseClick = viewModel::onCloseClick,
         positionItems = viewModel.positionItems.collectAsStateWithLifecycle().value,
-        onPositionItemAddExtraClick = viewModel::onPositionItemAddExtraClick,
         onPositionItemDeleteClick = viewModel::onPositionItemDeleteClick,
-        onPositionExtraItemDeleteClick = viewModel::onPositionExtraItemDeleteClick,
         totalPrice = viewModel.totalPrice.collectAsStateWithLifecycle().value,
         onAddPositionClick = viewModel::onAddPositionClick,
         isCreateOrderButtonLoading = viewModel.isCreateOrderButtonLoading.collectAsStateWithLifecycle().value,
@@ -88,9 +78,7 @@ fun CashierCreateOrderScreen(
 private fun CashierCreateOrderScreen(
     onCloseClick: () -> Unit,
     positionItems: List<PositionItem>,
-    onPositionItemAddExtraClick: (positionItemId: Int) -> Unit,
     onPositionItemDeleteClick: (positionItemId: Int) -> Unit,
-    onPositionExtraItemDeleteClick: (positionExtraItemId: Int) -> Unit,
     totalPrice: Float,
     onAddPositionClick: () -> Unit,
     isCreateOrderButtonLoading: Boolean,
@@ -107,14 +95,11 @@ private fun CashierCreateOrderScreen(
 
         ItemsList(
             positionItems = positionItems,
-            onPositionItemAddExtraClick = onPositionItemAddExtraClick,
             onPositionItemDeleteClick = onPositionItemDeleteClick,
-            onPositionExtraItemDeleteClick = onPositionExtraItemDeleteClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-
-            )
+        )
 
         BottomBar(
             price = totalPrice,
@@ -148,9 +133,7 @@ private fun TopBar(
 @Composable
 private fun ItemsList(
     positionItems: List<PositionItem>,
-    onPositionItemAddExtraClick: (positionItemId: Int) -> Unit,
     onPositionItemDeleteClick: (positionItemId: Int) -> Unit,
-    onPositionExtraItemDeleteClick: (positionExtraItemId: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -161,21 +144,10 @@ private fun ItemsList(
                 CashierCreateOrderPositionItemRow(
                     number = (positionIndex + 1).toString(),
                     name = positionItem.position.name,
-                    price = positionItem.position.price,
-                    onAddExtraClick = { onPositionItemAddExtraClick(positionItem.id) },
+                    subname = positionItem.positionVariant.name,
+                    price = positionItem.price,
                     onDeleteClick = { onPositionItemDeleteClick(positionItem.id) },
                 )
-            }
-
-            positionItem.extraItems.forEachIndexed { extraIndex, positionExtraItem ->
-                item {
-                    CashierCreateOrderPositionExtraItemRow(
-                        number = "${positionIndex + 1}.${extraIndex + 1}",
-                        name = positionExtraItem.positionExtra.name,
-                        price = positionExtraItem.positionExtra.price,
-                        onDeleteClick = { onPositionExtraItemDeleteClick(positionExtraItem.id) },
-                    )
-                }
             }
         }
 

@@ -17,7 +17,6 @@ internal fun NavGraphBuilder.cashierCreateOrderComposable(
     onError: (code: ExceptionCodes) -> Unit,
     onCloseRequest: () -> Unit,
     onAddPositionRequest: () -> Unit,
-    onAddPositionExtraRequest: (positionItemId: Int) -> Unit,
     onOrderFormed: () -> Unit,
 ) {
     composable<CashierCreateOrderRoute> { navBackStackEntry ->
@@ -29,7 +28,6 @@ internal fun NavGraphBuilder.cashierCreateOrderComposable(
             onError = onError,
             onCloseRequest = onCloseRequest,
             onAddPositionRequest = onAddPositionRequest,
-            onAddPositionExtraRequest = onAddPositionExtraRequest,
             onOrderFormed = onOrderFormed,
             viewModel = viewModel,
         )

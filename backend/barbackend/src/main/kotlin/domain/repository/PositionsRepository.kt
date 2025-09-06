@@ -6,11 +6,12 @@ interface PositionsRepository {
 
     suspend fun getPositions(): List<Position>
 
+    suspend fun getActivePositions(): List<Position>
+
     suspend fun addPosition(
         id: String,
         name: String,
         description: String,
-        price: Float,
     ): Position
 
     suspend fun deletePosition(
@@ -20,7 +21,6 @@ interface PositionsRepository {
     suspend fun updatePosition(
         id: String,
         name: String?,
-        price: Float?,
-        isActive: Boolean?,
+        description: String?,
     ): Position
 }

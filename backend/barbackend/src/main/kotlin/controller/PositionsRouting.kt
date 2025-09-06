@@ -26,18 +26,23 @@ fun Application.positionsRouting() {
             call.respond(positionsDto)
         }
 
+        get("/positions/active") {
+            val positions = positionsRepository.getActivePositions()
+
+            val positionsDto = positions.map { positionDtoMapper.getDto(it) }
+            call.respond(positionsDto)
+        }
+
         post("positions") {
             val formParameters = call.receiveParameters()
             val id = formParameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val description = formParameters["description"].orEmpty()
-            val price = formParameters["price"]?.toFloat() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
 
             val position = positionsRepository.addPosition(
                 id = id,
                 name = name,
                 description = description,
-                price = price,
             )
 
             val positionDto = positionDtoMapper.getDto(position)
@@ -48,14 +53,12 @@ fun Application.positionsRouting() {
             val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
-            val price = formParameters["price"]?.toFloat()
-            val isActive = formParameters["is_active"]?.toBoolean()
+            val description = formParameters["description"]
 
             val position = positionsRepository.updatePosition(
                 id = id,
                 name = name,
-                price = price,
-                isActive = isActive,
+                description = description,
             )
 
             val positionDto = positionDtoMapper.getDto(position)

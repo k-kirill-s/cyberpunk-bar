@@ -35,7 +35,7 @@ class WorkerPositionDetailsViewModel(
 
     init {
         viewModelScope.launch(exceptionHandler) {
-            position.emit(positionsRepository.getPositions(true).first { it.id == positionId })
+            position.emit(positionsRepository.getPositions().first { it.id == positionId })
         }
     }
 }

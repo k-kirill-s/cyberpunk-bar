@@ -9,14 +9,13 @@ class PositionsRepository(
     private val positionMapper: PositionMapper,
 ) {
 
-    suspend fun getPositions(withNotActive: Boolean = false): List<Position> {
+    suspend fun getPositions(): List<Position> {
         val dtoList = mainService.getPositions()
         return dtoList.map { positionMapper.getDomain(it) }
-            .filter { withNotActive || it.isActive }
     }
 
-    suspend fun setPositionIsActive(positionId: String, isActive: Boolean): Position {
-        val dto = mainService.setPositionIsActive(positionId, isActive)
-        return positionMapper.getDomain(dto)
+    suspend fun getActivePositions(): List<Position> {
+        val dtoList = mainService.getActivePositions()
+        return dtoList.map { positionMapper.getDomain(it) }
     }
 }

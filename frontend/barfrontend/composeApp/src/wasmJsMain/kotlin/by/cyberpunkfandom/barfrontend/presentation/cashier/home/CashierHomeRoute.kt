@@ -17,7 +17,6 @@ fun NavGraphBuilder.cashierHomeComposable(
     onGiveAwayOrderRequest: () -> Unit,
     onCancelOrderRequest: () -> Unit,
     onTogglePositionsRequest: () -> Unit,
-    onToggleExtraRequest: () -> Unit,
 ) {
     composable<CashierHomeRoute> { _ ->
         CashierHomeScreen(
@@ -27,7 +26,6 @@ fun NavGraphBuilder.cashierHomeComposable(
             onGiveAwayOrderRequest = onGiveAwayOrderRequest,
             onCancelOrderRequest = onCancelOrderRequest,
             onTogglePositionsRequest = onTogglePositionsRequest,
-            onToggleExtraRequest = onToggleExtraRequest,
         )
     }
 }

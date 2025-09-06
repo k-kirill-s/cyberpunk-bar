@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class PositionItemDto(
     val id: Int,
     val position: PositionDto,
-    val extraItems: List<PositionExtraItemDto>,
+    val positionVariant: PositionVariantDto,
     val price: Float,
 )

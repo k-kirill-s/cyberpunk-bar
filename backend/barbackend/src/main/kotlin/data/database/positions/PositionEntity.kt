@@ -8,8 +8,6 @@ class PositionEntity(id: EntityID<String>) : Entity<String>(id) {
 
     var name by PositionsTable.name
     var description by PositionsTable.description
-    var price by PositionsTable.price
-    var isActive by PositionsTable.isActive
 
     companion object : EntityClass<String, PositionEntity>(PositionsTable)
 }

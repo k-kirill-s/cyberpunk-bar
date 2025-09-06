@@ -6,7 +6,7 @@ interface PositionItemsRepository {
 
     suspend fun getPositionItems(orderId: Int): List<PositionItem>
 
-    suspend fun addPositionItem(orderId: Int, positionId: String): PositionItem
+    suspend fun addPositionItem(orderId: Int, positionId: String, positionVariantId: String): PositionItem
 
     suspend fun deletePositionItem(positionItemId: Int)
 }

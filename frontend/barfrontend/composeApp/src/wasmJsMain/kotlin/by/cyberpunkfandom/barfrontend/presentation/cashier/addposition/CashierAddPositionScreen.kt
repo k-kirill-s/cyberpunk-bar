@@ -30,6 +30,7 @@ import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.core.format
 import by.cyberpunkfandom.barfrontend.domain.Position
+import by.cyberpunkfandom.barfrontend.domain.PositionVariant
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
@@ -58,87 +59,143 @@ fun CashierAddPositionScreen(
     }
 
     CashierAddPositionScreen(
+        state = viewModel.state,
         onBackClick = onBackRequest,
-        positions = viewModel.positions.collectAsStateWithLifecycle().value,
-        isAddPositionButtonLoading = viewModel.isAddPositionButtonLoading.collectAsStateWithLifecycle().value,
         onAddPositionClick = viewModel::onAddPositionClick,
+        onAddPositionVariantClick = viewModel::onAddPositionVariantClick,
     )
 }
 
 @Composable
 private fun CashierAddPositionScreen(
+    state: CashierAddPositionState,
     onBackClick: () -> Unit,
-    positions: List<Position>,
-    isAddPositionButtonLoading: Boolean,
     onAddPositionClick: (positionId: String) -> Unit,
+    onAddPositionVariantClick: (positionVariantId: String) -> Unit,
 ) {
-    var selectedPosition by remember { mutableStateOf<Position?>(null) }
-
+    val contentState = state.contentState.collectAsStateWithLifecycle().value
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(onBackClick = onBackClick)
+        val title = (contentState as? CashierAddPositionState.ContentState.ListContent.SelectPositionVariant)?.position?.name
+        TopBar(
+            title = title,
+            onBackClick = onBackClick,
+        )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            ItemsColumn(
-                positions = positions,
-                selectedPosition = selectedPosition,
-                onClick = { selectedPosition = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-            )
+        when (contentState) {
 
-            AppVerticalDivider()
+            is CashierAddPositionState.ContentState.Loading -> {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
 
-            ItemDetails(
-                position = selectedPosition,
-                isAddPositionButtonLoading = isAddPositionButtonLoading,
-                onAddPositionButtonClick = { selectedPosition?.let { onAddPositionClick(it.id) } },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-            )
+            is CashierAddPositionState.ContentState.ListContent.SelectPosition -> {
+                ListContentComponent(
+                    items = contentState.positions,
+                    isAddItemButtonLoading = contentState.isContinueButtonLoading,
+                    onAddItemClick = onAddPositionClick,
+                    itemId = Position::id,
+                    itemName = Position::name,
+                    itemDescription = Position::description,
+                    itemPrice = { null },
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            }
+
+            is CashierAddPositionState.ContentState.ListContent.SelectPositionVariant -> {
+                ListContentComponent(
+                    items = contentState.positionVariants,
+                    isAddItemButtonLoading = contentState.isContinueButtonLoading,
+                    onAddItemClick = onAddPositionVariantClick,
+                    itemId = PositionVariant::id,
+                    itemName = PositionVariant::name,
+                    itemDescription = { " " },
+                    itemPrice = PositionVariant::price,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun TopBar(
+    title: String?,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AppTopBar(
         modifier = modifier,
-        title = "Добавление позиции",
+        title = title ?: "Добавление позиции",
         leftIcon = painterResource(Res.drawable.back_24dp),
         onLeftIconClick = onBackClick,
     )
 }
 
 @Composable
-private fun ItemsColumn(
-    positions: List<Position>,
-    selectedPosition: Position?,
-    onClick: (position: Position) -> Unit,
+private fun <T> ListContentComponent(
+    items: List<T>,
+    isAddItemButtonLoading: Boolean,
+    onAddItemClick: (id: String) -> Unit,
+    itemId: T.() -> String,
+    itemName: T.() -> String,
+    itemDescription: T.() -> String,
+    itemPrice: T.() -> Float?,
+    modifier: Modifier = Modifier,
+) {
+    var selectedItem by remember { mutableStateOf<T?>(null) }
+
+    Row(
+        modifier = modifier,
+    ) {
+        ItemsColumn(
+            items = items,
+            selectedItem = selectedItem,
+            onClick = { selectedItem = it },
+            itemId = itemId,
+            itemName = itemName,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+        )
+
+        AppVerticalDivider()
+
+        ItemDetails(
+            item = selectedItem,
+            isAddItemButtonLoading = isAddItemButtonLoading,
+            onAddItemButtonClick = { selectedItem?.let { onAddItemClick(it.itemId()) } },
+            itemName = itemName,
+            itemDescription = itemDescription,
+            itemPrice = itemPrice,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+        )
+    }
+}
+
+@Composable
+private fun <T> ItemsColumn(
+    items: List<T>,
+    selectedItem: T?,
+    onClick: (item: T) -> Unit,
+    itemId: T.() -> String,
+    itemName: T.() -> String,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier) {
-        items(positions) { position ->
-            val isSelected = position.id == selectedPosition?.id
+        items(items) { item ->
+            val isSelected = item.itemId() == selectedItem?.itemId()
             Column {
                 Box(
                     modifier = Modifier.fillMaxWidth()
                         .height(AppTheme.dimensions.itemHeight)
                         .background(color = if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
-                        .clickable(onClick = { onClick(position) })
+                        .clickable(onClick = { onClick(item) })
                         .padding(horizontal = AppTheme.dimensions.basePadding),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
-                        text = position.name,
+                        text = item.itemName(),
                         modifier = Modifier,
                         style = AppTheme.typography.title,
                     )
@@ -151,13 +208,16 @@ private fun ItemsColumn(
 }
 
 @Composable
-private fun ItemDetails(
-    position: Position?,
-    isAddPositionButtonLoading: Boolean,
-    onAddPositionButtonClick: () -> Unit,
+private fun <T> ItemDetails(
+    item: T?,
+    isAddItemButtonLoading: Boolean,
+    onAddItemButtonClick: () -> Unit,
+    itemName: T.() -> String,
+    itemDescription: T.() -> String,
+    itemPrice: T.() -> Float?,
     modifier: Modifier = Modifier,
 ) {
-    if (position == null) {
+    if (item == null) {
         Spacer(modifier)
     } else {
         Column(modifier = modifier) {
@@ -171,7 +231,7 @@ private fun ItemDetails(
 
                 // title
                 Text(
-                    text = position.name,
+                    text = item.itemName(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = AppTheme.dimensions.basePadding),
@@ -183,7 +243,7 @@ private fun ItemDetails(
 
                 // description
                 Text(
-                    text = position.description,
+                    text = item.itemDescription(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = AppTheme.dimensions.basePadding),
@@ -207,19 +267,22 @@ private fun ItemDetails(
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = position.price.format(2),
-                        style = AppTheme.typography.big,
-                    )
+                    item.itemPrice()?.let { price ->
+                        Text(
+                            text = price.format(2),
+                            style = AppTheme.typography.big,
+                        )
+                    }
+
                 }
 
                 AppBoxButton(
                     title = "Добавить",
-                    onClick = onAddPositionButtonClick,
+                    onClick = onAddItemButtonClick,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
-                    isLoading = isAddPositionButtonLoading,
+                    isLoading = isAddItemButtonLoading,
                 )
             }
         }

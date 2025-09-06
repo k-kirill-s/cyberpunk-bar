@@ -5,14 +5,14 @@ import by.cyberpunkfandom.barfrontend.domain.PositionItem
 
 class PositionItemMapper(
     private val positionMapper: PositionMapper,
-    private val positionExtraItemMapper: PositionExtraItemMapper,
+    private val positionVariantMapper: PositionVariantMapper,
 ) {
 
     fun getDomain(dto: PositionItemDto): PositionItem {
         return PositionItem(
             id = dto.id,
             position = positionMapper.getDomain(dto.position),
-            extraItems = dto.extraItems.map { positionExtraItemMapper.getDomain(it) },
+            positionVariant = positionVariantMapper.getDomain(dto.positionVariant),
             price = dto.price,
         )
     }
