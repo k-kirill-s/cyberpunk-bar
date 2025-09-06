@@ -53,7 +53,7 @@ private fun WorkerPositionDetailsScreen(
             text = position?.description.orEmpty(),
             modifier = Modifier.padding(AppTheme.dimensions.basePadding),
             textAlign = TextAlign.Justify,
-            style = AppTheme.typography.body,
+            style = AppTheme.typography.title,
         )
     }
 }

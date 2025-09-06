@@ -23,7 +23,6 @@ import by.cyberpunkfandom.barfrontend.domain.Position
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
-import by.cyberpunkfandom.barfrontend.presentation.core.components.AppDashedHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppIconButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppSwipeToActionBox
