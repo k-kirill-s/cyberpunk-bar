@@ -13,12 +13,15 @@ import by.cyberpunkfandom.domain.models.Order
 import by.cyberpunkfandom.domain.models.OrderFull
 import by.cyberpunkfandom.domain.models.OrderStatus
 import by.cyberpunkfandom.domain.repository.OrdersRepository
+import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.exposed.sql.*
 
 class OrdersRepositoryImpl(
     private val orderMapper: OrderMapper,
     private val orderFullMapper: OrderFullMapper,
 ) : OrdersRepository {
+
+    private val startOrderMutex = Mutex()
 
     override suspend fun getOrders(): List<Order> = suspendTransaction {
         val query = getOrdersQuery()
@@ -81,14 +84,19 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun startOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
-        assertOrder(id) { order ->
-            checkOrderStatus(order, OrderStatus.FORMED)
-        }
+        startOrderMutex.lock()
+        try {
+            assertOrder(id) { order ->
+                checkOrderStatus(order, OrderStatus.FORMED)
+            }
 
-        OrdersTable.update(where = { OrdersTable.id eq id }) {
-            it[this.workerId] = workerId
+            OrdersTable.update(where = { OrdersTable.id eq id }) {
+                it[this.workerId] = workerId
+            }
+            changeOrderStatus(id, OrderStatus.STARTED)
+        } finally {
+            startOrderMutex.unlock()
         }
-        changeOrderStatus(id, OrderStatus.STARTED)
     }
 
     override suspend fun finishOrder(id: Int): OrderFull = suspendTransaction {
