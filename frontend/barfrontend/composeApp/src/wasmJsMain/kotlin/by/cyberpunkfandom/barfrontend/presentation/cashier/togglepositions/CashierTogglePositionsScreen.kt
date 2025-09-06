@@ -14,24 +14,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
 import barfrontend.composeapp.generated.resources.check_24dp
 import barfrontend.composeapp.generated.resources.remove_24dp
 import by.cyberpunkfandom.barfrontend.core.format
+import by.cyberpunkfandom.barfrontend.domain.Position
+import by.cyberpunkfandom.barfrontend.domain.PositionVariant
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
@@ -39,6 +34,7 @@ import by.cyberpunkfandom.barfrontend.presentation.core.components.AppIcon
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppVerticalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -54,40 +50,42 @@ fun CashierTogglePositionsScreen(
     }
 
     CashierTogglePositionsScreen(
-        type = viewModel.type,
         onBackClick = onBackRequest,
-        items = viewModel.items.collectAsStateWithLifecycle().value,
-        isToggleLoading = viewModel.isToggleLoading.collectAsStateWithLifecycle().value,
-        onToggleClick = viewModel::onToggleClick,
+        positions = viewModel.state.contentState.positions.collectAsStateWithLifecycle().value,
+        selectedPositionId = viewModel.state.contentState.selectedPositionId.collectAsStateWithLifecycle().value,
+        selectedPositionVariantId = viewModel.state.contentState.selectedPositionVariantId.collectAsStateWithLifecycle().value,
+        onPositionClick = viewModel::onPositionClick,
+        onPositionVariantsClick = viewModel::onPositionVariantClick,
+        isToggleButtonEnabled = viewModel.state.contentState.isToggleButtonEnabled.collectAsStateWithLifecycle().value,
+        isToggleButtonLoading = viewModel.state.contentState.isToggleButtonLoading.collectAsStateWithLifecycle().value,
+        onToggleButtonClick = viewModel::onToggleButtonClick,
     )
 }
 
 @Composable
 private fun CashierTogglePositionsScreen(
-    type: CashierTogglePositionsScreenType,
     onBackClick: () -> Unit,
-    items: List<CashierTogglePositionsViewModel.ItemData>,
-    isToggleLoading: Boolean,
-    onToggleClick: (item: CashierTogglePositionsViewModel.ItemData) -> Unit,
+    positions: Map<Position, List<PositionVariant>>,
+    selectedPositionId: String?,
+    selectedPositionVariantId: String?,
+    onPositionClick: (position: Position) -> Unit,
+    onPositionVariantsClick: (positionVariant: PositionVariant) -> Unit,
+    isToggleButtonEnabled: Boolean,
+    isToggleButtonLoading: Boolean,
+    onToggleButtonClick: (isActive: Boolean) -> Unit,
 ) {
-    var selectedItemId by remember { mutableStateOf<String?>(null) }
-    val selectedItem = items.firstOrNull { it.id == selectedItemId }
-
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(
-            type = type,
-            onBackClick = onBackClick,
-        )
+        TopBar(onBackClick = onBackClick)
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
         ) {
-            ItemsColumn(
-                items = items,
-                selectedItem = selectedItem,
-                onClick = { selectedItemId = it.id },
+            PositionsColumn(
+                positionsWithVariants = positions,
+                selectedPositionId = selectedPositionId,
+                onClick = onPositionClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
@@ -98,29 +96,30 @@ private fun CashierTogglePositionsScreen(
             val detailsModifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-            selectedItem?.let { selectedItem ->
-                ItemDetails(
-                    item = selectedItem,
-                    isToggleLoading = isToggleLoading,
-                    onToggleClick = { onToggleClick(selectedItem) },
+
+            if (selectedPositionId != null) {
+                PositionVariantsBlock(
+                    positionVariants = positions.entries.firstOrNull { it.key.id == selectedPositionId }?.value.orEmpty(),
+                    selectedPositionVariantId = selectedPositionVariantId,
+                    onPositionVariantsClick = onPositionVariantsClick,
+                    isToggleButtonEnabled = isToggleButtonEnabled,
+                    isToggleButtonLoading = isToggleButtonLoading,
+                    onToggleButtonClick = onToggleButtonClick,
                     modifier = detailsModifier,
                 )
-            } ?: Spacer(detailsModifier)
-
+            } else {
+                Spacer(detailsModifier)
+            }
         }
     }
 }
 
 @Composable
 private fun TopBar(
-    type: CashierTogglePositionsScreenType,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val title = when (type) {
-        CashierTogglePositionsScreenType.POSITIONS -> "Включение/выключение позиций"
-        CashierTogglePositionsScreenType.POSITION_EXTRA -> "Включение/выключение экстра"
-    }
+    val title = "Включение/выключение позиций"
     AppTopBar(
         modifier = modifier,
         title = title,
@@ -130,33 +129,35 @@ private fun TopBar(
 }
 
 @Composable
-private fun ItemsColumn(
-    items: List<CashierTogglePositionsViewModel.ItemData>,
-    selectedItem: CashierTogglePositionsViewModel.ItemData?,
-    onClick: (item: CashierTogglePositionsViewModel.ItemData) -> Unit,
+private fun PositionsColumn(
+    positionsWithVariants: Map<Position, List<PositionVariant>>,
+    selectedPositionId: String?,
+    onClick: (item: Position) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val positions = positionsWithVariants.keys.toList()
     LazyColumn(modifier = modifier) {
-        items(items) { item ->
-            val isSelected = item == selectedItem
+        items(positions) { position ->
+            val isSelected = position.id == selectedPositionId
+            val isActive = positionsWithVariants[position].orEmpty().count { it.isActive } > 0
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth()
                         .height(AppTheme.dimensions.itemHeight)
                         .background(color = if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
-                        .clickable(onClick = { onClick(item) })
+                        .clickable(onClick = { onClick(position) })
                         .padding(horizontal = AppTheme.dimensions.basePadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = item.name,
+                        text = position.name,
                         modifier = Modifier.weight(1f),
                         style = AppTheme.typography.title,
                     )
 
                     Spacer(Modifier.width(AppTheme.dimensions.basePadding))
 
-                    val (iconRes, iconColor) = if (item.isActive) {
+                    val (iconRes, iconColor) = if (isActive) {
                         Res.drawable.check_24dp to AppTheme.colorScheme.green
                     } else {
                         Res.drawable.remove_24dp to AppTheme.colorScheme.red
@@ -174,46 +175,29 @@ private fun ItemsColumn(
 }
 
 @Composable
-private fun ItemDetails(
-    item: CashierTogglePositionsViewModel.ItemData,
-    isToggleLoading: Boolean,
-    onToggleClick: () -> Unit,
+private fun PositionVariantsBlock(
+    positionVariants: List<PositionVariant>,
+    selectedPositionVariantId: String?,
+    onPositionVariantsClick: (item: PositionVariant) -> Unit,
+    isToggleButtonEnabled: Boolean,
+    isToggleButtonLoading: Boolean,
+    onToggleButtonClick: (isActive: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val selectedPositionVariant = selectedPositionVariantId?.let { variantId ->
+        positionVariants.firstOrNull { it.id == variantId }
+    }
+
     Column(modifier = modifier) {
 
-        Column(
+        PositionVariantsColumn(
+            positionVariants = positionVariants,
+            selectedPositionVariantId = selectedPositionVariantId,
+            onClick = onPositionVariantsClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Spacer(Modifier.height(AppTheme.dimensions.basePadding))
-
-            // title
-            Text(
-                text = item.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AppTheme.dimensions.basePadding),
-                textAlign = TextAlign.Center,
-                style = AppTheme.typography.title,
-            )
-
-            Spacer(Modifier.height(AppTheme.dimensions.basePadding))
-
-            // description
-            Text(
-                text = item.description,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AppTheme.dimensions.basePadding),
-                textAlign = TextAlign.Justify,
-                style = AppTheme.typography.body,
-            )
-
-            Spacer(Modifier.height(AppTheme.dimensions.basePadding))
-        }
+        )
 
         AppHorizontalDivider()
 
@@ -228,23 +212,73 @@ private fun ItemDetails(
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = item.price.format(2),
-                    style = AppTheme.typography.big,
-                )
+                if (selectedPositionVariant != null) {
+                    Text(
+                        text = selectedPositionVariant.price.format(2),
+                        style = AppTheme.typography.big,
+                    )
+                }
             }
 
-            val title = if (item.isActive) "Выключить" else "Включить"
-            val color = if (item.isActive) AppTheme.colorScheme.red else AppTheme.colorScheme.green
-            AppBoxButton(
-                title = title,
-                onClick = onToggleClick,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                color = color,
-                isLoading = isToggleLoading,
-            )
+            if (isToggleButtonEnabled && selectedPositionVariant != null) {
+                val title = if (selectedPositionVariant.isActive) "Выключить" else "Включить"
+                val color = if (selectedPositionVariant.isActive) AppTheme.colorScheme.red else AppTheme.colorScheme.green
+                AppBoxButton(
+                    title = title,
+                    onClick = { onToggleButtonClick(!selectedPositionVariant.isActive) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    color = color,
+                    isLoading = isToggleButtonLoading,
+                )
+            } else {
+                Spacer(Modifier.weight(1f).fillMaxHeight())
+            }
+        }
+    }
+}
+
+@Composable
+private fun PositionVariantsColumn(
+    positionVariants: List<PositionVariant>,
+    selectedPositionVariantId: String?,
+    onClick: (item: PositionVariant) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(modifier = modifier) {
+        items(positionVariants) { positionVariant ->
+            val isSelected = positionVariant.id == selectedPositionVariantId
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .height(AppTheme.dimensions.itemHeight)
+                        .background(color = if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
+                        .clickable(onClick = { onClick(positionVariant) })
+                        .padding(horizontal = AppTheme.dimensions.basePadding),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = positionVariant.name,
+                        modifier = Modifier.weight(1f),
+                        style = AppTheme.typography.title,
+                    )
+
+                    Spacer(Modifier.width(AppTheme.dimensions.basePadding))
+
+                    val (iconRes, iconColor) = if (positionVariant.isActive) {
+                        Res.drawable.check_24dp to AppTheme.colorScheme.green
+                    } else {
+                        Res.drawable.remove_24dp to AppTheme.colorScheme.red
+                    }
+                    AppIcon(
+                        painter = painterResource(iconRes),
+                        tint = iconColor,
+                    )
+                }
+
+                AppHorizontalDivider()
+            }
         }
     }
 }
