@@ -2,7 +2,6 @@ package by.cyberpunkfandom.barfrontend.presentation.di
 
 import by.cyberpunkfandom.barfrontend.presentation.cashier.CashierViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.CashierAddPositionViewModel
-import by.cyberpunkfandom.barfrontend.presentation.cashier.addpositionextra.CashierAddPositionExtraViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.CashierCancelOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.CashierGiveAwayOrderViewModel
@@ -32,30 +31,22 @@ val presentationModule = module {
             orderId = parameters.get(),
             ordersRepository = get(),
             positionItemsRepository = get(),
-            positionExtraItemsRepository = get(),
         )
     }
     viewModel { parameters ->
         CashierAddPositionViewModel(
             orderId = parameters.get(),
             positionsRepository = get(),
+            positionVariantsRepository = get(),
             positionItemsRepository = get(),
-        )
-    }
-    viewModel { parameters ->
-        CashierAddPositionExtraViewModel(
-            positionItemId = parameters.get(),
-            positionExtraRepository = get(),
-            positionExtraItemsRepository = get(),
         )
     }
     viewModelOf(::CashierGiveAwayOrderViewModel)
     viewModelOf(::CashierCancelOrderViewModel)
     viewModel { parameters ->
         CashierTogglePositionsViewModel(
-            type = parameters.get(),
             positionsRepository = get(),
-            positionExtraRepository = get(),
+            positionVariantsRepository = get(),
         )
     }
 

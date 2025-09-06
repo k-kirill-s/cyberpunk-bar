@@ -5,14 +5,14 @@ import by.cyberpunkfandom.domain.models.PositionItem
 
 class PositionItemDtoMapper(
     private val positionDtoMapper: PositionDtoMapper,
-    private val positionExtraItemDtoMapper: PositionExtraItemDtoMapper,
+    private val positionVariantDtoMapper: PositionVariantDtoMapper,
 ) {
 
     fun getDto(domain: PositionItem): PositionItemDto {
         return PositionItemDto(
             id = domain.id,
             position = positionDtoMapper.getDto(domain.position),
-            extraItems = domain.extraItems.map { positionExtraItemDtoMapper.getDto(it) },
+            positionVariant = positionVariantDtoMapper.getDto(domain.positionVariant),
             price = domain.price,
         )
     }

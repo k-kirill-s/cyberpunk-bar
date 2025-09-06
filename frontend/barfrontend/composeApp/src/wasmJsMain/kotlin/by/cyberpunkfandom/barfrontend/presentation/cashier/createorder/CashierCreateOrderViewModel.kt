@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.cyberpunkfandom.barfrontend.core.mapState
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
-import by.cyberpunkfandom.barfrontend.data.repositories.PositionExtraItemsRepository
 import by.cyberpunkfandom.barfrontend.data.repositories.PositionItemsRepository
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
@@ -25,7 +24,6 @@ class CashierCreateOrderViewModel(
     private val orderId: Int,
     private val ordersRepository: OrdersRepository,
     private val positionItemsRepository: PositionItemsRepository,
-    private val positionExtraItemsRepository: PositionExtraItemsRepository,
 ) : ViewModel() {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -45,9 +43,6 @@ class CashierCreateOrderViewModel(
 
     private val _onAddPositionRequest: Channel<Unit> = Channel(Channel.BUFFERED)
     val onAddPositionRequest: Flow<Unit> = _onAddPositionRequest.receiveAsFlow()
-
-    private val _onAddPositionExtraRequest: Channel<Int> = Channel(Channel.BUFFERED)
-    val onAddPositionExtraRequest: Flow<Int> = _onAddPositionExtraRequest.receiveAsFlow()
 
     private val _onOrderFormed: Channel<Unit> = Channel(Channel.BUFFERED)
     val onOrderFormed: Flow<Unit> = _onOrderFormed.receiveAsFlow()
@@ -72,20 +67,9 @@ class CashierCreateOrderViewModel(
         _onCloseRequest.trySend(Unit)
     }
 
-    fun onPositionItemAddExtraClick(positionItemId: Int) {
-        _onAddPositionExtraRequest.trySend(positionItemId)
-    }
-
     fun onPositionItemDeleteClick(positionItemId: Int) {
         viewModelScope.launch(exceptionHandler) {
             positionItemsRepository.deletePositionItem(positionItemId)
-            order.update { ordersRepository.getOrder(orderId) }
-        }
-    }
-
-    fun onPositionExtraItemDeleteClick(positionExtraItemId: Int) {
-        viewModelScope.launch(exceptionHandler) {
-            positionExtraItemsRepository.deletePositionExtraItem(positionExtraItemId)
             order.update { ordersRepository.getOrder(orderId) }
         }
     }

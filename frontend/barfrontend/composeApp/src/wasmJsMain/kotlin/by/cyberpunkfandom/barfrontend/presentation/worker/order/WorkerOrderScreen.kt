@@ -20,7 +20,6 @@ import barfrontend.composeapp.generated.resources.close_24dp
 import barfrontend.composeapp.generated.resources.help_24dp
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.Position
-import by.cyberpunkfandom.barfrontend.domain.PositionExtraItem
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
@@ -200,21 +199,9 @@ private fun PositionItemRow(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${index + 1} ${positionItem.position.name}",
+                    text = "${index + 1} ${positionItem.position.name} (${positionItem.positionVariant.name})",
                     style = AppTheme.typography.title,
                 )
-
-                if (positionItem.extraItems.isNotEmpty()) {
-                    Spacer(Modifier.height(AppTheme.dimensions.basePadding))
-
-                    PositionExtraItemsColumn(
-                        positionExtraItems = positionItem.extraItems,
-                        positionItemIndex = index,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = AppTheme.dimensions.basePadding * 2)
-                    )
-                }
             }
 
             val (iconRes, onClick) = if (completed) {
@@ -229,26 +216,4 @@ private fun PositionItemRow(
         }
     }
 
-}
-
-@Composable
-private fun PositionExtraItemsColumn(
-    positionExtraItems: List<PositionExtraItem>,
-    positionItemIndex: Int,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        positionExtraItems.forEachIndexed { index, item ->
-            Text(
-                text = "${positionItemIndex + 1}.${index + 1} ${item.positionExtra.name}",
-                style = AppTheme.typography.title,
-            )
-
-            if (index != positionExtraItems.lastIndex) {
-                Spacer(Modifier.height(AppTheme.dimensions.basePadding / 2))
-                AppDashedHorizontalDivider(type = DividerType.THIN)
-                Spacer(Modifier.height(AppTheme.dimensions.basePadding / 2))
-            }
-        }
-    }
 }

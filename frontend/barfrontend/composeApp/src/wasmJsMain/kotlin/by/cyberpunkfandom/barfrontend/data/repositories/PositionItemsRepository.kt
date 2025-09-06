@@ -12,10 +12,12 @@ class PositionItemsRepository(
     suspend fun addPositionToOrder(
         orderId: Int,
         positionId: String,
+        positionVariantId: String,
     ): PositionItem {
         val dto = mainService.addPositionToOrder(
             orderId = orderId,
-            positionId = positionId
+            positionId = positionId,
+            positionVariantId = positionVariantId,
         )
         return positionItemMapper.getDomain(dto)
     }

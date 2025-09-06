@@ -10,8 +10,6 @@ class PositionMapper {
             id = entity.id.value,
             name = entity.name,
             description = entity.description,
-            price = entity.price,
-            isActive = entity.isActive,
         )
     }
 }

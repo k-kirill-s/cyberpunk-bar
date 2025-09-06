@@ -31,10 +31,12 @@ fun Application.positionItemsRouting() {
             val orderId = call.parameters["order_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
             val formParameters = call.receiveParameters()
             val positionId = formParameters["position_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val positionVariantId = formParameters["position_variant_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
 
             val positionItem = positionItemsRepository.addPositionItem(
                 orderId = orderId,
-                positionId = positionId
+                positionId = positionId,
+                positionVariantId = positionVariantId,
             )
 
             val positionItemDto = positionItemDtoMapper.getDto(positionItem)

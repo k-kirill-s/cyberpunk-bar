@@ -26,11 +26,9 @@ import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.core.format
 import by.cyberpunkfandom.barfrontend.domain.Order
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
-import by.cyberpunkfandom.barfrontend.domain.PositionExtraItem
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
-import by.cyberpunkfandom.barfrontend.presentation.core.components.AppDashedHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppVerticalDivider
@@ -202,19 +200,6 @@ private fun LazyListScope.orderDetailsPositionsItems(order: OrderFull) {
                 index = positionItemIndex,
             )
         }
-
-        positionItem.extraItems.forEachIndexed { positionExtraItemIndex, positionExtraItem ->
-            item {
-                AppDashedHorizontalDivider(type = DividerType.THIN)
-            }
-            item {
-                PositionExtraItemRow(
-                    positionExtraItem = positionExtraItem,
-                    positionItemIndex = positionItemIndex,
-                    index = positionExtraItemIndex,
-                )
-            }
-        }
     }
 
     item {
@@ -236,41 +221,13 @@ private fun PositionItemRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "${index + 1} ${positionItem.position.name}",
+            text = "${index + 1} ${positionItem.position.name} (${positionItem.positionVariant.name})",
             modifier = Modifier.weight(1f),
             style = AppTheme.typography.title,
         )
         Spacer(Modifier.width(AppTheme.dimensions.basePadding))
         Text(
             text = positionItem.price.format(2),
-            style = AppTheme.typography.title,
-        )
-    }
-}
-
-@Composable
-private fun PositionExtraItemRow(
-    positionExtraItem: PositionExtraItem,
-    positionItemIndex: Int,
-    index: Int,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(AppTheme.dimensions.itemHeight)
-            .padding(horizontal = AppTheme.dimensions.basePadding),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Spacer(Modifier.width(AppTheme.dimensions.basePadding * 2))
-        Text(
-            text = "${positionItemIndex + 1}.${index + 1} ${positionExtraItem.positionExtra.name}",
-            modifier = Modifier.weight(1f),
-            style = AppTheme.typography.title,
-        )
-        Spacer(Modifier.width(AppTheme.dimensions.basePadding))
-        Text(
-            text = positionExtraItem.price.format(2),
             style = AppTheme.typography.title,
         )
     }

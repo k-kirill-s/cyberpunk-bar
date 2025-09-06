@@ -4,9 +4,8 @@ import by.cyberpunkfandom.barfrontend.data.models.ErrorDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderFullDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionDto
-import by.cyberpunkfandom.barfrontend.data.models.PositionExtraDto
-import by.cyberpunkfandom.barfrontend.data.models.PositionExtraItemDto
 import by.cyberpunkfandom.barfrontend.data.models.PositionItemDto
+import by.cyberpunkfandom.barfrontend.data.models.PositionVariantDto
 import by.cyberpunkfandom.barfrontend.data.models.WorkerDto
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
@@ -72,11 +71,16 @@ class MainService(private val httpClient: HttpClient) {
 
     // ---------------------------------------------------------------------------------------------------------------
     // POSITION ITEMS
-    suspend fun addPositionToOrder(orderId: Int, positionId: String): PositionItemDto {
+    suspend fun addPositionToOrder(
+        orderId: Int,
+        positionId: String,
+        positionVariantId: String,
+    ): PositionItemDto {
         return httpClient.submitForm(
             url = "orders/${orderId}/position_items",
             formParameters = parameters {
                 append("position_id", positionId)
+                append("position_variant_id", positionVariantId)
             },
         ).bodyOrThrowGeneralError()
     }
@@ -86,53 +90,35 @@ class MainService(private val httpClient: HttpClient) {
     }
 
     // ---------------------------------------------------------------------------------------------------------------
-    // POSITION EXTRA ITEMS
-    suspend fun addPositionExtraToPositionItem(positionItemId: Int, positionExtraId: String): PositionExtraItemDto {
-        return httpClient.submitForm(
-            url = "position_items/${positionItemId}/position_extra",
-            formParameters = parameters {
-                append("position_extra_id", positionExtraId)
-            },
-        ).bodyOrThrowGeneralError()
-    }
-
-    suspend fun deletePositionExtraItem(positionExtraItemId: Int) {
-        return httpClient.delete("position_extra_items/${positionExtraItemId}").bodyOrThrowGeneralError()
-    }
-
-    // ---------------------------------------------------------------------------------------------------------------
     // POSITIONS
     suspend fun getPositions(): List<PositionDto> {
         return httpClient.get("positions").bodyOrThrowGeneralError()
     }
 
-    suspend fun setPositionIsActive(positionId: String, isActive: Boolean): PositionDto {
-        return httpClient.submitForm(
-            url = "positions/${positionId}",
-            formParameters = parameters {
-                append("is_active", isActive.toString())
-            }
-        ) {
-            method = HttpMethod.Patch
-        }.bodyOrThrowGeneralError()
+    suspend fun getActivePositions(): List<PositionDto> {
+        return httpClient.get("positions/active").bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
-    // POSITION EXTRA
-
-    suspend fun getPositionExtra(): List<PositionExtraDto> {
-        return httpClient.get("position_extra").bodyOrThrowGeneralError()
+    // POSITIONS
+    suspend fun getPositionVariants(positionId: String): List<PositionVariantDto> {
+        return httpClient
+            .get("positions/${positionId}/position_variants")
+            .bodyOrThrowGeneralError()
     }
 
-    suspend fun setPositionExtraIsActive(positionExtraId: String, isActive: Boolean): PositionExtraDto {
-        return httpClient.submitForm(
-            url = "position_extra/${positionExtraId}",
-            formParameters = parameters {
-                append("is_active", isActive.toString())
-            }
-        ) {
-            method = HttpMethod.Patch
-        }.bodyOrThrowGeneralError()
+    suspend fun setPositionVariantIsActive(
+        positionVariantId: String,
+        isActive: Boolean,
+    ): PositionVariantDto {
+        return httpClient
+            .submitForm(
+                url = "position_variants/${positionVariantId}",
+                formParameters = parameters {
+                    append("is_active", isActive.toString())
+                }
+            ) { method = HttpMethod.Patch }
+            .bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------

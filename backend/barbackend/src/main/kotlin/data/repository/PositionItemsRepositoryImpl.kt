@@ -4,6 +4,7 @@ import by.cyberpunkfandom.data.database.orders.OrderEntity
 import by.cyberpunkfandom.data.database.positionitems.PositionItemEntity
 import by.cyberpunkfandom.data.database.positionitems.PositionItemsTable
 import by.cyberpunkfandom.data.database.positions.PositionEntity
+import by.cyberpunkfandom.data.database.positionvariants.PositionVariantEntity
 import by.cyberpunkfandom.data.database.suspendTransaction
 import by.cyberpunkfandom.data.mappers.PositionItemMapper
 import by.cyberpunkfandom.domain.models.PositionItem
@@ -18,12 +19,14 @@ class PositionItemsRepositoryImpl(
             .map { positionItemMapper.getDomain(it) }
     }
 
-    override suspend fun addPositionItem(orderId: Int, positionId: String): PositionItem = suspendTransaction {
+    override suspend fun addPositionItem(orderId: Int, positionId: String, positionVariantId: String): PositionItem = suspendTransaction {
         val order = OrderEntity[orderId]
-        val barPosition = PositionEntity[positionId]
+        val position = PositionEntity[positionId]
+        val positionVariant = PositionVariantEntity[positionVariantId]
         val positionItem = PositionItemEntity.new {
             this.order = order
-            this.position = barPosition
+            this.position = position
+            this.positionVariant = positionVariant
         }
         positionItemMapper.getDomain(positionItem)
     }

@@ -10,8 +10,6 @@ class PositionDtoMapper {
             id = domain.id,
             name = domain.name,
             description = domain.description,
-            price = domain.price,
-            isActive = domain.isActive,
         )
     }
 }

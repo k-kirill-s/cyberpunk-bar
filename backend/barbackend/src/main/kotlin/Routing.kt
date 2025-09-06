@@ -5,9 +5,8 @@ import io.ktor.server.application.*
 
 fun Application.configureRouting() {
     positionsRouting()
-    positionExtraRouting()
+    positionVariantsRouting()
     ordersRouting()
     positionItemsRouting()
-    positionExtraItemsRouting()
     workersRouting()
 }

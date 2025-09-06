@@ -30,8 +30,8 @@ import org.jetbrains.compose.resources.painterResource
 fun CashierCreateOrderPositionItemRow(
     number: String,
     name: String,
+    subname: String,
     price: Float,
-    onAddExtraClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -46,50 +46,13 @@ fun CashierCreateOrderPositionItemRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "$number $name",
+                    text = "$number $name ($subname)",
                     modifier = Modifier.weight(1f),
                     style = AppTheme.typography.title,
-                )
-
-                AppIconButton(
-                    painter = painterResource(Res.drawable.add_circle_24dp),
-                    onClick = onAddExtraClick,
                 )
             }
         },
         topDivider = { AppHorizontalDivider() },
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun CashierCreateOrderPositionExtraItemRow(
-    number: String,
-    name: String,
-    price: Float,
-    onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    ItemRow(
-        price = price,
-        onDeleteClick = onDeleteClick,
-        title = {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = AppTheme.dimensions.basePadding),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "$number $name",
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = AppTheme.dimensions.basePadding * 2),
-                    style = AppTheme.typography.title,
-                )
-            }
-        },
-        topDivider = { AppDashedHorizontalDivider() },
         modifier = modifier,
     )
 }

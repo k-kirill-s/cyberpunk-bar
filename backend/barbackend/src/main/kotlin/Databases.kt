@@ -2,10 +2,9 @@ package by.cyberpunkfandom
 
 import by.cyberpunkfandom.data.database.orderevents.OrderStatusChangedEventsTable
 import by.cyberpunkfandom.data.database.orders.OrdersTable
-import by.cyberpunkfandom.data.database.positionextra.PositionExtraTable
-import by.cyberpunkfandom.data.database.positionextraitems.PositionExtraItemsTable
 import by.cyberpunkfandom.data.database.positionitems.PositionItemsTable
 import by.cyberpunkfandom.data.database.positions.PositionsTable
+import by.cyberpunkfandom.data.database.positionvariants.PositionVariantsTable
 import by.cyberpunkfandom.data.database.workers.WorkersTable
 import io.ktor.server.application.*
 import org.jetbrains.exposed.sql.Database
@@ -26,10 +25,9 @@ fun Application.configureDatabases() {
 
         SchemaUtils.create(
             PositionsTable,
-            PositionExtraTable,
+            PositionVariantsTable,
             OrdersTable,
             PositionItemsTable,
-            PositionExtraItemsTable,
             OrderStatusChangedEventsTable,
             WorkersTable,
         )
