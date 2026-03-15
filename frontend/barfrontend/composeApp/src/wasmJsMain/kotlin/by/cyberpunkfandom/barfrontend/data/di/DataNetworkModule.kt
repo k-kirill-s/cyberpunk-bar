@@ -3,7 +3,6 @@ package by.cyberpunkfandom.barfrontend.data.di
 import by.cyberpunkfandom.barfrontend.data.services.MainService
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
@@ -24,11 +23,6 @@ val dataNetworkModule = module {
                         ignoreUnknownKeys = true
                     }
                 )
-            }
-
-            defaultRequest {
-                host = "192.168.1.10"
-                port = 8020
             }
         }
     }

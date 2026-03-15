@@ -34,14 +34,26 @@ class WorkerAuthViewModel(
     val onWorkerSelected: Flow<Int> = _onWorkerSelected.receiveAsFlow()
 
     val workers: MutableStateFlow<List<Worker>> = MutableStateFlow(emptyList())
+    val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     init {
         viewModelScope.launch(exceptionHandler) {
-            workers.emit(workersRepository.getWorkers())
+            workers.emit(getSortedWorkers())
+            isLoading.emit(false)
         }
     }
 
     fun onWorkerClick(worker: Worker) {
-        _onWorkerSelected.trySend(worker.id)
+        viewModelScope.launch(exceptionHandler) {
+            workersRepository.setWorkerIsOnLine(worker.id, true)
+            workers.emit(getSortedWorkers())
+            _onWorkerSelected.send(worker.id)
+        }
+    }
+
+    private suspend fun getSortedWorkers(): List<Worker> {
+        return workersRepository
+            .getWorkers()
+            .sortedWith(compareByDescending<Worker> { it.isOnLine }.thenBy { it.name })
     }
 }

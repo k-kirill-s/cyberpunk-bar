@@ -7,6 +7,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.WorkerAuthRoute
 import by.cyberpunkfandom.barfrontend.presentation.worker.auth.workerAuthComposable
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.WorkerHomeRoute
@@ -46,73 +46,81 @@ fun WorkerScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { showErrorSnackbar(it) }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.onBackAllowed.collect { onBackRequest() }
+    }
+
+    val handleBackRequest = remember(viewModel) { { viewModel.onBackClick() } }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
     ) {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = WorkerAuthRoute,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
 
-        AppTheme(isTablet = false) {
-            val navController = rememberNavController()
-            NavHost(
-                navController = navController,
-                startDestination = WorkerAuthRoute,
-                enterTransition = { EnterTransition.None },
-                exitTransition = { ExitTransition.None },
-            ) {
+            workerAuthComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = handleBackRequest,
+                onWorkerSelected = { selectedWorkerId ->
+                    workerId = selectedWorkerId
+                    viewModel.onWorkerSelected(selectedWorkerId)
+                    navController.navigateToWorkerHome(selectedWorkerId)
+                }
+            )
 
-                workerAuthComposable(
-                    onError = { showErrorSnackbar(it) },
-                    onBackRequest = onBackRequest,
-                    onWorkerSelected = { selectedWorkerId ->
-                        workerId = selectedWorkerId
-                        navController.navigateToWorkerHome(selectedWorkerId)
-                    }
-                )
+            workerHomeComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = handleBackRequest,
+                onOrderStarted = { orderId ->
+                    navController.navigateToWorkerOrder(orderId)
+                }
+            )
 
-                workerHomeComposable(
-                    onError = { showErrorSnackbar(it) },
-                    onBackRequest = onBackRequest,
-                    onOrderStarted = { orderId ->
-                        navController.navigateToWorkerOrder(orderId)
-                    }
-                )
+            workerOrderComposable(
+                onError = { showErrorSnackbar(it) },
+                onCloseRequest = {
+                    navController.popBackStack(route = WorkerHomeRoute(workerId!!), inclusive = false)
+                },
+                onOrderFinished = { orderId ->
+                    navController.navigateToWorkerOrderConfirmation(orderId)
+                },
+                onPositionDetailsRequest = { positionId ->
+                    navController.navigateToWorkerPositionDetails(positionId)
+                }
+            )
 
-                workerOrderComposable(
-                    onError = { showErrorSnackbar(it) },
-                    onCloseRequest = {
-                        navController.popBackStack(route = WorkerHomeRoute(workerId!!), inclusive = false)
-                    },
-                    onOrderFinished = { orderId ->
-                        navController.navigateToWorkerOrderConfirmation(orderId)
-                    },
-                    onPositionDetailsRequest = { positionId ->
-                        navController.navigateToWorkerPositionDetails(positionId)
-                    }
-                )
+            workerPositionDetailsComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = {
+                    navController.popBackStack()
+                }
+            )
 
-                workerPositionDetailsComposable(
-                    onError = { showErrorSnackbar(it) },
-                    onBackRequest = {
-                        navController.popBackStack()
-                    }
-                )
-
-                workerOrderConfirmationComposable(
-                    onError = { showErrorSnackbar(it) },
-                    onBackRequest = {
-                        navController.popBackStack()
-                    },
-                    onOrderFinished = {
-                        navController.navigateToWorkerHome(workerId!!) {
-                            popUpTo(WorkerHomeRoute(workerId!!)) {
-                                inclusive = true
-                            }
+            workerOrderConfirmationComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = {
+                    navController.popBackStack()
+                },
+                onOrderFinished = {
+                    navController.navigateToWorkerHome(workerId!!) {
+                        popUpTo(WorkerHomeRoute(workerId!!)) {
+                            inclusive = true
                         }
                     }
-                )
-            }
+                }
+            )
         }
     }
 }

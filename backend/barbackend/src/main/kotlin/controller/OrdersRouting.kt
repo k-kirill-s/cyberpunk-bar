@@ -2,8 +2,6 @@ package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.OrderDtoMapper
 import by.cyberpunkfandom.controller.mappers.OrderFullDtoMapper
-import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.OrdersRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -43,7 +41,7 @@ fun Application.ordersRouting() {
         }
 
         get("/orders/by_worker/{worker_id}") {
-            val workerId = call.parameters["worker_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val workerId = call.parameters["worker_id"].requiredIntParameter()
 
             val activeOrderByWorker = ordersRepository.getOrderInProgressByWorker(workerId)
 
@@ -52,7 +50,7 @@ fun Application.ordersRouting() {
         }
 
         get("/orders/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             val order = ordersRepository.getOrder(id)
 
@@ -68,7 +66,7 @@ fun Application.ordersRouting() {
         }
 
         delete("/orders/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             ordersRepository.deleteOrder(id)
 
@@ -78,7 +76,7 @@ fun Application.ordersRouting() {
         // Change status
 
         post("/orders/{id}/form") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             val order = ordersRepository.formOrder(id)
 
@@ -87,9 +85,9 @@ fun Application.ordersRouting() {
         }
 
         post("/orders/{id}/start") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
             val formParameters = call.receiveParameters()
-            val workerId = formParameters["worker_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val workerId = formParameters["worker_id"].requiredIntParameter()
 
             val order = ordersRepository.startOrder(id = id, workerId = workerId)
 
@@ -98,7 +96,7 @@ fun Application.ordersRouting() {
         }
 
         post("/orders/{id}/finish") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             val order = ordersRepository.finishOrder(id)
 
@@ -107,7 +105,7 @@ fun Application.ordersRouting() {
         }
 
         post("/orders/{id}/give") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             val order = ordersRepository.giveOrder(id)
 
@@ -116,7 +114,7 @@ fun Application.ordersRouting() {
         }
 
         post("/orders/{id}/decline") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             val order = ordersRepository.declineOrder(id)
 

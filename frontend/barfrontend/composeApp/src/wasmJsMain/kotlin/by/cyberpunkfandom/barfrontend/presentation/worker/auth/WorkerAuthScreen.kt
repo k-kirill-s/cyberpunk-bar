@@ -17,6 +17,7 @@ import by.cyberpunkfandom.barfrontend.domain.Worker
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource
@@ -43,6 +44,7 @@ fun WorkerAuthScreen(
     WorkerAuthScreen(
         onBackClick = onBackRequest,
         workers = viewModel.workers.collectAsStateWithLifecycle().value,
+        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         onWorkerClick = viewModel::onWorkerClick,
     )
 }
@@ -51,6 +53,7 @@ fun WorkerAuthScreen(
 private fun WorkerAuthScreen(
     onBackClick: () -> Unit,
     workers: List<Worker>,
+    isLoading: Boolean,
     onWorkerClick: (worker: Worker) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -62,19 +65,43 @@ private fun WorkerAuthScreen(
 
         AppHorizontalDivider()
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(AppTheme.dimensions.basePadding),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
-        ) {
-            items(workers) { worker ->
-                AppBigButton(
-                    title = worker.name,
-                    onClick = { onWorkerClick(worker) },
-                    modifier = Modifier.fillMaxWidth(),
+        when {
+            isLoading -> {
+                AppStateMessage(
+                    title = "Загружаем сотрудников",
+                    isLoading = true,
+                    modifier = Modifier.weight(1f),
                 )
+            }
+
+            workers.isEmpty() -> {
+                AppStateMessage(
+                    title = "Сотрудники не найдены",
+                    description = "Добавьте сотрудников в каталоге кассира.",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentPadding = PaddingValues(AppTheme.dimensions.basePadding),
+                    verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+                ) {
+                    items(workers) { worker ->
+                        AppBigButton(
+                            title = buildString {
+                                append(worker.name)
+                                append(if (worker.isOnLine) " • в сети" else " • офлайн")
+                            },
+                            onClick = { onWorkerClick(worker) },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = if (worker.isOnLine) AppTheme.colorScheme.green else AppTheme.colorScheme.surface,
+                        )
+                    }
+                }
             }
         }
     }

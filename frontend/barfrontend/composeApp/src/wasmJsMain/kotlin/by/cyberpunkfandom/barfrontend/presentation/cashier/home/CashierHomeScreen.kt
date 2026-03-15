@@ -95,7 +95,7 @@ private fun CashierHomeScreen(
             )
 
             AppBigButton(
-                title = "Включить/выключить позиции",
+                title = "Каталог и сотрудники",
                 onClick = onTogglePositionsClick,
                 modifier = Modifier.fillMaxWidth(),
             )

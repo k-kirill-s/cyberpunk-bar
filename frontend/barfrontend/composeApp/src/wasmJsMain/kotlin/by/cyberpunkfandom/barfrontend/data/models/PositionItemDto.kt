@@ -8,4 +8,5 @@ data class PositionItemDto(
     val position: PositionDto,
     val positionVariant: PositionVariantDto,
     val price: Float,
+    val isCompleted: Boolean,
 )

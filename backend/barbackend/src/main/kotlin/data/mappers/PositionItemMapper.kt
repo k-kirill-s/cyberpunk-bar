@@ -13,6 +13,7 @@ class PositionItemMapper(
             id = entity.id.value,
             position = positionMapper.getDomain(entity.position),
             positionVariant = positionVariantMapper.getDomain(entity.positionVariant),
+            isCompleted = entity.isCompleted,
         )
     }
 }

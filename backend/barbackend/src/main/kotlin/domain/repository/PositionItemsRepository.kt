@@ -8,5 +8,7 @@ interface PositionItemsRepository {
 
     suspend fun addPositionItem(orderId: Int, positionId: String, positionVariantId: String): PositionItem
 
+    suspend fun updatePositionItem(positionItemId: Int, isCompleted: Boolean): PositionItem
+
     suspend fun deletePositionItem(positionItemId: Int)
 }

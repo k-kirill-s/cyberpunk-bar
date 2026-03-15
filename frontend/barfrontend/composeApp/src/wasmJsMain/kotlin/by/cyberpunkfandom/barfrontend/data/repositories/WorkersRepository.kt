@@ -18,4 +18,26 @@ class WorkersRepository(
         val dto = mainService.setWorkerIsOnLine(workerId, isOnLine)
         return workerMapper.getDomain(dto)
     }
+
+    suspend fun createWorker(name: String): Worker {
+        val dto = mainService.createWorker(name)
+        return workerMapper.getDomain(dto)
+    }
+
+    suspend fun updateWorker(
+        workerId: Int,
+        name: String?,
+        isOnLine: Boolean?,
+    ): Worker {
+        val dto = mainService.updateWorker(
+            workerId = workerId,
+            name = name,
+            isOnLine = isOnLine,
+        )
+        return workerMapper.getDomain(dto)
+    }
+
+    suspend fun deleteWorker(workerId: Int) {
+        mainService.deleteWorker(workerId)
+    }
 }

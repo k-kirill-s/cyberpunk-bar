@@ -2,7 +2,10 @@ package by.cyberpunkfandom.barfrontend.presentation.worker.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import by.cyberpunkfandom.barfrontend.core.mapState
+import by.cyberpunkfandom.barfrontend.core.nextAdaptiveRefreshDelay
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
+import by.cyberpunkfandom.barfrontend.data.repositories.PositionItemsRepository
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.OrderStatus
 import by.cyberpunkfandom.barfrontend.domain.Position
@@ -22,6 +25,7 @@ import kotlinx.coroutines.launch
 class WorkerOrderViewModel(
     private val orderId: Int,
     private val ordersRepository: OrdersRepository,
+    private val positionItemsRepository: PositionItemsRepository,
 ) : ViewModel() {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -46,32 +50,41 @@ class WorkerOrderViewModel(
     val onPositionDetailsRequest: Flow<String> = _onPositionDetailsRequest.receiveAsFlow()
 
     val order: MutableStateFlow<OrderFull?> = MutableStateFlow(null)
+    val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
-    val completedPositionItems: MutableStateFlow<List<PositionItem>> = MutableStateFlow(emptyList())
+    val isDoneEnabled = order.mapState { currentOrder ->
+        val positionItems = currentOrder?.positionItems.orEmpty()
+        positionItems.isNotEmpty() && positionItems.all(PositionItem::isCompleted)
+    }
 
     val isCloseDialogVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     val isChangedDialogVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
-        viewModelScope.launch(exceptionHandler) {
-            order.emit(ordersRepository.getOrder(orderId))
-        }
-
-        checkOrderIsInProgress()
+        startOrderRefreshLoop()
     }
 
-    private fun checkOrderIsInProgress() {
+    private fun startOrderRefreshLoop() {
         viewModelScope.launch(exceptionHandler) {
             while (true) {
-                val order = ordersRepository.getOrder(orderId)
-                if (order.status != OrderStatus.STARTED) {
+                val changed = refreshOrder()
+                isLoading.emit(false)
+                val currentOrder = order.value
+                if (currentOrder != null && currentOrder.status != OrderStatus.STARTED) {
                     isChangedDialogVisible.emit(true)
                     break
                 }
-                delay(3000L)
+                delay(nextAdaptiveRefreshDelay(changed = changed))
             }
         }
+    }
+
+    private suspend fun refreshOrder(): Boolean {
+        val previousOrder = order.value
+        val updatedOrder = ordersRepository.getOrder(orderId)
+        order.emit(updatedOrder)
+        return previousOrder != updatedOrder
     }
 
     fun onCloseClick() {
@@ -87,11 +100,11 @@ class WorkerOrderViewModel(
     }
 
     fun onPositionItemCompletedSwiped(positionItem: PositionItem) {
-        completedPositionItems.update { it + positionItem }
+        updatePositionItem(positionItem.id, true)
     }
 
     fun onPositionItemCancelClick(positionItem: PositionItem) {
-        completedPositionItems.update { it - positionItem }
+        updatePositionItem(positionItem.id, false)
     }
 
     fun onCloseDialogDismissRequest() {
@@ -106,5 +119,12 @@ class WorkerOrderViewModel(
     fun onChangedDialogDismissRequest() {
         isChangedDialogVisible.update { false }
         _onCloseRequest.trySend(Unit)
+    }
+
+    private fun updatePositionItem(positionItemId: Int, isCompleted: Boolean) {
+        viewModelScope.launch(exceptionHandler) {
+            positionItemsRepository.setPositionItemCompleted(positionItemId, isCompleted)
+            refreshOrder()
+        }
     }
 }

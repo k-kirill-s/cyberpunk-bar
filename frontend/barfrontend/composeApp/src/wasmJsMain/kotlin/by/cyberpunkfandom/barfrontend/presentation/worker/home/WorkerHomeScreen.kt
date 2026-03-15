@@ -18,6 +18,7 @@ import by.cyberpunkfandom.barfrontend.domain.Worker
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import by.cyberpunkfandom.barfrontend.presentation.worker.home.composable.dialogs.orderfinished.WorkerHomeOrderFinishedDialog
@@ -49,6 +50,7 @@ fun WorkerHomeScreen(
         onBackClick = onBackRequest,
         worker = viewModel.worker.collectAsStateWithLifecycle().value,
         orderToCollect = viewModel.orderToCollect.collectAsStateWithLifecycle().value,
+        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         isStartOrderLoading = viewModel.isStartOrderLoading.collectAsStateWithLifecycle().value,
         onStartOrderClick = viewModel::onStartOrderClick,
         orderFinishedDialogState = viewModel.orderFinishedDialogState.collectAsStateWithLifecycle().value,
@@ -63,6 +65,7 @@ private fun WorkerAuthScreen(
     onBackClick: () -> Unit,
     worker: Worker?,
     orderToCollect: OrderFull?,
+    isLoading: Boolean,
     isStartOrderLoading: Boolean,
     onStartOrderClick: () -> Unit,
     orderFinishedDialogState: WorkerHomeOrderFinishedDialogState?,
@@ -87,18 +90,26 @@ private fun WorkerAuthScreen(
             contentAlignment = Alignment.Center,
         ) {
             val (title, color, enabled) = when {
-                orderToCollect == null -> Triple("Нет заказов", AppTheme.colorScheme.surface, false)
+                isLoading -> Triple("Загружаем очередь", AppTheme.colorScheme.surface, false)
+                orderToCollect == null -> Triple("Нет доступных заказов", AppTheme.colorScheme.surface, false)
                 orderToCollect.status == OrderStatus.FORMED -> Triple("Взять заказ №${orderToCollect.name}", AppTheme.colorScheme.accent, true)
                 else -> Triple("Продолжить заказ №${orderToCollect.name}", AppTheme.colorScheme.accent, true)
             }
-            AppBigButton(
-                title = title,
-                onClick = onStartOrderClick,
-                modifier = Modifier.fillMaxWidth(),
-                color = color,
-                enabled = enabled,
-                isLoading = isStartOrderLoading,
-            )
+            if (isLoading && orderToCollect == null) {
+                AppStateMessage(
+                    title = title,
+                    isLoading = true,
+                )
+            } else {
+                AppBigButton(
+                    title = title,
+                    onClick = onStartOrderClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = color,
+                    enabled = enabled,
+                    isLoading = isStartOrderLoading,
+                )
+            }
         }
     }
 

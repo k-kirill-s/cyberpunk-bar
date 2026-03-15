@@ -22,6 +22,11 @@ class PositionItemsRepository(
         return positionItemMapper.getDomain(dto)
     }
 
+    suspend fun setPositionItemCompleted(positionItemId: Int, isCompleted: Boolean): PositionItem {
+        val dto = mainService.setPositionItemCompleted(positionItemId, isCompleted)
+        return positionItemMapper.getDomain(dto)
+    }
+
     suspend fun deletePositionItem(positionItemId: Int) {
         mainService.deletePositionItem(positionItemId)
     }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.material.materialThemeColorScheme
+import kotlinx.browser.window
 
 private val tabletAppDimensions = AppDimensions(
     topBarHeight = 96.dp,
@@ -58,11 +59,12 @@ private val phoneAppTypography = AppTypography(
 
 @Composable
 fun AppTheme(
-    isTablet: Boolean = true,
+    isTablet: Boolean? = null,
     content: @Composable () -> Unit,
 ) {
-    val appDimensions = if (isTablet) tabletAppDimensions else phoneAppDimensions
-    val appTypography = if (isTablet) tabletAppTypography else phoneAppTypography
+    val isTabletMode = isTablet ?: (window.innerWidth >= 900)
+    val appDimensions = if (isTabletMode) tabletAppDimensions else phoneAppDimensions
+    val appTypography = if (isTabletMode) tabletAppTypography else phoneAppTypography
 
     CompositionLocalProvider(
         LocalAppDimensions provides appDimensions,

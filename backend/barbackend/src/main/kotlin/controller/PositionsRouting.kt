@@ -1,8 +1,6 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.PositionDtoMapper
-import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.PositionsRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -35,8 +33,8 @@ fun Application.positionsRouting() {
 
         post("positions") {
             val formParameters = call.receiveParameters()
-            val id = formParameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
-            val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = formParameters["id"].requiredParameter()
+            val name = formParameters["name"].requiredParameter()
             val description = formParameters["description"].orEmpty()
 
             val position = positionsRepository.addPosition(
@@ -50,7 +48,7 @@ fun Application.positionsRouting() {
         }
 
         patch("positions/{id}") {
-            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredParameter()
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val description = formParameters["description"]
@@ -66,7 +64,7 @@ fun Application.positionsRouting() {
         }
 
         delete("positions/{id}") {
-            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredParameter()
 
             positionsRepository.deletePosition(id)
 

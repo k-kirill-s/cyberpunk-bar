@@ -1,6 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.infoboard
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,14 +10,22 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppVerticalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 
 @Composable
@@ -25,6 +34,8 @@ fun InfoBoardScreen(viewModel: InfoBoardViewModel) {
         formedOrdersNames = viewModel.formedOrdersNames.collectAsStateWithLifecycle().value,
         startedOrdersNames = viewModel.startedOrdersNames.collectAsStateWithLifecycle().value,
         finishedOrdersNames = viewModel.finishedOrdersNames.collectAsStateWithLifecycle().value,
+        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
+        errorMessage = viewModel.errorMessage.collectAsStateWithLifecycle().value,
     )
 }
 
@@ -33,41 +44,102 @@ private fun InfoBoardScreen(
     formedOrdersNames: List<String>,
     startedOrdersNames: List<String>,
     finishedOrdersNames: List<String>,
+    isLoading: Boolean,
+    errorMessage: String?,
 ) {
-    Row(
-        modifier = Modifier.fillMaxSize()
-    ) {
-
-        OrdersBox(
-            ordersNames = formedOrdersNames,
-            title = "В очереди",
-            textColor = AppTheme.colorScheme.text,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+    if (isLoading && formedOrdersNames.isEmpty() && startedOrdersNames.isEmpty() && finishedOrdersNames.isEmpty()) {
+        AppStateMessage(
+            title = "Загружаем табло",
+            isLoading = true,
         )
+        return
+    }
 
-        AppVerticalDivider()
-
-        OrdersBox(
-            ordersNames = startedOrdersNames,
-            title = "В процессе",
-            textColor = AppTheme.colorScheme.text,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+    if (!errorMessage.isNullOrBlank() && formedOrdersNames.isEmpty() && startedOrdersNames.isEmpty() && finishedOrdersNames.isEmpty()) {
+        AppStateMessage(
+            title = errorMessage,
+            description = "Попробуйте обновить страницу через несколько секунд.",
         )
+        return
+    }
 
-        AppVerticalDivider()
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isCompact = maxWidth < 900.dp
 
-        OrdersBox(
-            ordersNames = finishedOrdersNames,
-            title = "Готовы",
-            textColor = AppTheme.colorScheme.green,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-        )
+        if (isCompact) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                OrdersBox(
+                    ordersNames = formedOrdersNames,
+                    title = "В очереди",
+                    textColor = AppTheme.colorScheme.text,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 280.dp),
+                )
+
+                AppHorizontalDivider()
+
+                OrdersBox(
+                    ordersNames = startedOrdersNames,
+                    title = "В процессе",
+                    textColor = AppTheme.colorScheme.text,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 280.dp),
+                )
+
+                AppHorizontalDivider()
+
+                OrdersBox(
+                    ordersNames = finishedOrdersNames,
+                    title = "Готовы",
+                    textColor = AppTheme.colorScheme.green,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 280.dp),
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ) {
+
+                OrdersBox(
+                    ordersNames = formedOrdersNames,
+                    title = "В очереди",
+                    textColor = AppTheme.colorScheme.text,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
+
+                AppVerticalDivider()
+
+                OrdersBox(
+                    ordersNames = startedOrdersNames,
+                    title = "В процессе",
+                    textColor = AppTheme.colorScheme.text,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
+
+                AppVerticalDivider()
+
+                OrdersBox(
+                    ordersNames = finishedOrdersNames,
+                    title = "Готовы",
+                    textColor = AppTheme.colorScheme.green,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
+            }
+        }
     }
 }
 
@@ -82,16 +154,29 @@ private fun OrdersBox(
         title = title,
         modifier = modifier,
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {
+        if (ordersNames.isEmpty()) {
+            AppStateMessage(
+                title = "Пусто",
+                description = "Новых заказов пока нет.",
+            )
+            return@OrdersBoxScaffold
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+        ) {
             val chunkedOrdersNames = ordersNames.chunked(5)
             val textStyle = if (chunkedOrdersNames.size > 2) AppTheme.typography.display else AppTheme.typography.displayLarge
-            chunkedOrdersNames.take(3).forEach { ordersNames ->
+            chunkedOrdersNames.forEach { ordersNames ->
                 OrdersNamesColumn(
                     ordersNames = ordersNames,
                     textStyle = textStyle,
                     textColor = textColor,
                     modifier = Modifier
-                        .weight(1f)
+                        .widthIn(min = 220.dp)
                         .fillMaxHeight()
                 )
             }

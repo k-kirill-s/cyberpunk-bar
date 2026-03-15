@@ -52,6 +52,8 @@ class CashierCreateOrderViewModel(
     val positionItems: StateFlow<List<PositionItem>> = order.mapState { it?.positionItems ?: emptyList() }
 
     val totalPrice: StateFlow<Float> = order.mapState { it?.price ?: 0f }
+    val isCreateOrderButtonEnabled: StateFlow<Boolean> = positionItems.mapState { it.isNotEmpty() }
+    val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     val isCreateOrderButtonLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -60,6 +62,7 @@ class CashierCreateOrderViewModel(
     init {
         viewModelScope.launch(exceptionHandler) {
             order.update { ordersRepository.getOrder(orderId) }
+            isLoading.emit(false)
         }
     }
 
@@ -79,6 +82,11 @@ class CashierCreateOrderViewModel(
     }
 
     fun onCreateOrderButtonClick() {
+        if (positionItems.value.isEmpty()) {
+            _onError.trySend(ExceptionCodes.ORDER_MUST_HAVE_ITEMS)
+            return
+        }
+
         viewModelScope.launch(exceptionHandler) {
             isCreateOrderButtonLoading.emit(true)
             try {

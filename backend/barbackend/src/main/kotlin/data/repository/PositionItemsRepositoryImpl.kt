@@ -32,6 +32,12 @@ class PositionItemsRepositoryImpl(
         positionItemMapper.getDomain(positionItem)
     }
 
+    override suspend fun updatePositionItem(positionItemId: Int, isCompleted: Boolean): PositionItem = suspendTransaction {
+        val positionItem = PositionItemEntity[positionItemId]
+        positionItem.isCompleted = isCompleted
+        positionItemMapper.getDomain(positionItem)
+    }
+
     override suspend fun deletePositionItem(positionItemId: Int) = suspendTransaction {
         PositionItemEntity[positionItemId].delete()
     }

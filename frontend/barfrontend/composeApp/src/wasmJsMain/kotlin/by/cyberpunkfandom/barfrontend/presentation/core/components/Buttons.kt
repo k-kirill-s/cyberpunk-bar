@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
@@ -26,6 +27,7 @@ fun AppBigButton(
     Box(
         modifier = modifier
             .height(AppTheme.dimensions.bigButtonHeight)
+            .alpha(if (enabled) 1f else 0.6f)
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
             .background(color)
             .clickable(enabled = enabled && !isLoading, onClick = onClick)
@@ -49,13 +51,15 @@ fun AppBoxButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = AppTheme.colorScheme.accent,
+    enabled: Boolean = true,
     isLoading: Boolean = false,
 ) {
     Box(
         modifier = modifier
+            .alpha(if (enabled) 1f else 0.6f)
             .background(color)
             .clickable(
-                enabled = !isLoading,
+                enabled = enabled && !isLoading,
                 onClick = onClick,
             ),
         contentAlignment = Alignment.Center,

@@ -25,6 +25,7 @@ import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppIconButton
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppSwipeToActionBox
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.components.DividerType
@@ -68,11 +69,12 @@ fun WorkerOrderScreen(
     WorkerOrderScreen(
         onCloseClick = viewModel::onCloseClick,
         order = viewModel.order.collectAsStateWithLifecycle().value,
-        completedPositionItems = viewModel.completedPositionItems.collectAsStateWithLifecycle().value,
+        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         onPositionDetailsClick = viewModel::onPositionDetailsClick,
         onPositionItemCompletedSwiped = viewModel::onPositionItemCompletedSwiped,
         onPositionItemCancelClick = viewModel::onPositionItemCancelClick,
         onDoneClick = viewModel::onDoneClick,
+        isDoneEnabled = viewModel.isDoneEnabled.collectAsStateWithLifecycle().value,
         isCloseDialogVisible = viewModel.isCloseDialogVisible.collectAsStateWithLifecycle().value,
         onCloseDialogDismissRequest = viewModel::onCloseDialogDismissRequest,
         onCloseDialogConfirmClick = viewModel::onCloseDialogConfirmClick,
@@ -85,19 +87,31 @@ fun WorkerOrderScreen(
 private fun WorkerOrderScreen(
     onCloseClick: () -> Unit,
     order: OrderFull?,
-    completedPositionItems: List<PositionItem>,
+    isLoading: Boolean,
     onPositionDetailsClick: (position: Position) -> Unit,
     onPositionItemCompletedSwiped: (positionItem: PositionItem) -> Unit,
     onPositionItemCancelClick: (positionItem: PositionItem) -> Unit,
     onDoneClick: () -> Unit,
+    isDoneEnabled: Boolean,
     isCloseDialogVisible: Boolean,
     onCloseDialogDismissRequest: () -> Unit,
     onCloseDialogConfirmClick: () -> Unit,
     isChangedDialogVisible: Boolean,
     onChangedDialogDismissRequest: () -> Unit,
 ) {
+    if (isLoading && order == null) {
+        AppStateMessage(
+            title = "Загружаем заказ",
+            isLoading = true,
+        )
+        return
+    }
+
     order ?: run {
-        Spacer(Modifier.fillMaxSize())
+        AppStateMessage(
+            title = "Заказ недоступен",
+            description = "Вернитесь на экран сотрудника и выберите другой заказ.",
+        )
         return
     }
 
@@ -112,7 +126,6 @@ private fun WorkerOrderScreen(
 
         OrderContentColumn(
             order = order,
-            completedPositionItems = completedPositionItems,
             onPositionDetailsClick = onPositionDetailsClick,
             onPositionItemCompletedSwiped = onPositionItemCompletedSwiped,
             onPositionItemCancelClick = onPositionItemCancelClick,
@@ -128,6 +141,7 @@ private fun WorkerOrderScreen(
                 .fillMaxWidth()
                 .height(AppTheme.dimensions.bottomBarHeight),
             color = AppTheme.colorScheme.green,
+            enabled = isDoneEnabled,
         )
     }
 
@@ -148,19 +162,27 @@ private fun WorkerOrderScreen(
 @Composable
 private fun OrderContentColumn(
     order: OrderFull,
-    completedPositionItems: List<PositionItem>,
     onPositionDetailsClick: (position: Position) -> Unit,
     onPositionItemCompletedSwiped: (positionItem: PositionItem) -> Unit,
     onPositionItemCancelClick: (positionItem: PositionItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    if (order.positionItems.isEmpty()) {
+        AppStateMessage(
+            title = "В заказе нет позиций",
+            description = "Кассир должен добавить позиции до начала сборки.",
+            modifier = modifier,
+        )
+        return
+    }
+
     LazyColumn(modifier = modifier) {
         order.positionItems.forEachIndexed { index, positionItem ->
             item {
                 PositionItemRow(
                     positionItem = positionItem,
                     index = index,
-                    completed = positionItem in completedPositionItems,
+                    completed = positionItem.isCompleted,
                     onDetailsClick = { onPositionDetailsClick(positionItem.position) },
                     onCompletedSwiped = { onPositionItemCompletedSwiped(positionItem) },
                     onCancelClick = { onPositionItemCancelClick(positionItem) },

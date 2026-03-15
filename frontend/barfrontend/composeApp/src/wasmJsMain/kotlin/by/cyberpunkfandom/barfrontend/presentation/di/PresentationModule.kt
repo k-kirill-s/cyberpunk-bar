@@ -47,6 +47,7 @@ val presentationModule = module {
         CashierTogglePositionsViewModel(
             positionsRepository = get(),
             positionVariantsRepository = get(),
+            workersRepository = get(),
         )
     }
 
@@ -63,6 +64,7 @@ val presentationModule = module {
         WorkerOrderViewModel(
             orderId = parameters.get(),
             ordersRepository = get(),
+            positionItemsRepository = get(),
         )
     }
     viewModel { parameters ->

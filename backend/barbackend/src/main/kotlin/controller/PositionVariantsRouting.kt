@@ -1,8 +1,6 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.PositionVariantDtoMapper
-import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.PositionVariantsRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,7 +18,7 @@ fun Application.positionVariantsRouting() {
 
     routing {
         get("/positions/{position_id}/position_variants") {
-            val positionId = call.parameters["position_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val positionId = call.parameters["position_id"].requiredParameter()
 
             val positionVariants = positionVariantsRepository.getPositionVariants(positionId)
             val positionVariantsDto = positionVariants.map { positionVariantDtoMapper.getDto(it) }
@@ -29,11 +27,11 @@ fun Application.positionVariantsRouting() {
         }
 
         post("/positions/{position_id}/position_variants") {
-            val positionId = call.parameters["position_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val positionId = call.parameters["position_id"].requiredParameter()
             val formParameters = call.receiveParameters()
-            val id = formParameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
-            val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
-            val price = formParameters["price"]?.toFloat() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = formParameters["id"].requiredParameter()
+            val name = formParameters["name"].requiredParameter()
+            val price = formParameters["price"].requiredFloatParameter()
 
             val positionVariant = positionVariantsRepository.addPositionVariant(
                 positionId = positionId,
@@ -47,10 +45,10 @@ fun Application.positionVariantsRouting() {
         }
 
         patch("/position_variants/{id}") {
-            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredParameter()
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
-            val price = formParameters["price"]?.toFloat()
+            val price = formParameters["price"]?.toFloatOrNull()
             val isActive = formParameters["is_active"]?.toBoolean()
 
             val positionVariant = positionVariantsRepository.updatePositionVariant(
@@ -65,7 +63,7 @@ fun Application.positionVariantsRouting() {
         }
 
         delete("/position_variants/{id}") {
-            val id = call.parameters["id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredParameter()
 
             positionVariantsRepository.deletePositionVariant(id)
 

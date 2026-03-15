@@ -14,16 +14,22 @@ import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Application.configureDatabases() {
+    val dbHost = System.getenv("DB_HOST") ?: "db"
+    val dbPort = System.getenv("DB_PORT") ?: "5432"
+    val dbName = System.getenv("DB_NAME") ?: "bar"
+    val dbUser = System.getenv("DB_USER") ?: "postgres"
+    val dbPassword = System.getenv("DB_PASSWORD") ?: "postgres"
+
     Database.connect(
-        url = "jdbc:postgresql://db:5432/bar",
-        user = "postgres",
-        password = "postgres"
+        url = "jdbc:postgresql://$dbHost:$dbPort/$dbName",
+        user = dbUser,
+        password = dbPassword
     )
 
     transaction {
         addLogger(StdOutSqlLogger)
 
-        SchemaUtils.create(
+        SchemaUtils.createMissingTablesAndColumns(
             PositionsTable,
             PositionVariantsTable,
             OrdersTable,

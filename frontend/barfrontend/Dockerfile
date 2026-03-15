@@ -13,5 +13,6 @@ RUN gradle :composeApp:wasmJsBrowserDistribution --no-daemon
 FROM nginx:alpine AS runtime
 
 COPY --from=build /home/gradle/src/composeApp/build/dist/wasmJs/productionExecutable/ /usr/share/nginx/html/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost/ > /dev/null || exit 1

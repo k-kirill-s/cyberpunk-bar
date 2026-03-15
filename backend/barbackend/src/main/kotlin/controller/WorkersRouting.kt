@@ -1,8 +1,6 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.WorkerDtoMapper
-import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.WorkersRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -28,7 +26,7 @@ fun Application.workersRouting() {
 
         post("workers") {
             val formParameters = call.receiveParameters()
-            val name = formParameters["name"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val name = formParameters["name"].requiredParameter()
 
             val worker = workersRepository.addWorker(name = name)
             val workerDto = workerDtoMapper.getDto(worker)
@@ -36,7 +34,7 @@ fun Application.workersRouting() {
         }
 
         patch("workers/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val isOnLine = formParameters["is_on_line"]?.toBoolean()
@@ -52,7 +50,7 @@ fun Application.workersRouting() {
         }
 
         delete("workers/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             workersRepository.deleteWorker(id)
 

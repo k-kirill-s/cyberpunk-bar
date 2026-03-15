@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bar
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "${DB_PORT:-5420}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    image: "${BACKEND_IMAGE:-cyberpunk-bar-backend:local}"
+    build:
+      context: backend/barbackend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: bar
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "${BACKEND_PORT:-8020}:8080"
+
+  frontend:
+    image: "${FRONTEND_IMAGE:-cyberpunk-bar-frontend:local}"
+    platform: linux/amd64
+    build:
+      context: frontend/barfrontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8021}:80"
+
+volumes:
+  pgdata: {}

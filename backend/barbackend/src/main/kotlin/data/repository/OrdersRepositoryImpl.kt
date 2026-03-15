@@ -4,6 +4,7 @@ import by.cyberpunkfandom.data.database.orderevents.OrderStatusChangedEventsTabl
 import by.cyberpunkfandom.data.database.orders.OrderEntity
 import by.cyberpunkfandom.data.database.orders.OrderFullEntity
 import by.cyberpunkfandom.data.database.orders.OrdersTable
+import by.cyberpunkfandom.data.database.acquireTransactionLock
 import by.cyberpunkfandom.data.database.suspendTransaction
 import by.cyberpunkfandom.data.mappers.OrderFullMapper
 import by.cyberpunkfandom.data.mappers.OrderMapper
@@ -13,15 +14,12 @@ import by.cyberpunkfandom.domain.models.Order
 import by.cyberpunkfandom.domain.models.OrderFull
 import by.cyberpunkfandom.domain.models.OrderStatus
 import by.cyberpunkfandom.domain.repository.OrdersRepository
-import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.exposed.sql.*
 
 class OrdersRepositoryImpl(
     private val orderMapper: OrderMapper,
     private val orderFullMapper: OrderFullMapper,
 ) : OrdersRepository {
-
-    private val startOrderMutex = Mutex()
 
     override suspend fun getOrders(): List<Order> = suspendTransaction {
         val query = getOrdersQuery()
@@ -67,8 +65,13 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun formOrder(id: Int): OrderFull = suspendTransaction {
+        acquireTransactionLock(FORM_ORDER_LOCK)
+
         assertOrder(id) { order ->
             checkOrderStatus(order, OrderStatus.CREATED)
+            if (order.positionItems.empty()) {
+                throw GeneralException(ExceptionCodes.ORDER_MUST_HAVE_ITEMS)
+            }
         }
 
         val maxFormedIndex = OrdersTable.select(OrdersTable.formedIndex.max())
@@ -84,19 +87,16 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun startOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
-        startOrderMutex.lock()
-        try {
-            assertOrder(id) { order ->
-                checkOrderStatus(order, OrderStatus.FORMED)
-            }
+        acquireTransactionLock(START_ORDER_LOCK)
 
-            OrdersTable.update(where = { OrdersTable.id eq id }) {
-                it[this.workerId] = workerId
-            }
-            changeOrderStatus(id, OrderStatus.STARTED)
-        } finally {
-            startOrderMutex.unlock()
+        assertOrder(id) { order ->
+            checkOrderStatus(order, OrderStatus.FORMED)
         }
+
+        OrdersTable.update(where = { OrdersTable.id eq id }) {
+            it[this.workerId] = workerId
+        }
+        changeOrderStatus(id, OrderStatus.STARTED)
     }
 
     override suspend fun finishOrder(id: Int): OrderFull = suspendTransaction {
@@ -155,5 +155,10 @@ class OrdersRepositoryImpl(
         if (order.lastStatusChangedEvent?.status != status.name) {
             throw GeneralException(ExceptionCodes.ORDER_IN_INCOMPATIBLE_STATUS)
         }
+    }
+
+    private companion object {
+        const val FORM_ORDER_LOCK = 1_001L
+        const val START_ORDER_LOCK = 1_002L
     }
 }

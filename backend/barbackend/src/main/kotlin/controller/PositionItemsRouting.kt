@@ -1,8 +1,6 @@
 package by.cyberpunkfandom.controller
 
 import by.cyberpunkfandom.controller.mappers.PositionItemDtoMapper
-import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
-import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.repository.PositionItemsRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -19,7 +17,7 @@ fun Application.positionItemsRouting() {
 
     routing {
         get("/orders/{order_id}/position_items") {
-            val orderId = call.parameters["order_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val orderId = call.parameters["order_id"].requiredIntParameter()
 
             val positionItems = positionItemsRepository.getPositionItems(orderId)
 
@@ -28,10 +26,10 @@ fun Application.positionItemsRouting() {
         }
 
         post("/orders/{order_id}/position_items") {
-            val orderId = call.parameters["order_id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val orderId = call.parameters["order_id"].requiredIntParameter()
             val formParameters = call.receiveParameters()
-            val positionId = formParameters["position_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
-            val positionVariantId = formParameters["position_variant_id"] ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val positionId = formParameters["position_id"].requiredParameter()
+            val positionVariantId = formParameters["position_variant_id"].requiredParameter()
 
             val positionItem = positionItemsRepository.addPositionItem(
                 orderId = orderId,
@@ -43,8 +41,22 @@ fun Application.positionItemsRouting() {
             call.respond(positionItemDto)
         }
 
+        patch("/position_items/{id}") {
+            val id = call.parameters["id"].requiredIntParameter()
+            val formParameters = call.receiveParameters()
+            val isCompleted = formParameters["is_completed"].requiredBooleanParameter()
+
+            val positionItem = positionItemsRepository.updatePositionItem(
+                positionItemId = id,
+                isCompleted = isCompleted,
+            )
+
+            val positionItemDto = positionItemDtoMapper.getDto(positionItem)
+            call.respond(positionItemDto)
+        }
+
         delete("/position_items/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: error(GeneralException(ExceptionCodes.MISSING_PARAMETER))
+            val id = call.parameters["id"].requiredIntParameter()
 
             positionItemsRepository.deletePositionItem(id)
 

@@ -2,6 +2,7 @@ package by.cyberpunkfandom.barfrontend.presentation.worker.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import by.cyberpunkfandom.barfrontend.core.nextAdaptiveRefreshDelay
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
 import by.cyberpunkfandom.barfrontend.data.repositories.WorkersRepository
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
@@ -44,6 +45,7 @@ class WorkerHomeViewModel(
     val worker: MutableStateFlow<Worker?> = MutableStateFlow(null)
 
     val orderToCollect: MutableStateFlow<OrderFull?> = MutableStateFlow(null)
+    val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     val isStartOrderLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -56,22 +58,31 @@ class WorkerHomeViewModel(
             worker.emit(workersRepository.getWorkers().first { it.id == workerId })
         }
 
+        startOrderRefreshLoop()
+    }
+
+    private fun startOrderRefreshLoop() {
         viewModelScope.launch(exceptionHandler) {
             while (true) {
-                loadOrderToCollect()
-                delay(3000L)
+                val changed = loadOrderToCollect()
+                isLoading.emit(false)
+                delay(nextAdaptiveRefreshDelay(changed = changed))
             }
         }
     }
 
-    private suspend fun loadOrderToCollect() {
+    private suspend fun loadOrderToCollect(): Boolean {
+        val previousOrder = orderToCollect.value
         val inProgressOrder = ordersRepository.getInProgressOrderByWorker(workerId)
-        if (inProgressOrder != null) {
+        val nextOrder = if (inProgressOrder != null) {
             orderToCollect.emit(inProgressOrder)
+            inProgressOrder
         } else {
             val nextOrderToCollect = ordersRepository.getNextOrderToCollect()
             orderToCollect.emit(nextOrderToCollect)
+            nextOrderToCollect
         }
+        return previousOrder != nextOrder
     }
 
     fun onStartOrderClick() {

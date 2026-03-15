@@ -5,4 +5,5 @@ data class PositionItem(
     val position: Position,
     val positionVariant: PositionVariant,
     val price: Float,
+    val isCompleted: Boolean,
 )

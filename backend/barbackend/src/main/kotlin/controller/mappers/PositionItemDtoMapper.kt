@@ -14,6 +14,7 @@ class PositionItemDtoMapper(
             position = positionDtoMapper.getDto(domain.position),
             positionVariant = positionVariantDtoMapper.getDto(domain.positionVariant),
             price = domain.price,
+            isCompleted = domain.isCompleted,
         )
     }
 }

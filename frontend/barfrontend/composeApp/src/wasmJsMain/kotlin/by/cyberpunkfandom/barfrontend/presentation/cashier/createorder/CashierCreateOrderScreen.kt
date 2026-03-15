@@ -24,6 +24,7 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composabl
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.composable.dialogs.orderformed.CashierCreateOrderOrderFormedDialogState
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource
@@ -64,9 +65,11 @@ fun CashierCreateOrderScreen(
     CashierCreateOrderScreen(
         onCloseClick = viewModel::onCloseClick,
         positionItems = viewModel.positionItems.collectAsStateWithLifecycle().value,
+        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         onPositionItemDeleteClick = viewModel::onPositionItemDeleteClick,
         totalPrice = viewModel.totalPrice.collectAsStateWithLifecycle().value,
         onAddPositionClick = viewModel::onAddPositionClick,
+        isCreateOrderButtonEnabled = viewModel.isCreateOrderButtonEnabled.collectAsStateWithLifecycle().value,
         isCreateOrderButtonLoading = viewModel.isCreateOrderButtonLoading.collectAsStateWithLifecycle().value,
         onCreateOrderButtonClick = viewModel::onCreateOrderButtonClick,
         orderFormedDialogState = viewModel.orderFormedDialogState.collectAsStateWithLifecycle().value,
@@ -78,9 +81,11 @@ fun CashierCreateOrderScreen(
 private fun CashierCreateOrderScreen(
     onCloseClick: () -> Unit,
     positionItems: List<PositionItem>,
+    isLoading: Boolean,
     onPositionItemDeleteClick: (positionItemId: Int) -> Unit,
     totalPrice: Float,
     onAddPositionClick: () -> Unit,
+    isCreateOrderButtonEnabled: Boolean,
     isCreateOrderButtonLoading: Boolean,
     onCreateOrderButtonClick: () -> Unit,
     orderFormedDialogState: CashierCreateOrderOrderFormedDialogState?,
@@ -95,6 +100,7 @@ private fun CashierCreateOrderScreen(
 
         ItemsList(
             positionItems = positionItems,
+            isLoading = isLoading,
             onPositionItemDeleteClick = onPositionItemDeleteClick,
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,6 +110,7 @@ private fun CashierCreateOrderScreen(
         BottomBar(
             price = totalPrice,
             onAddPositionClick = onAddPositionClick,
+            isCreateOrderButtonEnabled = isCreateOrderButtonEnabled,
             isCreateOrderButtonLoading = isCreateOrderButtonLoading,
             onCreateOrderButtonClick = onCreateOrderButtonClick,
         )
@@ -133,9 +140,30 @@ private fun TopBar(
 @Composable
 private fun ItemsList(
     positionItems: List<PositionItem>,
+    isLoading: Boolean,
     onPositionItemDeleteClick: (positionItemId: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    when {
+        isLoading -> {
+            AppStateMessage(
+                title = "Загружаем заказ",
+                isLoading = true,
+                modifier = modifier,
+            )
+            return
+        }
+
+        positionItems.isEmpty() -> {
+            AppStateMessage(
+                title = "Заказ пока пустой",
+                description = "Добавьте хотя бы одну позицию перед формированием заказа.",
+                modifier = modifier,
+            )
+            return
+        }
+    }
+
     LazyColumn(
         modifier = modifier
     ) {
@@ -161,6 +189,7 @@ private fun ItemsList(
 private fun BottomBar(
     price: Float,
     onAddPositionClick: () -> Unit,
+    isCreateOrderButtonEnabled: Boolean,
     isCreateOrderButtonLoading: Boolean,
     onCreateOrderButtonClick: () -> Unit,
 ) {
@@ -194,6 +223,7 @@ private fun BottomBar(
                     .weight(1f)
                     .fillMaxHeight(),
                 color = AppTheme.colorScheme.green,
+                enabled = isCreateOrderButtonEnabled,
                 isLoading = isCreateOrderButtonLoading,
             )
         }
