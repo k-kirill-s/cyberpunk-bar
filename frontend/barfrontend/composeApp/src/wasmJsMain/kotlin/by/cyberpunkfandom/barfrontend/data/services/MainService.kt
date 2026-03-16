@@ -11,17 +11,42 @@ import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.domain.exceptions.GeneralException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpMethod
 import io.ktor.http.parameters
 
-class MainService(private val httpClient: HttpClient) {
+class MainService(
+    private val httpClient: HttpClient,
+    private val adminSession: AdminSession,
+) {
 
     private fun api(path: String): String = "/api/$path"
+
+    private fun HttpRequestBuilder.applyAdminHeaders() {
+        adminSession.currentCredentials()?.let { credentials ->
+            header("X-Admin-Username", credentials.username)
+            header("X-Admin-Password", credentials.password)
+        }
+    }
+
+    suspend fun loginAdmin(
+        username: String,
+        password: String,
+    ) {
+        httpClient.submitForm(
+            url = api("admin/login"),
+            formParameters = parameters {
+                append("username", username)
+                append("password", password)
+            },
+        ).bodyOrThrowGeneralError<Unit>()
+    }
 
     // ---------------------------------------------------------------------------------------------------------------
     // ORDERS
@@ -126,7 +151,9 @@ class MainService(private val httpClient: HttpClient) {
                 append("name", name)
                 append("description", description)
             },
-        ).bodyOrThrowGeneralError()
+        ) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     suspend fun updatePosition(
@@ -141,12 +168,15 @@ class MainService(private val httpClient: HttpClient) {
                 description?.let { append("description", it) }
             }
         ) {
+            applyAdminHeaders()
             method = HttpMethod.Patch
         }.bodyOrThrowGeneralError()
     }
 
     suspend fun deletePosition(positionId: String) {
-        return httpClient.delete(api("positions/${positionId}")).bodyOrThrowGeneralError()
+        return httpClient.delete(api("positions/${positionId}")) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -170,7 +200,9 @@ class MainService(private val httpClient: HttpClient) {
                 append("name", name)
                 append("price", price.toString())
             }
-        ).bodyOrThrowGeneralError()
+        ) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     suspend fun updatePositionVariant(
@@ -187,7 +219,10 @@ class MainService(private val httpClient: HttpClient) {
                     price?.let { append("price", it.toString()) }
                     isActive?.let { append("is_active", it.toString()) }
                 }
-            ) { method = HttpMethod.Patch }
+            ) {
+                applyAdminHeaders()
+                method = HttpMethod.Patch
+            }
             .bodyOrThrowGeneralError()
     }
 
@@ -204,7 +239,9 @@ class MainService(private val httpClient: HttpClient) {
     }
 
     suspend fun deletePositionVariant(positionVariantId: String) {
-        return httpClient.delete(api("position_variants/${positionVariantId}")).bodyOrThrowGeneralError()
+        return httpClient.delete(api("position_variants/${positionVariantId}")) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -228,7 +265,9 @@ class MainService(private val httpClient: HttpClient) {
             formParameters = parameters {
                 append("name", name)
             }
-        ).bodyOrThrowGeneralError()
+        ) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     suspend fun updateWorker(
@@ -243,12 +282,15 @@ class MainService(private val httpClient: HttpClient) {
                 isOnLine?.let { append("is_on_line", it.toString()) }
             }
         ) {
+            applyAdminHeaders()
             method = HttpMethod.Patch
         }.bodyOrThrowGeneralError()
     }
 
     suspend fun deleteWorker(workerId: Int) {
-        return httpClient.delete(api("workers/${workerId}")).bodyOrThrowGeneralError()
+        return httpClient.delete(api("workers/${workerId}")) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     private suspend inline fun <reified T> HttpResponse.bodyOrThrowGeneralError(): T {

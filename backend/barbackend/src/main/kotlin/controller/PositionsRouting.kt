@@ -11,6 +11,7 @@ import org.koin.ktor.ext.inject
 
 @Suppress("DuplicatedCode")
 fun Application.positionsRouting() {
+    val adminCredentials = loadAdminCredentials()
 
     val positionsRepository by inject<PositionsRepository>()
 
@@ -32,6 +33,7 @@ fun Application.positionsRouting() {
         }
 
         post("positions") {
+            call.requireAdminAccess(adminCredentials)
             val formParameters = call.receiveParameters()
             val id = formParameters["id"].requiredParameter()
             val name = formParameters["name"].requiredParameter()
@@ -48,6 +50,7 @@ fun Application.positionsRouting() {
         }
 
         patch("positions/{id}") {
+            call.requireAdminAccess(adminCredentials)
             val id = call.parameters["id"].requiredParameter()
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
@@ -64,6 +67,7 @@ fun Application.positionsRouting() {
         }
 
         delete("positions/{id}") {
+            call.requireAdminAccess(adminCredentials)
             val id = call.parameters["id"].requiredParameter()
 
             positionsRepository.deletePosition(id)

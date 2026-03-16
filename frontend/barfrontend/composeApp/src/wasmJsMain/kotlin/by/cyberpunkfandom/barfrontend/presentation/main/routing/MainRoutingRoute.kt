@@ -13,12 +13,14 @@ fun NavGraphBuilder.mainRoutingComposable(
     onOpenCashierRequest: () -> Unit,
     onOpenWorkerRequest: () -> Unit,
     onOpenBoardRequest: () -> Unit,
+    onOpenAdminRequest: () -> Unit,
 ) {
     composable<MainRoutingRoute> { _ ->
         MainRoutingScreen(
             onOpenCashierRequest = onOpenCashierRequest,
             onOpenWorkerRequest = onOpenWorkerRequest,
             onOpenBoardRequest = onOpenBoardRequest,
+            onOpenAdminRequest = onOpenAdminRequest,
         )
     }
 }

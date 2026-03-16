@@ -6,6 +6,7 @@ import by.cyberpunkfandom.barfrontend.data.mappers.PositionItemMapper
 import by.cyberpunkfandom.barfrontend.data.mappers.PositionMapper
 import by.cyberpunkfandom.barfrontend.data.mappers.PositionVariantMapper
 import by.cyberpunkfandom.barfrontend.data.mappers.WorkerMapper
+import by.cyberpunkfandom.barfrontend.data.repositories.AdminRepository
 import by.cyberpunkfandom.barfrontend.data.repositories.OrdersRepository
 import by.cyberpunkfandom.barfrontend.data.repositories.PositionItemsRepository
 import by.cyberpunkfandom.barfrontend.data.repositories.PositionVariantsRepository
@@ -22,6 +23,7 @@ val dataRepositoriesModule = module {
     singleOf(::OrderFullMapper)
     singleOf(::WorkerMapper)
 
+    singleOf(::AdminRepository)
     singleOf(::OrdersRepository)
     singleOf(::PositionItemsRepository)
     singleOf(::PositionsRepository)

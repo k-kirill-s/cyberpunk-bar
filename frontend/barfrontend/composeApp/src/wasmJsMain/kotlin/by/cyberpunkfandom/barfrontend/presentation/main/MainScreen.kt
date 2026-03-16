@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import by.cyberpunkfandom.barfrontend.presentation.admin.adminComposable
+import by.cyberpunkfandom.barfrontend.presentation.admin.navigateToAdmin
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cashierComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.navigateToCashier
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
@@ -18,12 +20,9 @@ import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingRoute
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.mainRoutingComposable
 import by.cyberpunkfandom.barfrontend.presentation.worker.navigateToWorker
 import by.cyberpunkfandom.barfrontend.presentation.worker.workerComposable
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun MainScreen(
-    viewModel: MainViewModel = koinViewModel(),
-) {
+fun MainScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,6 +45,9 @@ fun MainScreen(
                 onOpenBoardRequest = {
                     navController.navigateToInfoBoard()
                 },
+                onOpenAdminRequest = {
+                    navController.navigateToAdmin()
+                },
             )
 
             cashierComposable(
@@ -57,7 +59,10 @@ fun MainScreen(
             )
 
             infoBoardComposable()
+
+            adminComposable(
+                onBackRequest = { navController.popBackStack() }
+            )
         }
     }
 }
-

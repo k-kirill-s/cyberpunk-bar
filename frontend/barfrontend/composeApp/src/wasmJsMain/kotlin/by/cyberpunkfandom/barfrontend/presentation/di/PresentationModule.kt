@@ -1,5 +1,6 @@
 package by.cyberpunkfandom.barfrontend.presentation.di
 
+import by.cyberpunkfandom.barfrontend.presentation.admin.AdminViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.CashierViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.CashierAddPositionViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.CashierCancelOrderViewModel
@@ -23,6 +24,7 @@ import org.koin.dsl.module
 val presentationModule = module {
     viewModelOf(::MainViewModel)
     viewModelOf(::MainRoutingViewModel)
+    viewModelOf(::AdminViewModel)
 
     viewModelOf(::CashierViewModel)
     viewModelOf(::CashierHomeViewModel)
@@ -43,13 +45,7 @@ val presentationModule = module {
     }
     viewModelOf(::CashierGiveAwayOrderViewModel)
     viewModelOf(::CashierCancelOrderViewModel)
-    viewModel { parameters ->
-        CashierTogglePositionsViewModel(
-            positionsRepository = get(),
-            positionVariantsRepository = get(),
-            workersRepository = get(),
-        )
-    }
+    viewModelOf(::CashierTogglePositionsViewModel)
 
     viewModelOf(::WorkerViewModel)
     viewModelOf(::WorkerAuthViewModel)

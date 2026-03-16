@@ -1,6 +1,8 @@
 package by.cyberpunkfandom.barfrontend.presentation.main.routing
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,17 +22,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MainRoutingScreen(
     onOpenCashierRequest: () -> Unit,
     onOpenWorkerRequest: () -> Unit,
     onOpenBoardRequest: () -> Unit,
-    viewModel: MainRoutingViewModel = koinViewModel(),
+    onOpenAdminRequest: () -> Unit,
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -38,6 +40,8 @@ fun MainRoutingScreen(
             .padding(AppTheme.dimensions.basePadding),
     ) {
         val isCompact = maxWidth < 860.dp
+        val workerHighlight = Color(0xFF5D7287)
+        val adminHighlight = Color(0xFF6D4C1B)
 
         Column(
             modifier = Modifier
@@ -47,7 +51,7 @@ fun MainRoutingScreen(
         ) {
             Text(
                 text = "Cyberpunk Bar",
-                style = AppTheme.typography.displayLarge,
+                style = if (isCompact) AppTheme.typography.big else AppTheme.typography.displayLarge,
             )
 
             Text(
@@ -62,15 +66,17 @@ fun MainRoutingScreen(
                 ) {
                     MainMenuCard(
                         title = "Кассир",
-                        description = "Создание, выдача и управление каталогом.",
+                        description = "Создание, выдача и отмена заказов.",
                         color = AppTheme.colorScheme.accent,
+                        isCompact = true,
                         onClick = onOpenCashierRequest,
                         modifier = Modifier.fillMaxWidth(),
                     )
                     MainMenuCard(
                         title = "Сборщик",
                         description = "Выбор сотрудника и работа с текущим заказом.",
-                        color = AppTheme.colorScheme.surfaceSelected,
+                        color = workerHighlight,
+                        isCompact = true,
                         onClick = onOpenWorkerRequest,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -78,44 +84,81 @@ fun MainRoutingScreen(
                         title = "Табло",
                         description = "Очередь, сборка и готовые заказы в реальном времени.",
                         color = AppTheme.colorScheme.green,
+                        isCompact = true,
                         onClick = onOpenBoardRequest,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    MainMenuCard(
+                        title = "Администратор",
+                        description = "Каталог, цены и команда под паролем.",
+                        color = adminHighlight,
+                        isCompact = true,
+                        onClick = onOpenAdminRequest,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
             } else {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 360.dp),
-                    horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+                        .heightIn(min = 520.dp),
+                    verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
                 ) {
-                    MainMenuCard(
-                        title = "Кассир",
-                        description = "Создание, выдача и управление каталогом.",
-                        color = AppTheme.colorScheme.accent,
-                        onClick = onOpenCashierRequest,
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    )
-                    MainMenuCard(
-                        title = "Сборщик",
-                        description = "Выбор сотрудника и работа с текущим заказом.",
-                        color = AppTheme.colorScheme.surfaceSelected,
-                        onClick = onOpenWorkerRequest,
+                            .fillMaxWidth()
+                            .weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+                    ) {
+                        MainMenuCard(
+                            title = "Кассир",
+                            description = "Создание, выдача и отмена заказов.",
+                            color = AppTheme.colorScheme.accent,
+                            isCompact = false,
+                            onClick = onOpenCashierRequest,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                        MainMenuCard(
+                            title = "Сборщик",
+                            description = "Выбор сотрудника и работа с текущим заказом.",
+                            color = workerHighlight,
+                            isCompact = false,
+                            onClick = onOpenWorkerRequest,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                    }
+
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    )
-                    MainMenuCard(
-                        title = "Табло",
-                        description = "Очередь, сборка и готовые заказы в реальном времени.",
-                        color = AppTheme.colorScheme.green,
-                        onClick = onOpenBoardRequest,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    )
+                            .fillMaxWidth()
+                            .weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+                    ) {
+                        MainMenuCard(
+                            title = "Табло",
+                            description = "Очередь, сборка и готовые заказы в реальном времени.",
+                            color = AppTheme.colorScheme.green,
+                            isCompact = false,
+                            onClick = onOpenBoardRequest,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                        MainMenuCard(
+                            title = "Администратор",
+                            description = "Каталог, цены и команда под паролем.",
+                            color = adminHighlight,
+                            isCompact = false,
+                            onClick = onOpenAdminRequest,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                    }
                 }
             }
         }
@@ -127,29 +170,38 @@ private fun MainMenuCard(
     title: String,
     description: String,
     color: androidx.compose.ui.graphics.Color,
+    isCompact: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
+            .heightIn(min = if (isCompact) 156.dp else 0.dp)
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(color)
+            .background(if (isCompact) color.copy(alpha = 0.22f) else color)
+            .border(
+                border = BorderStroke(
+                    width = if (isCompact) 2.dp else 0.dp,
+                    color = color,
+                ),
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .clickable(onClick = onClick)
-            .padding(AppTheme.dimensions.basePadding * 1.5f),
-        contentAlignment = Alignment.Center,
+            .padding(if (isCompact) AppTheme.dimensions.basePadding else AppTheme.dimensions.basePadding * 1.5f),
+        contentAlignment = if (isCompact) Alignment.TopStart else Alignment.Center,
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = if (isCompact) Alignment.Start else Alignment.CenterHorizontally,
         ) {
             Text(
                 text = title,
-                textAlign = TextAlign.Center,
-                style = AppTheme.typography.big,
+                textAlign = if (isCompact) TextAlign.Start else TextAlign.Center,
+                style = if (isCompact) AppTheme.typography.title else AppTheme.typography.big,
             )
             Text(
                 text = description,
-                textAlign = TextAlign.Center,
+                textAlign = if (isCompact) TextAlign.Start else TextAlign.Center,
                 style = AppTheme.typography.body,
             )
         }
