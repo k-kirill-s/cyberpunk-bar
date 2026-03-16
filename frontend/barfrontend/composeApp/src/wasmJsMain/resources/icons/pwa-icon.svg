@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+    <title>Cyberpunk Bar icon</title>
+    <rect width="512" height="512" rx="112" fill="#111318"/>
+    <path
+        d="M136 144h240l-20 64c-18 58-63 102-120 120-57-18-102-62-120-120l-20-64Z"
+        fill="#0f81e6"
+    />
+    <path
+        d="M182 126h148l34 108c15 48 52 87 99 103v27H49v-27c47-16 84-55 99-103l34-108Z"
+        fill="#d6e3ff"
+        fill-opacity=".14"
+    />
+    <path
+        d="M203 170h106l-10 34c-9 29-31 52-58 61-28-9-50-32-59-61l-9-34Z"
+        fill="#d6e3ff"
+    />
+    <path
+        d="M220 302h72v90h-72z"
+        fill="#0f81e6"
+    />
+    <path
+        d="M170 392h172a26 26 0 0 1 0 52H170a26 26 0 0 1 0-52Z"
+        fill="#aac7ff"
+    />
+</svg>
