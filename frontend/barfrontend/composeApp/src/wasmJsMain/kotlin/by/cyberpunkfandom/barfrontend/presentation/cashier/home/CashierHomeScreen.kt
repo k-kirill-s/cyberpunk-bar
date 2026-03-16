@@ -1,15 +1,18 @@
 package by.cyberpunkfandom.barfrontend.presentation.cashier.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
@@ -26,7 +29,6 @@ fun CashierHomeScreen(
     onOpenCreateOrderRequest: (orderId: Int) -> Unit,
     onGiveAwayOrderRequest: () -> Unit,
     onCancelOrderRequest: () -> Unit,
-    onTogglePositionsRequest: () -> Unit,
     viewModel: CashierHomeViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -44,7 +46,6 @@ fun CashierHomeScreen(
         onCreateOrderClick = viewModel::onCreateOrderClick,
         onGiveAwayOrderClick = onGiveAwayOrderRequest,
         onCancelOrderClick = onCancelOrderRequest,
-        onTogglePositionsClick = onTogglePositionsRequest,
     )
 }
 
@@ -54,51 +55,93 @@ private fun CashierHomeScreen(
     onCreateOrderClick: () -> Unit,
     onGiveAwayOrderClick: () -> Unit,
     onCancelOrderClick: () -> Unit,
-    onTogglePositionsClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
+        val compactSpacing = AppTheme.dimensions.basePadding
+
         AppTopBar(
             title = "Кассир",
             leftIcon = painterResource(Res.drawable.back_24dp),
             onLeftIconClick = onBackClick,
         )
 
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .padding(AppTheme.dimensions.basePadding)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding)
         ) {
-            AppBigButton(
-                title = "Создать заказ",
-                onClick = onCreateOrderClick,
-                modifier = Modifier.fillMaxWidth(),
-                color = AppTheme.colorScheme.accent,
-            )
+            val useGridLayout = maxWidth >= 400.dp
 
-            AppBigButton(
-                title = "Выдача заказа",
-                onClick = onGiveAwayOrderClick,
-                modifier = Modifier.fillMaxWidth(),
-                color = AppTheme.colorScheme.green,
-            )
+            if (useGridLayout) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(compactSpacing),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(compactSpacing),
+                    ) {
+                        AppBigButton(
+                            title = "Создать заказ",
+                            onClick = onCreateOrderClick,
+                            modifier = Modifier.weight(1f),
+                            color = AppTheme.colorScheme.accent,
+                        )
 
-            AppBigButton(
-                title = "Отменить заказ",
-                onClick = onCancelOrderClick,
-                modifier = Modifier.fillMaxWidth(),
-                color = AppTheme.colorScheme.red,
-            )
+                        AppBigButton(
+                            title = "Выдача заказа",
+                            onClick = onGiveAwayOrderClick,
+                            modifier = Modifier.weight(1f),
+                            color = AppTheme.colorScheme.green,
+                        )
+                    }
 
-            AppBigButton(
-                title = "Каталог и сотрудники",
-                onClick = onTogglePositionsClick,
-                modifier = Modifier.fillMaxWidth(),
-            )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(compactSpacing),
+                    ) {
+                        AppBigButton(
+                            title = "Отменить заказ",
+                            onClick = onCancelOrderClick,
+                            modifier = Modifier.weight(1f),
+                            color = AppTheme.colorScheme.red,
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(compactSpacing)
+                ) {
+                    AppBigButton(
+                        title = "Создать заказ",
+                        onClick = onCreateOrderClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AppTheme.colorScheme.accent,
+                    )
+
+                    AppBigButton(
+                        title = "Выдача заказа",
+                        onClick = onGiveAwayOrderClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AppTheme.colorScheme.green,
+                    )
+
+                    AppBigButton(
+                        title = "Отменить заказ",
+                        onClick = onCancelOrderClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AppTheme.colorScheme.red,
+                    )
+                }
+            }
         }
     }
 }

@@ -11,6 +11,7 @@ import org.koin.ktor.ext.inject
 
 @Suppress("DuplicatedCode")
 fun Application.workersRouting() {
+    val adminCredentials = loadAdminCredentials()
 
     val workersRepository by inject<WorkersRepository>()
 
@@ -25,6 +26,7 @@ fun Application.workersRouting() {
         }
 
         post("workers") {
+            call.requireAdminAccess(adminCredentials)
             val formParameters = call.receiveParameters()
             val name = formParameters["name"].requiredParameter()
 
@@ -39,6 +41,10 @@ fun Application.workersRouting() {
             val name = formParameters["name"]
             val isOnLine = formParameters["is_on_line"]?.toBoolean()
 
+            if (name != null) {
+                call.requireAdminAccess(adminCredentials)
+            }
+
             val worker = workersRepository.updateWorker(
                 id = id,
                 name = name,
@@ -50,6 +56,7 @@ fun Application.workersRouting() {
         }
 
         delete("workers/{id}") {
+            call.requireAdminAccess(adminCredentials)
             val id = call.parameters["id"].requiredIntParameter()
 
             workersRepository.deleteWorker(id)

@@ -1,5 +1,6 @@
 package by.cyberpunkfandom.barfrontend.core
 
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 /**
  * Does not produce the same value in a raw, so respect "distinct until changed emissions"
  * */
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 class DerivedStateFlow<T>(
     private val getValue: () -> T,
     private val flow: Flow<T>,

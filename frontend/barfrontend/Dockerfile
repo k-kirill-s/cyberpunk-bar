@@ -1,5 +1,6 @@
-# Build stage: produce static WASM web assets
-FROM gradle:8-jdk21 AS build
+# Build on amd64 because the Kotlin/Wasm Binaryen download used by the
+# distribution task is not available for linux/arm64.
+FROM --platform=linux/amd64 gradle:8-jdk21 AS build
 
 WORKDIR /home/gradle/src
 

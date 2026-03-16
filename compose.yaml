@@ -28,6 +28,8 @@ services:
       DB_NAME: bar
       DB_USER: postgres
       DB_PASSWORD: postgres
+      ADMIN_USERNAME: "${ADMIN_USERNAME:-cyberadm}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-cyberadm}"
     ports:
       - "${BACKEND_PORT:-8020}:8080"
 

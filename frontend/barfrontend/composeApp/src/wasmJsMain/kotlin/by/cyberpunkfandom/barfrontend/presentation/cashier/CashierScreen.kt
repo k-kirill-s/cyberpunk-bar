@@ -27,8 +27,6 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.cashier
 import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.navigateToCashierGiveAwayOrder
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeRoute
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.cashierHomeComposable
-import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.cashierTogglePositionsComposable
-import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.navigateToCashierTogglePositions
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -74,9 +72,6 @@ fun CashierScreen(
                 onCancelOrderRequest = {
                     navController.navigateToCashierCancelOrder()
                 },
-                onTogglePositionsRequest = {
-                    navController.navigateToCashierTogglePositions()
-                },
             )
 
             cashierCreateOrderComposable(
@@ -93,7 +88,7 @@ fun CashierScreen(
             cashierAddPositionComposable(
                 onError = { showErrorSnackbar(it) },
                 onBackRequest = { navController.popBackStack() },
-                onPositionItemAdded = { positionItemId ->
+                onPositionItemAdded = {
                     currentOrderId?.let { orderId ->
                         navController.navigateToCashierCreateOrder(orderId = orderId) {
                             popUpTo(CashierCreateOrderRoute(orderId)) {
@@ -112,13 +107,6 @@ fun CashierScreen(
             )
 
             cashierCancelOrderComposable(
-                onError = { showErrorSnackbar(it) },
-                onBackRequest = {
-                    navController.popBackStack()
-                }
-            )
-
-            cashierTogglePositionsComposable(
                 onError = { showErrorSnackbar(it) },
                 onBackRequest = {
                     navController.popBackStack()

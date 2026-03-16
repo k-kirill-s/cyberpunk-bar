@@ -36,6 +36,8 @@ fun Application.module() {
         allowMethod(HttpMethod.Patch)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
+        allowHeader("X-Admin-Username")
+        allowHeader("X-Admin-Password")
         anyHost()
     }
 
@@ -43,6 +45,7 @@ fun Application.module() {
         exception<GeneralException> { call, cause ->
             val statusCode = when (cause.code) {
                 ExceptionCodes.MISSING_PARAMETER -> HttpStatusCode.BadRequest
+                ExceptionCodes.ADMIN_AUTH_FAILED -> HttpStatusCode.Unauthorized
                 ExceptionCodes.ORDER_NOT_FOUND -> HttpStatusCode.NotFound
                 ExceptionCodes.ORDER_IN_INCOMPATIBLE_STATUS -> HttpStatusCode.Conflict
                 ExceptionCodes.ORDER_MUST_HAVE_ITEMS -> HttpStatusCode.BadRequest

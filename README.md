@@ -6,6 +6,8 @@
 - worker flow for picking up and completing active orders
 - info board flow for showing the live queue and ready orders
 
+It also includes a protected administrator surface for catalog and team management.
+
 The repository contains a Kotlin/Ktor backend, a Kotlin Multiplatform Compose/Wasm frontend, and a PostgreSQL database wired together through Docker Compose.
 
 ## Stack
@@ -83,9 +85,49 @@ BACKEND_PORT=8020
 FRONTEND_PORT=8021
 BACKEND_IMAGE=cyberpunk-bar-backend:local
 FRONTEND_IMAGE=cyberpunk-bar-frontend:local
+ADMIN_USERNAME=cyberadm
+ADMIN_PASSWORD=cyberadm
 ```
 
 Override them in `.env` before building or starting the stack.
+
+`ADMIN_USERNAME` and `ADMIN_PASSWORD` are passed to the backend container and protect the `Администратор` section of the web UI. If you keep the defaults, the initial admin login is `cyberadm / cyberadm`.
+
+## Publishing images
+
+The repository now includes a GitHub Actions workflow at
+`.github/workflows/publish-images.yml` that builds and pushes both app images
+to GitHub Container Registry (`ghcr.io`):
+
+- `ghcr.io/<owner>/cyberpunk-bar-backend`
+- `ghcr.io/<owner>/cyberpunk-bar-frontend`
+
+The workflow runs when you push a Git tag that starts with `v`, for example:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+It publishes multi-platform images for `linux/amd64` and `linux/arm64`, and
+adds version, major/minor, and commit SHA tags automatically.
+
+After the first publish, verify that the packages are visible in GitHub
+Packages and set them to public if you want anonymous pulls.
+
+To run the existing Compose stack against published images instead of local
+ones, override the image tags in `.env`:
+
+```dotenv
+BACKEND_IMAGE=ghcr.io/<owner>/cyberpunk-bar-backend:1.0.0
+FRONTEND_IMAGE=ghcr.io/<owner>/cyberpunk-bar-frontend:1.0.0
+```
+
+Then start the stack as usual:
+
+```sh
+docker compose -p bar up -d
+```
 
 ## Runtime architecture
 
@@ -93,6 +135,7 @@ Override them in `.env` before building or starting the stack.
 - `backend` exposes the Ktor API on container port `8080`.
 - `frontend` serves the Compose/Wasm bundle through nginx on container port `80`.
 - nginx proxies browser requests from `/api/...` to the backend container, so the frontend does not need a hardcoded backend host for the Docker flow.
+- the administrator screen uses those same relative `/api/...` requests and sends credentials through request headers after a successful admin login
 
 That proxy setup is the reason published host ports can change without frontend source edits.
 
@@ -138,6 +181,22 @@ cd frontend/barfrontend
 The production Docker image builds the Wasm distribution and serves it with nginx using [`frontend/barfrontend/nginx.conf`](frontend/barfrontend/nginx.conf).
 
 The frontend service layer calls relative `/api/...` endpoints. That works out of the box in the Docker stack because nginx handles the proxy. If you run the frontend development server standalone, you need to provide an equivalent proxy or another compatible API path.
+
+### PWA layer
+
+The web bundle now includes a first-pass PWA layer in
+`frontend/barfrontend/composeApp/src/wasmJsMain/resources/`:
+
+- `manifest.webmanifest`
+- `service-worker.js`
+- `register-service-worker.js`
+- install icons for Android and iOS home screen usage
+
+This pass keeps API traffic network-first and does not cache `/api/...` responses, so cashier, worker, and info board data still come from the backend directly.
+
+For real installability on phones and tablets, serve the frontend over HTTPS. Localhost remains fine for development, but LAN `http://...` URLs generally will not get full install and service worker behavior on mobile browsers.
+
+If you later package the web UI in an Android or iOS wrapper, plan to add a configurable backend base URL. The current relative `/api/...` contract assumes the nginx reverse proxy from the Docker/web deployment path.
 
 ## API/frontend contract notes
 
