@@ -81,8 +81,8 @@ Default local settings live in `.env.example`:
 
 ```dotenv
 DB_PORT=5420
-BACKEND_PORT=8020
-FRONTEND_PORT=8021
+BACKEND_PORT=8042
+FRONTEND_PORT=8043
 BACKEND_IMAGE=cyberpunk-bar-backend:local
 FRONTEND_IMAGE=cyberpunk-bar-frontend:local
 ADMIN_USERNAME=cyberadm

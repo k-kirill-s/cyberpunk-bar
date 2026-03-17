@@ -31,7 +31,7 @@ services:
       ADMIN_USERNAME: "${ADMIN_USERNAME:-cyberadm}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD:-cyberadm}"
     ports:
-      - "${BACKEND_PORT:-8020}:8080"
+      - "${BACKEND_PORT:-8042}:8080"
 
   frontend:
     image: "${FRONTEND_IMAGE:-cyberpunk-bar-frontend:local}"
@@ -41,7 +41,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-8021}:80"
+      - "${FRONTEND_PORT:-8043}:80"
 
 volumes:
   pgdata: {}

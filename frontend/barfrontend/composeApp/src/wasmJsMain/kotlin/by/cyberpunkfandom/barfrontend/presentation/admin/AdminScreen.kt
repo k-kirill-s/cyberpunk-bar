@@ -2,6 +2,7 @@ package by.cyberpunkfandom.barfrontend.presentation.admin
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Scaffold
@@ -95,6 +97,7 @@ private fun AdminLoginScreen(
 ) {
     var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppTopBar(
@@ -135,7 +138,13 @@ private fun AdminLoginScreen(
                     onValueChange = { password = it },
                     label = "Пароль",
                     enabled = !isAuthorizing,
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (isPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    trailingActionLabel = if (isPasswordVisible) "Скрыть" else "Показать",
+                    onTrailingActionClick = { isPasswordVisible = !isPasswordVisible },
                 )
 
                 AppBigButton(
@@ -158,6 +167,8 @@ private fun AdminFormField(
     label: String,
     enabled: Boolean,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingActionLabel: String? = null,
+    onTrailingActionClick: (() -> Unit)? = null,
 ) {
     val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
     val textStyle = if (enabled) AppTheme.typography.body else AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider)
@@ -183,18 +194,38 @@ private fun AdminFormField(
                 )
                 .padding(AppTheme.dimensions.basePadding),
         ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 24.dp),
-                enabled = enabled,
-                singleLine = true,
-                textStyle = textStyle,
-                cursorBrush = SolidColor(AppTheme.colorScheme.accent),
-                visualTransformation = visualTransformation,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 24.dp),
+                    enabled = enabled,
+                    singleLine = true,
+                    textStyle = textStyle,
+                    cursorBrush = SolidColor(AppTheme.colorScheme.accent),
+                    visualTransformation = visualTransformation,
+                )
+
+                if (trailingActionLabel != null && onTrailingActionClick != null) {
+                    Text(
+                        text = trailingActionLabel,
+                        modifier = Modifier
+                            .padding(start = AppTheme.dimensions.basePadding)
+                            .clickable(
+                                enabled = enabled,
+                                onClick = onTrailingActionClick,
+                            ),
+                        style = AppTheme.typography.body.copy(
+                            color = if (enabled) AppTheme.colorScheme.accent else AppTheme.colorScheme.divider,
+                        ),
+                    )
+                }
+            }
         }
     }
 }

@@ -1,8 +1,10 @@
 package by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ColumnScope
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -245,6 +248,7 @@ private fun WorkersPanel(
     var newWorkerName by rememberSaveable { mutableStateOf("") }
     var workerName by rememberSaveable { mutableStateOf("") }
     var workerOnline by rememberSaveable { mutableStateOf(false) }
+    var isCreateExpanded by rememberSaveable { mutableStateOf(workers.isEmpty()) }
 
     LaunchedEffect(selectedWorker?.id, selectedWorker?.name, selectedWorker?.isOnLine) {
         workerName = selectedWorker?.name.orEmpty()
@@ -254,11 +258,47 @@ private fun WorkersPanel(
     SectionCard(
         title = "Сотрудники",
         modifier = modifier,
+        action = {
+            SectionActionButton(
+                title = if (isCreateExpanded) "Скрыть форму" else "+ Добавить",
+                color = if (isCreateExpanded) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.green,
+                onClick = { isCreateExpanded = !isCreateExpanded },
+            )
+        },
     ) {
+        if (isCreateExpanded) {
+            Text(text = "Новый сотрудник", style = AppTheme.typography.title)
+            AppFormTextField(
+                value = newWorkerName,
+                onValueChange = { newWorkerName = it },
+                label = "Имя",
+                singleLine = true,
+            )
+            ActionRow(
+                primaryTitle = "Добавить",
+                onPrimaryClick = {
+                    onCreateWorker(newWorkerName)
+                    newWorkerName = ""
+                },
+                primaryEnabled = newWorkerName.isNotBlank() && !isSaving,
+                primaryColor = AppTheme.colorScheme.green,
+                secondaryTitle = null,
+                onSecondaryClick = {},
+                secondaryEnabled = false,
+                isSaving = isSaving,
+            )
+
+            AppHorizontalDivider()
+        }
+
         if (workers.isEmpty()) {
             AppStateMessage(
                 title = "Сотрудников пока нет",
-                description = "Добавьте хотя бы одного сборщика.",
+                description = if (isCreateExpanded) {
+                    "Заполните форму выше, чтобы завести первого сборщика."
+                } else {
+                    "Нажмите «+ Добавить», чтобы завести первого сборщика."
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 180.dp),
@@ -281,29 +321,6 @@ private fun WorkersPanel(
                 }
             }
         }
-
-        AppHorizontalDivider()
-
-        Text(text = "Новый сотрудник", style = AppTheme.typography.title)
-        AppFormTextField(
-            value = newWorkerName,
-            onValueChange = { newWorkerName = it },
-            label = "Имя",
-            singleLine = true,
-        )
-        ActionRow(
-            primaryTitle = "Добавить",
-            onPrimaryClick = {
-                onCreateWorker(newWorkerName)
-                newWorkerName = ""
-            },
-            primaryEnabled = newWorkerName.isNotBlank() && !isSaving,
-            primaryColor = AppTheme.colorScheme.green,
-            secondaryTitle = null,
-            onSecondaryClick = {},
-            secondaryEnabled = false,
-            isSaving = isSaving,
-        )
 
         AppHorizontalDivider()
 
@@ -367,6 +384,7 @@ private fun PositionsPanel(
     var newPositionDescription by rememberSaveable { mutableStateOf("") }
     var positionName by rememberSaveable { mutableStateOf("") }
     var positionDescription by rememberSaveable { mutableStateOf("") }
+    var isCreateExpanded by rememberSaveable { mutableStateOf(positions.isEmpty()) }
 
     LaunchedEffect(selectedPosition?.id, selectedPosition?.name, selectedPosition?.description) {
         positionName = selectedPosition?.name.orEmpty()
@@ -376,11 +394,61 @@ private fun PositionsPanel(
     SectionCard(
         title = "Позиции",
         modifier = modifier,
+        action = {
+            SectionActionButton(
+                title = if (isCreateExpanded) "Скрыть форму" else "+ Добавить",
+                color = if (isCreateExpanded) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.green,
+                onClick = { isCreateExpanded = !isCreateExpanded },
+            )
+        },
     ) {
+        if (isCreateExpanded) {
+            Text(text = "Новая позиция", style = AppTheme.typography.title)
+            AppFormTextField(
+                value = newPositionId,
+                onValueChange = { newPositionId = it },
+                label = "ID",
+                singleLine = true,
+            )
+            AppFormTextField(
+                value = newPositionName,
+                onValueChange = { newPositionName = it },
+                label = "Название",
+                singleLine = true,
+            )
+            AppFormTextField(
+                value = newPositionDescription,
+                onValueChange = { newPositionDescription = it },
+                label = "Описание",
+                minLines = 3,
+            )
+            ActionRow(
+                primaryTitle = "Добавить",
+                onPrimaryClick = {
+                    onCreatePosition(newPositionId, newPositionName, newPositionDescription)
+                    newPositionId = ""
+                    newPositionName = ""
+                    newPositionDescription = ""
+                },
+                primaryEnabled = newPositionId.isNotBlank() && newPositionName.isNotBlank() && !isSaving,
+                primaryColor = AppTheme.colorScheme.green,
+                secondaryTitle = null,
+                onSecondaryClick = {},
+                secondaryEnabled = false,
+                isSaving = isSaving,
+            )
+
+            AppHorizontalDivider()
+        }
+
         if (positions.isEmpty()) {
             AppStateMessage(
                 title = "Позиции пока не заведены",
-                description = "Создайте первую позицию меню.",
+                description = if (isCreateExpanded) {
+                    "Заполните форму выше, чтобы создать первую позицию меню."
+                } else {
+                    "Нажмите «+ Добавить», чтобы создать первую позицию меню."
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 160.dp),
@@ -399,43 +467,6 @@ private fun PositionsPanel(
                 }
             }
         }
-
-        AppHorizontalDivider()
-
-        Text(text = "Новая позиция", style = AppTheme.typography.title)
-        AppFormTextField(
-            value = newPositionId,
-            onValueChange = { newPositionId = it },
-            label = "ID",
-            singleLine = true,
-        )
-        AppFormTextField(
-            value = newPositionName,
-            onValueChange = { newPositionName = it },
-            label = "Название",
-            singleLine = true,
-        )
-        AppFormTextField(
-            value = newPositionDescription,
-            onValueChange = { newPositionDescription = it },
-            label = "Описание",
-            minLines = 3,
-        )
-        ActionRow(
-            primaryTitle = "Добавить",
-            onPrimaryClick = {
-                onCreatePosition(newPositionId, newPositionName, newPositionDescription)
-                newPositionId = ""
-                newPositionName = ""
-                newPositionDescription = ""
-            },
-            primaryEnabled = newPositionId.isNotBlank() && newPositionName.isNotBlank() && !isSaving,
-            primaryColor = AppTheme.colorScheme.green,
-            secondaryTitle = null,
-            onSecondaryClick = {},
-            secondaryEnabled = false,
-            isSaving = isSaving,
-        )
 
         AppHorizontalDivider()
 
@@ -498,6 +529,7 @@ private fun VariantsPanel(
     var variantName by rememberSaveable { mutableStateOf("") }
     var variantPrice by rememberSaveable { mutableStateOf("") }
     var variantIsActive by rememberSaveable { mutableStateOf(true) }
+    var isCreateExpanded by rememberSaveable(selectedPosition?.id) { mutableStateOf(positionVariants.isEmpty()) }
 
     LaunchedEffect(
         selectedPositionVariant?.id,
@@ -516,11 +548,19 @@ private fun VariantsPanel(
     SectionCard(
         title = selectedPosition?.name?.let { "Варианты: $it" } ?: "Варианты",
         modifier = modifier,
+        action = {
+            SectionActionButton(
+                title = if (isCreateExpanded) "Скрыть форму" else "+ Добавить",
+                color = if (isCreateExpanded) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.green,
+                enabled = selectedPosition != null,
+                onClick = { isCreateExpanded = !isCreateExpanded },
+            )
+        },
     ) {
         if (selectedPosition == null) {
             AppStateMessage(
                 title = "Сначала выберите позицию",
-                description = "У вариантов всегда есть родительская позиция.",
+                description = "У вариантов всегда есть родительская позиция. После выбора станет доступна кнопка «+ Добавить».",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -528,10 +568,55 @@ private fun VariantsPanel(
             return@SectionCard
         }
 
+        if (isCreateExpanded) {
+            Text(text = "Новый вариант", style = AppTheme.typography.title)
+            AppFormTextField(
+                value = newVariantId,
+                onValueChange = { newVariantId = it },
+                label = "ID",
+                singleLine = true,
+            )
+            AppFormTextField(
+                value = newVariantName,
+                onValueChange = { newVariantName = it },
+                label = "Название",
+                singleLine = true,
+            )
+            AppFormTextField(
+                value = newVariantPrice,
+                onValueChange = { newVariantPrice = it },
+                label = "Цена",
+                singleLine = true,
+            )
+            ActionRow(
+                primaryTitle = "Добавить",
+                onPrimaryClick = {
+                    newPriceValue?.let { price ->
+                        onCreatePositionVariant(selectedPosition.id, newVariantId, newVariantName, price)
+                        newVariantId = ""
+                        newVariantName = ""
+                        newVariantPrice = ""
+                    }
+                },
+                primaryEnabled = newVariantId.isNotBlank() && newVariantName.isNotBlank() && newPriceValue != null && !isSaving,
+                primaryColor = AppTheme.colorScheme.green,
+                secondaryTitle = null,
+                onSecondaryClick = {},
+                secondaryEnabled = false,
+                isSaving = isSaving,
+            )
+
+            AppHorizontalDivider()
+        }
+
         if (positionVariants.isEmpty()) {
             AppStateMessage(
                 title = "Вариантов пока нет",
-                description = "Добавьте размеры, вкусы или ценовые опции для этой позиции.",
+                description = if (isCreateExpanded) {
+                    "Заполните форму выше, чтобы добавить размеры, вкусы или ценовые опции."
+                } else {
+                    "Нажмите «+ Добавить», чтобы добавить размеры, вкусы или ценовые опции."
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 160.dp),
@@ -559,45 +644,6 @@ private fun VariantsPanel(
                 }
             }
         }
-
-        AppHorizontalDivider()
-
-        Text(text = "Новый вариант", style = AppTheme.typography.title)
-        AppFormTextField(
-            value = newVariantId,
-            onValueChange = { newVariantId = it },
-            label = "ID",
-            singleLine = true,
-        )
-        AppFormTextField(
-            value = newVariantName,
-            onValueChange = { newVariantName = it },
-            label = "Название",
-            singleLine = true,
-        )
-        AppFormTextField(
-            value = newVariantPrice,
-            onValueChange = { newVariantPrice = it },
-            label = "Цена",
-            singleLine = true,
-        )
-        ActionRow(
-            primaryTitle = "Добавить",
-            onPrimaryClick = {
-                newPriceValue?.let { price ->
-                    onCreatePositionVariant(selectedPosition.id, newVariantId, newVariantName, price)
-                    newVariantId = ""
-                    newVariantName = ""
-                    newVariantPrice = ""
-                }
-            },
-            primaryEnabled = newVariantId.isNotBlank() && newVariantName.isNotBlank() && newPriceValue != null && !isSaving,
-            primaryColor = AppTheme.colorScheme.green,
-            secondaryTitle = null,
-            onSecondaryClick = {},
-            secondaryEnabled = false,
-            isSaving = isSaving,
-        )
 
         AppHorizontalDivider()
 
@@ -664,20 +710,59 @@ private fun VariantsPanel(
 private fun SectionCard(
     title: String,
     modifier: Modifier = Modifier,
+    action: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
+            .animateContentSize()
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
             .background(AppTheme.colorScheme.surface)
             .padding(AppTheme.dimensions.basePadding),
         verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                modifier = Modifier.weight(1f),
+                style = AppTheme.typography.big,
+            )
+
+            action?.invoke()
+        }
+        content()
+    }
+}
+
+@Composable
+private fun SectionActionButton(
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    color: Color = AppTheme.colorScheme.green,
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
+            .background(if (enabled) color else AppTheme.colorScheme.surfaceSelected)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(
+                horizontal = AppTheme.dimensions.basePadding,
+                vertical = AppTheme.dimensions.basePadding / 2,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
             text = title,
-            style = AppTheme.typography.big,
+            style = AppTheme.typography.body.copy(
+                color = if (enabled) AppTheme.colorScheme.text else AppTheme.colorScheme.divider,
+            ),
         )
-        content()
     }
 }
 
