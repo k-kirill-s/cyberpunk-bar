@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 
 class WorkerOrderConfirmationViewModel(
     private val orderId: Int,
+    private val workerId: Int,
     private val ordersRepository: OrdersRepository,
 ) : ViewModel() {
 
@@ -51,7 +52,10 @@ class WorkerOrderConfirmationViewModel(
         viewModelScope.launch(exceptionHandler) {
             isConfirming.emit(true)
             try {
-                ordersRepository.finishOrder(orderId)
+                ordersRepository.finishOrder(
+                    orderId = orderId,
+                    completedByWorkerId = workerId,
+                )
                 _onOrderFinished.send(Unit)
             } finally {
                 isConfirming.emit(false)

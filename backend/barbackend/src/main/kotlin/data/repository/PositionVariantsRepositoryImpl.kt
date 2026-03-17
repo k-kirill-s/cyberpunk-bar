@@ -1,30 +1,44 @@
 package by.cyberpunkfandom.data.repository
 
-import by.cyberpunkfandom.data.database.positions.PositionEntity
+import by.cyberpunkfandom.data.database.positionvariantpositions.PositionVariantPositionsTable
 import by.cyberpunkfandom.data.database.positionvariants.PositionVariantEntity
 import by.cyberpunkfandom.data.database.positionvariants.PositionVariantsTable
 import by.cyberpunkfandom.data.database.suspendTransaction
 import by.cyberpunkfandom.data.mappers.PositionVariantMapper
 import by.cyberpunkfandom.domain.models.PositionVariant
 import by.cyberpunkfandom.domain.repository.PositionVariantsRepository
+import org.jetbrains.exposed.sql.selectAll
+import java.util.UUID
 
 class PositionVariantsRepositoryImpl(
     private val positionVariantMapper: PositionVariantMapper,
 ) : PositionVariantsRepository {
 
-    override suspend fun getPositionVariants(positionId: String): List<PositionVariant> = suspendTransaction {
+    override suspend fun getPositionVariants(): List<PositionVariant> = suspendTransaction {
         PositionVariantEntity
-            .find { PositionVariantsTable.position eq positionId }
+            .all()
             .sortedBy { it.id.value }
             .map { positionVariantMapper.getDomain(it) }
     }
 
-    override suspend fun addPositionVariant(positionId: String, id: String, name: String, price: Float): PositionVariant = suspendTransaction {
-        val position = PositionEntity[positionId]
+    override suspend fun getPositionVariantsByPosition(positionId: String): List<PositionVariant> = suspendTransaction {
+        PositionVariantEntity
+            .wrapRows(
+                PositionVariantsTable
+                    .innerJoin(PositionVariantPositionsTable)
+                    .selectAll()
+                    .where { PositionVariantPositionsTable.position eq positionId }
+            )
+            .sortedBy { it.id.value }
+            .map { positionVariantMapper.getDomain(it) }
+    }
+
+    override suspend fun addPositionVariant(name: String, price: Float): PositionVariant = suspendTransaction {
+        val id = UUID.randomUUID().toString()
         val positionVariant = PositionVariantEntity.new(id = id) {
             this.name = name
             this.price = price
-            this.position = position
+            this.positionId = null
         }
         positionVariantMapper.getDomain(positionVariant)
     }

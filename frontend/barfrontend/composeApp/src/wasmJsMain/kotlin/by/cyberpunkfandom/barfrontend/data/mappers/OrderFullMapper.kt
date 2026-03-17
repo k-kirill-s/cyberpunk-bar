@@ -7,6 +7,7 @@ import kotlin.time.Instant
 
 class OrderFullMapper(
     private val positionItemMapper: PositionItemMapper,
+    private val workerMapper: WorkerMapper,
 ) {
 
     fun getDomain(dto: OrderFullDto): OrderFull {
@@ -16,6 +17,8 @@ class OrderFullMapper(
             createdAt = Instant.fromEpochMilliseconds(dto.createdAt),
             updatedAt = Instant.fromEpochMilliseconds(dto.updatedAt),
             status = OrderStatus.valueOf(dto.status),
+            createdBy = dto.createdBy?.let(workerMapper::getDomain),
+            completedBy = dto.completedBy?.let(workerMapper::getDomain),
             price = dto.price,
             positionItems = dto.positionItems.map { positionItemMapper.getDomain(it) },
         )

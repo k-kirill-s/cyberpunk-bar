@@ -66,8 +66,13 @@ class MainService(
         return httpClient.get(api("orders/$id")).bodyOrThrowGeneralError()
     }
 
-    suspend fun createOrder(): OrderFullDto {
-        return httpClient.post(api("orders")).bodyOrThrowGeneralError()
+    suspend fun createOrder(createdByWorkerId: Int): OrderFullDto {
+        return httpClient.submitForm(
+            url = api("orders"),
+            formParameters = parameters {
+                append("created_by_worker_id", createdByWorkerId.toString())
+            },
+        ).bodyOrThrowGeneralError()
     }
 
     suspend fun formOrder(orderId: Int): OrderFullDto {
@@ -83,8 +88,13 @@ class MainService(
         ).bodyOrThrowGeneralError()
     }
 
-    suspend fun finishOrder(orderId: Int): OrderFullDto {
-        return httpClient.post(api("orders/${orderId}/finish")).bodyOrThrowGeneralError()
+    suspend fun finishOrder(orderId: Int, completedByWorkerId: Int): OrderFullDto {
+        return httpClient.submitForm(
+            url = api("orders/${orderId}/finish"),
+            formParameters = parameters {
+                append("completed_by_worker_id", completedByWorkerId.toString())
+            },
+        ).bodyOrThrowGeneralError()
     }
 
     suspend fun giveAwayOrder(orderId: Int): OrderFullDto {
@@ -140,16 +150,16 @@ class MainService(
     }
 
     suspend fun createPosition(
-        id: String,
         name: String,
         description: String,
+        positionVariantIds: List<String>,
     ): PositionDto {
         return httpClient.submitForm(
             url = api("positions"),
             formParameters = parameters {
-                append("id", id)
                 append("name", name)
                 append("description", description)
+                positionVariantIds.forEach { append("position_variant_id", it) }
             },
         ) {
             applyAdminHeaders()
@@ -160,12 +170,14 @@ class MainService(
         positionId: String,
         name: String?,
         description: String?,
+        positionVariantIds: List<String>? = null,
     ): PositionDto {
         return httpClient.submitForm(
             url = api("positions/${positionId}"),
             formParameters = parameters {
                 name?.let { append("name", it) }
                 description?.let { append("description", it) }
+                positionVariantIds?.forEach { append("position_variant_id", it) }
             }
         ) {
             applyAdminHeaders()
@@ -181,6 +193,10 @@ class MainService(
 
     // ---------------------------------------------------------------------------------------------------------------
     // POSITION VARIANTS
+    suspend fun getPositionVariants(): List<PositionVariantDto> {
+        return httpClient.get(api("position_variants")).bodyOrThrowGeneralError()
+    }
+
     suspend fun getPositionVariants(positionId: String): List<PositionVariantDto> {
         return httpClient
             .get(api("positions/${positionId}/position_variants"))
@@ -188,15 +204,12 @@ class MainService(
     }
 
     suspend fun createPositionVariant(
-        positionId: String,
-        id: String,
         name: String,
         price: Float,
     ): PositionVariantDto {
         return httpClient.submitForm(
-            url = api("positions/${positionId}/position_variants"),
+            url = api("position_variants"),
             formParameters = parameters {
-                append("id", id)
                 append("name", name)
                 append("price", price.toString())
             }
@@ -256,14 +269,22 @@ class MainService(
             workerId = workerId,
             name = null,
             isOnLine = isOnLine,
+            canBeCashier = null,
+            canBeBartender = null,
         )
     }
 
-    suspend fun createWorker(name: String): WorkerDto {
+    suspend fun createWorker(
+        name: String,
+        canBeCashier: Boolean,
+        canBeBartender: Boolean,
+    ): WorkerDto {
         return httpClient.submitForm(
             url = api("workers"),
             formParameters = parameters {
                 append("name", name)
+                append("can_be_cashier", canBeCashier.toString())
+                append("can_be_bartender", canBeBartender.toString())
             }
         ) {
             applyAdminHeaders()
@@ -274,12 +295,16 @@ class MainService(
         workerId: Int,
         name: String?,
         isOnLine: Boolean?,
+        canBeCashier: Boolean?,
+        canBeBartender: Boolean?,
     ): WorkerDto {
         return httpClient.submitForm(
             url = api("workers/${workerId}"),
             formParameters = parameters {
                 name?.let { append("name", it) }
                 isOnLine?.let { append("is_on_line", it.toString()) }
+                canBeCashier?.let { append("can_be_cashier", it.toString()) }
+                canBeBartender?.let { append("can_be_bartender", it.toString()) }
             }
         ) {
             applyAdminHeaders()

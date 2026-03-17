@@ -38,7 +38,7 @@ class WorkerAuthViewModel(
 
     init {
         viewModelScope.launch(exceptionHandler) {
-            workers.emit(getSortedWorkers())
+            workers.emit(getSortedBartenders())
             isLoading.emit(false)
         }
     }
@@ -46,14 +46,15 @@ class WorkerAuthViewModel(
     fun onWorkerClick(worker: Worker) {
         viewModelScope.launch(exceptionHandler) {
             workersRepository.setWorkerIsOnLine(worker.id, true)
-            workers.emit(getSortedWorkers())
+            workers.emit(getSortedBartenders())
             _onWorkerSelected.send(worker.id)
         }
     }
 
-    private suspend fun getSortedWorkers(): List<Worker> {
+    private suspend fun getSortedBartenders(): List<Worker> {
         return workersRepository
             .getWorkers()
+            .filter(Worker::canBeBartender)
             .sortedWith(compareByDescending<Worker> { it.isOnLine }.thenBy { it.name })
     }
 }

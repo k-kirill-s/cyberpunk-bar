@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,26 +79,29 @@ fun CashierTogglePositionsScreen(
         workers = viewModel.workers.collectAsStateWithLifecycle().value,
         selectedWorkerId = viewModel.selectedWorkerId.collectAsStateWithLifecycle().value,
         onWorkerClick = viewModel::onWorkerClick,
-        onCreateWorker = { name, onSuccess -> viewModel.createWorker(name, onSuccess) },
-        onUpdateWorker = { workerId, name, isOnLine, onSuccess ->
-            viewModel.updateWorker(workerId, name, isOnLine, onSuccess)
+        onCreateWorker = { name, canBeCashier, canBeBartender, onSuccess ->
+            viewModel.createWorker(name, canBeCashier, canBeBartender, onSuccess)
+        },
+        onUpdateWorker = { workerId, name, isOnLine, canBeCashier, canBeBartender, onSuccess ->
+            viewModel.updateWorker(workerId, name, isOnLine, canBeCashier, canBeBartender, onSuccess)
         },
         onDeleteWorker = { workerId, onSuccess -> viewModel.deleteWorker(workerId, onSuccess) },
         positions = viewModel.positions.collectAsStateWithLifecycle().value,
         selectedPositionId = viewModel.selectedPositionId.collectAsStateWithLifecycle().value,
+        selectedPositionVariantIds = viewModel.selectedPositionVariantIds.collectAsStateWithLifecycle().value,
         onPositionClick = viewModel::onPositionClick,
-        onCreatePosition = { id, name, description, onSuccess ->
-            viewModel.createPosition(id, name, description, onSuccess)
+        onCreatePosition = { name, description, positionVariantIds, onSuccess ->
+            viewModel.createPosition(name, description, positionVariantIds, onSuccess)
         },
-        onUpdatePosition = { positionId, name, description, onSuccess ->
-            viewModel.updatePosition(positionId, name, description, onSuccess)
+        onUpdatePosition = { positionId, name, description, positionVariantIds, onSuccess ->
+            viewModel.updatePosition(positionId, name, description, positionVariantIds, onSuccess)
         },
         onDeletePosition = { positionId, onSuccess -> viewModel.deletePosition(positionId, onSuccess) },
         positionVariants = viewModel.positionVariants.collectAsStateWithLifecycle().value,
         selectedPositionVariantId = viewModel.selectedPositionVariantId.collectAsStateWithLifecycle().value,
         onPositionVariantClick = viewModel::onPositionVariantClick,
-        onCreatePositionVariant = { positionId, id, name, price, onSuccess ->
-            viewModel.createPositionVariant(positionId, id, name, price, onSuccess)
+        onCreatePositionVariant = { name, price, onSuccess ->
+            viewModel.createPositionVariant(name, price, onSuccess)
         },
         onUpdatePositionVariant = { positionVariantId, name, price, isActive, onSuccess ->
             viewModel.updatePositionVariant(positionVariantId, name, price, isActive, onSuccess)
@@ -116,19 +120,20 @@ private fun CashierTogglePositionsScreen(
     workers: List<Worker>,
     selectedWorkerId: Int?,
     onWorkerClick: (Worker) -> Unit,
-    onCreateWorker: (String, () -> Unit) -> Unit,
-    onUpdateWorker: (Int, String, Boolean, () -> Unit) -> Unit,
+    onCreateWorker: (String, Boolean, Boolean, () -> Unit) -> Unit,
+    onUpdateWorker: (Int, String, Boolean, Boolean, Boolean, () -> Unit) -> Unit,
     onDeleteWorker: (Int, () -> Unit) -> Unit,
     positions: List<Position>,
     selectedPositionId: String?,
+    selectedPositionVariantIds: Set<String>,
     onPositionClick: (Position) -> Unit,
-    onCreatePosition: (String, String, String, () -> Unit) -> Unit,
-    onUpdatePosition: (String, String, String, () -> Unit) -> Unit,
+    onCreatePosition: (String, String, List<String>, () -> Unit) -> Unit,
+    onUpdatePosition: (String, String, String, List<String>, () -> Unit) -> Unit,
     onDeletePosition: (String, () -> Unit) -> Unit,
     positionVariants: List<PositionVariant>,
     selectedPositionVariantId: String?,
     onPositionVariantClick: (PositionVariant) -> Unit,
-    onCreatePositionVariant: (String, String, String, Float, () -> Unit) -> Unit,
+    onCreatePositionVariant: (String, Float, () -> Unit) -> Unit,
     onUpdatePositionVariant: (String, String, Float, Boolean, () -> Unit) -> Unit,
     onDeletePositionVariant: (String, () -> Unit) -> Unit,
 ) {
@@ -140,12 +145,12 @@ private fun CashierTogglePositionsScreen(
 
     val topBarTitle = when (currentPage) {
         CatalogPage.OVERVIEW -> "Каталог и команда"
-        CatalogPage.CREATE_WORKER -> "Новый сотрудник"
-        CatalogPage.EDIT_WORKER -> "Сотрудник"
-        CatalogPage.CREATE_POSITION -> "Новая позиция"
-        CatalogPage.EDIT_POSITION -> "Позиция"
-        CatalogPage.CREATE_VARIANT -> "Новый вариант"
-        CatalogPage.EDIT_VARIANT -> "Вариант"
+        CatalogPage.CREATE_WORKER -> "Новый стендовик"
+        CatalogPage.EDIT_WORKER -> "Стендовик"
+        CatalogPage.CREATE_POSITION -> "Новый напиток"
+        CatalogPage.EDIT_POSITION -> "Напиток"
+        CatalogPage.CREATE_VARIANT -> "Новый товар"
+        CatalogPage.EDIT_VARIANT -> "Товар"
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -179,6 +184,7 @@ private fun CashierTogglePositionsScreen(
                 onOpenEditWorker = { currentPage = CatalogPage.EDIT_WORKER },
                 positions = positions,
                 selectedPosition = selectedPosition,
+                selectedPositionVariantIds = selectedPositionVariantIds,
                 positionVariants = positionVariants,
                 selectedPositionVariant = selectedPositionVariant,
                 onPositionClick = onPositionClick,
@@ -192,8 +198,8 @@ private fun CashierTogglePositionsScreen(
             CatalogPage.CREATE_WORKER -> WorkerEditorScreen(
                 worker = null,
                 isSaving = isSaving,
-                onSave = { name, isOnLine, onSuccess ->
-                    onCreateWorker(name) {
+                onSave = { name, isOnLine, canBeCashier, canBeBartender, onSuccess ->
+                    onCreateWorker(name, canBeCashier, canBeBartender) {
                         onSuccess()
                         currentPage = CatalogPage.OVERVIEW
                     }
@@ -204,9 +210,9 @@ private fun CashierTogglePositionsScreen(
             CatalogPage.EDIT_WORKER -> WorkerEditorScreen(
                 worker = selectedWorker,
                 isSaving = isSaving,
-                onSave = { name, isOnLine, onSuccess ->
+                onSave = { name, isOnLine, canBeCashier, canBeBartender, onSuccess ->
                     selectedWorker?.let { worker ->
-                        onUpdateWorker(worker.id, name, isOnLine) {
+                        onUpdateWorker(worker.id, name, isOnLine, canBeCashier, canBeBartender) {
                             onSuccess()
                             currentPage = CatalogPage.OVERVIEW
                         }
@@ -223,9 +229,11 @@ private fun CashierTogglePositionsScreen(
 
             CatalogPage.CREATE_POSITION -> PositionEditorScreen(
                 position = null,
+                availablePositionVariants = positionVariants,
+                initiallySelectedPositionVariantIds = emptySet(),
                 isSaving = isSaving,
-                onSave = { id, name, description, onSuccess ->
-                    onCreatePosition(id, name, description) {
+                onSave = { name, description, positionVariantIds, onSuccess ->
+                    onCreatePosition(name, description, positionVariantIds) {
                         onSuccess()
                         currentPage = CatalogPage.OVERVIEW
                     }
@@ -235,10 +243,12 @@ private fun CashierTogglePositionsScreen(
 
             CatalogPage.EDIT_POSITION -> PositionEditorScreen(
                 position = selectedPosition,
+                availablePositionVariants = positionVariants,
+                initiallySelectedPositionVariantIds = selectedPositionVariantIds,
                 isSaving = isSaving,
-                onSave = { id, name, description, onSuccess ->
+                onSave = { name, description, positionVariantIds, onSuccess ->
                     selectedPosition?.let { position ->
-                        onUpdatePosition(position.id, name, description) {
+                        onUpdatePosition(position.id, name, description, positionVariantIds) {
                             onSuccess()
                             currentPage = CatalogPage.OVERVIEW
                         }
@@ -254,25 +264,21 @@ private fun CashierTogglePositionsScreen(
             )
 
             CatalogPage.CREATE_VARIANT -> VariantEditorScreen(
-                position = selectedPosition,
                 variant = null,
                 isSaving = isSaving,
-                onSave = { id, name, price, isActive, onSuccess ->
-                    selectedPosition?.let { position ->
-                        onCreatePositionVariant(position.id, id, name, price) {
-                            onSuccess()
-                            currentPage = CatalogPage.OVERVIEW
-                        }
+                onSave = { name, price, isActive, onSuccess ->
+                    onCreatePositionVariant(name, price) {
+                        onSuccess()
+                        currentPage = CatalogPage.OVERVIEW
                     }
                 },
                 onDelete = null,
             )
 
             CatalogPage.EDIT_VARIANT -> VariantEditorScreen(
-                position = selectedPosition,
                 variant = selectedPositionVariant,
                 isSaving = isSaving,
-                onSave = { id, name, price, isActive, onSuccess ->
+                onSave = { name, price, isActive, onSuccess ->
                     selectedPositionVariant?.let { variant ->
                         onUpdatePositionVariant(variant.id, name, price, isActive) {
                             onSuccess()
@@ -301,6 +307,7 @@ private fun CatalogOverviewScreen(
     onOpenEditWorker: () -> Unit,
     positions: List<Position>,
     selectedPosition: Position?,
+    selectedPositionVariantIds: Set<String>,
     positionVariants: List<PositionVariant>,
     selectedPositionVariant: PositionVariant?,
     onPositionClick: (Position) -> Unit,
@@ -336,7 +343,7 @@ private fun CatalogOverviewScreen(
                 PositionsPanel(
                     positions = positions,
                     selectedPosition = selectedPosition,
-                    positionVariantsCount = positionVariants.size,
+                    linkedProductsCount = selectedPositionVariantIds.size,
                     onPositionClick = onPositionClick,
                     onOpenCreate = onOpenCreatePosition,
                     onOpenEdit = onOpenEditPosition,
@@ -344,9 +351,9 @@ private fun CatalogOverviewScreen(
                 )
 
                 VariantsPanel(
-                    selectedPosition = selectedPosition,
                     positionVariants = positionVariants,
                     selectedPositionVariant = selectedPositionVariant,
+                    selectedPositionVariantIds = selectedPositionVariantIds,
                     onPositionVariantClick = onPositionVariantClick,
                     onOpenCreate = onOpenCreateVariant,
                     onOpenEdit = onOpenEditVariant,
@@ -378,7 +385,7 @@ private fun CatalogOverviewScreen(
                     PositionsPanel(
                         positions = positions,
                         selectedPosition = selectedPosition,
-                        positionVariantsCount = positionVariants.size,
+                        linkedProductsCount = selectedPositionVariantIds.size,
                         onPositionClick = onPositionClick,
                         onOpenCreate = onOpenCreatePosition,
                         onOpenEdit = onOpenEditPosition,
@@ -386,9 +393,9 @@ private fun CatalogOverviewScreen(
                     )
 
                     VariantsPanel(
-                        selectedPosition = selectedPosition,
                         positionVariants = positionVariants,
                         selectedPositionVariant = selectedPositionVariant,
+                        selectedPositionVariantIds = selectedPositionVariantIds,
                         onPositionVariantClick = onPositionVariantClick,
                         onOpenCreate = onOpenCreateVariant,
                         onOpenEdit = onOpenEditVariant,
@@ -410,7 +417,7 @@ private fun WorkersPanel(
     modifier: Modifier = Modifier,
 ) {
     SectionCard(
-        title = "Сотрудники",
+        title = "Стендовики",
         modifier = modifier,
         action = {
             HeaderActions(
@@ -424,8 +431,8 @@ private fun WorkersPanel(
     ) {
         if (workers.isEmpty()) {
             AppStateMessage(
-                title = "Сотрудников пока нет",
-                description = "Откройте отдельную страницу и создайте первого сотрудника.",
+                title = "Стендовиков пока нет",
+                description = "Откройте отдельную страницу и создайте первого стендовика.",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -441,19 +448,42 @@ private fun WorkersPanel(
             modifier = Modifier.heightIn(min = 220.dp, max = 360.dp),
         ) { worker ->
             Column {
-                Text(text = worker.name, style = AppTheme.typography.title)
+                Text(text = worker.name, style = MaterialTheme.typography.titleLarge)
                 Text(
-                    text = if (worker.isOnLine) "В сети" else "Офлайн",
+                    text = buildString {
+                        append(
+                            when {
+                                worker.canBeCashier && worker.canBeBartender -> "Кассир и бармен"
+                                worker.canBeCashier -> "Кассир"
+                                worker.canBeBartender -> "Бармен"
+                                else -> "Без роли"
+                            }
+                        )
+                        append(" • ")
+                        append(if (worker.isOnLine) "В сети" else "Офлайн")
+                    },
                     color = if (worker.isOnLine) AppTheme.colorScheme.green else AppTheme.colorScheme.divider,
-                    style = AppTheme.typography.body,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
 
         SelectionSummary(
-            title = selectedWorker?.name ?: "Сотрудник не выбран",
-            subtitle = selectedWorker?.let { if (it.isOnLine) "Сейчас в сети" else "Сейчас офлайн" }
-                ?: "Выберите карточку из списка, затем откройте отдельную страницу редактирования.",
+            title = selectedWorker?.name ?: "Стендовик не выбран",
+            subtitle = selectedWorker?.let {
+                buildString {
+                    append(
+                        when {
+                            it.canBeCashier && it.canBeBartender -> "Кассир и бармен"
+                            it.canBeCashier -> "Кассир"
+                            it.canBeBartender -> "Бармен"
+                            else -> "Без роли"
+                        }
+                    )
+                    append(" • ")
+                    append(if (it.isOnLine) "Сейчас в сети" else "Сейчас офлайн")
+                }
+            } ?: "Выберите карточку из списка, затем откройте отдельную страницу редактирования.",
             subtitleColor = if (selectedWorker?.isOnLine == true) {
                 AppTheme.colorScheme.green
             } else {
@@ -467,14 +497,14 @@ private fun WorkersPanel(
 private fun PositionsPanel(
     positions: List<Position>,
     selectedPosition: Position?,
-    positionVariantsCount: Int,
+    linkedProductsCount: Int,
     onPositionClick: (Position) -> Unit,
     onOpenCreate: () -> Unit,
     onOpenEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SectionCard(
-        title = "Позиции",
+        title = "Напитки",
         modifier = modifier,
         action = {
             HeaderActions(
@@ -488,8 +518,8 @@ private fun PositionsPanel(
     ) {
         if (positions.isEmpty()) {
             AppStateMessage(
-                title = "Позиции пока не заведены",
-                description = "Создайте позицию на отдельной странице, чтобы потом добавлять варианты.",
+                title = "Напитки пока не заведены",
+                description = "Создайте напиток и сразу отметьте, с какими товарами он продаётся.",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -505,35 +535,35 @@ private fun PositionsPanel(
             modifier = Modifier.heightIn(min = 220.dp, max = 320.dp),
         ) { position ->
             Column {
-                Text(text = position.name, style = AppTheme.typography.title)
+                Text(text = position.name, style = MaterialTheme.typography.titleLarge)
                 Text(
-                    text = position.id,
+                    text = position.description.ifBlank { "Описание не заполнено" },
                     color = AppTheme.colorScheme.divider,
-                    style = AppTheme.typography.body,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
 
         SelectionSummary(
-            title = selectedPosition?.name ?: "Позиция не выбрана",
-            subtitle = selectedPosition?.let { "${it.id} • вариантов: $positionVariantsCount" }
-                ?: "Выберите позицию, чтобы открыть отдельные страницы редактирования и вариантов.",
+            title = selectedPosition?.name ?: "Напиток не выбран",
+            subtitle = selectedPosition?.let { "Привязано товаров: $linkedProductsCount" }
+                ?: "Выберите напиток, чтобы посмотреть и изменить связанные товары.",
         )
     }
 }
 
 @Composable
 private fun VariantsPanel(
-    selectedPosition: Position?,
     positionVariants: List<PositionVariant>,
     selectedPositionVariant: PositionVariant?,
+    selectedPositionVariantIds: Set<String>,
     onPositionVariantClick: (PositionVariant) -> Unit,
     onOpenCreate: () -> Unit,
     onOpenEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SectionCard(
-        title = selectedPosition?.name?.let { "Варианты: $it" } ?: "Варианты",
+        title = "Товары",
         modifier = modifier,
         action = {
             HeaderActions(
@@ -541,26 +571,14 @@ private fun VariantsPanel(
                 onPrimaryClick = onOpenCreate,
                 secondaryTitle = "Изменить",
                 onSecondaryClick = onOpenEdit,
-                primaryEnabled = selectedPosition != null,
                 secondaryEnabled = selectedPositionVariant != null,
             )
         },
     ) {
-        if (selectedPosition == null) {
-            AppStateMessage(
-                title = "Сначала выберите позицию",
-                description = "У вариантов всегда есть родительская позиция. После выбора откроются страницы добавления и редактирования.",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 220.dp),
-            )
-            return@SectionCard
-        }
-
         if (positionVariants.isEmpty()) {
             AppStateMessage(
-                title = "Вариантов пока нет",
-                description = "Добавьте первый вариант для выбранной позиции на отдельной странице.",
+                title = "Товаров пока нет",
+                description = "Добавьте первый товар, задайте ему цену и затем привязывайте к напиткам.",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -576,19 +594,30 @@ private fun VariantsPanel(
             modifier = Modifier.heightIn(min = 220.dp, max = 300.dp),
         ) { variant ->
             Column {
-                Text(text = variant.name, style = AppTheme.typography.title)
+                Text(text = variant.name, style = MaterialTheme.typography.titleLarge)
                 Text(
-                    text = "${variant.price.format(2)} • ${if (variant.isActive) "Активен" else "Выключен"}",
-                    color = if (variant.isActive) AppTheme.colorScheme.green else AppTheme.colorScheme.red,
-                    style = AppTheme.typography.body,
+                    text = buildString {
+                        append(variant.price.format(2))
+                        append(" • ")
+                        append(if (variant.isActive) "Активен" else "Выключен")
+                        if (variant.id in selectedPositionVariantIds) {
+                            append(" • Привязан к выбранному напитку")
+                        }
+                    },
+                    color = when {
+                        variant.id in selectedPositionVariantIds -> AppTheme.colorScheme.accent
+                        variant.isActive -> AppTheme.colorScheme.green
+                        else -> AppTheme.colorScheme.red
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
 
         SelectionSummary(
-            title = selectedPositionVariant?.name ?: "Вариант не выбран",
-            subtitle = selectedPositionVariant?.let { "${it.id} • ${it.price.format(2)}" }
-                ?: "Выберите вариант, чтобы открыть отдельную страницу редактирования.",
+            title = selectedPositionVariant?.name ?: "Товар не выбран",
+            subtitle = selectedPositionVariant?.let { "${it.price.format(2)} • ${if (it.isActive) "Активен" else "Выключен"}" }
+                ?: "Выберите товар, чтобы открыть отдельную страницу редактирования.",
         )
     }
 }
@@ -597,13 +626,13 @@ private fun VariantsPanel(
 private fun WorkerEditorScreen(
     worker: Worker?,
     isSaving: Boolean,
-    onSave: (String, Boolean, () -> Unit) -> Unit,
+    onSave: (String, Boolean, Boolean, Boolean, () -> Unit) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     if (worker == null && onDelete != null) {
         MissingSelectionState(
-            title = "Сотрудник не выбран",
-            description = "Вернитесь назад, выберите сотрудника в списке и затем откройте страницу редактирования.",
+            title = "Стендовик не выбран",
+            description = "Вернитесь назад, выберите стендовика в списке и затем откройте страницу редактирования.",
         )
         return
     }
@@ -611,16 +640,18 @@ private fun WorkerEditorScreen(
     val isCreateMode = worker == null
     var name by rememberSaveable(worker?.id) { mutableStateOf(worker?.name.orEmpty()) }
     var isOnline by rememberSaveable(worker?.id) { mutableStateOf(worker?.isOnLine ?: false) }
+    var canBeCashier by rememberSaveable(worker?.id) { mutableStateOf(worker?.canBeCashier ?: true) }
+    var canBeBartender by rememberSaveable(worker?.id) { mutableStateOf(worker?.canBeBartender ?: true) }
 
     EditorScrollContainer {
-        SectionCard(title = if (isCreateMode) "Новый сотрудник" else "Карточка сотрудника") {
+        SectionCard(title = if (isCreateMode) "Новый стендовик" else "Карточка стендовика") {
             Text(
                 text = if (isCreateMode) {
-                    "Имя создаётся на отдельной странице, поэтому поле больше не ужимается в боковой панели."
+                    "Задайте имя и сразу отметьте, может ли стендовик работать кассиром и/или барменом."
                 } else {
-                    "Здесь можно обновить имя сотрудника и вручную переключить статус онлайн."
+                    "Здесь можно обновить имя стендовика, роли и вручную переключить статус онлайн."
                 },
-                style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider),
+                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
             )
 
             AppFormTextField(
@@ -628,6 +659,18 @@ private fun WorkerEditorScreen(
                 onValueChange = { name = it },
                 label = "Имя",
                 singleLine = true,
+            )
+
+            SwitchRow(
+                title = "Может быть кассиром",
+                checked = canBeCashier,
+                onCheckedChange = { canBeCashier = it },
+            )
+
+            SwitchRow(
+                title = "Может быть барменом",
+                checked = canBeBartender,
+                onCheckedChange = { canBeBartender = it },
             )
 
             if (!isCreateMode) {
@@ -640,8 +683,14 @@ private fun WorkerEditorScreen(
 
             ActionRow(
                 primaryTitle = if (isCreateMode) "Добавить" else "Сохранить",
-                onPrimaryClick = { onSave(name, isOnline) { name = "" } },
-                primaryEnabled = name.isNotBlank() && !isSaving,
+                onPrimaryClick = {
+                    onSave(name, isOnline, canBeCashier, canBeBartender) {
+                        name = ""
+                        canBeCashier = true
+                        canBeBartender = true
+                    }
+                },
+                primaryEnabled = name.isNotBlank() && (canBeCashier || canBeBartender) && !isSaving,
                 primaryColor = if (isCreateMode) AppTheme.colorScheme.green else AppTheme.colorScheme.accent,
                 secondaryTitle = if (isCreateMode) null else "Удалить",
                 onSecondaryClick = { onDelete?.invoke() },
@@ -655,41 +704,38 @@ private fun WorkerEditorScreen(
 @Composable
 private fun PositionEditorScreen(
     position: Position?,
+    availablePositionVariants: List<PositionVariant>,
+    initiallySelectedPositionVariantIds: Set<String>,
     isSaving: Boolean,
-    onSave: (String, String, String, () -> Unit) -> Unit,
+    onSave: (String, String, List<String>, () -> Unit) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     if (position == null && onDelete != null) {
         MissingSelectionState(
-            title = "Позиция не выбрана",
-            description = "Вернитесь назад, выберите позицию и затем откройте страницу редактирования.",
+            title = "Напиток не выбран",
+            description = "Вернитесь назад, выберите напиток и затем откройте страницу редактирования.",
         )
         return
     }
 
     val isCreateMode = position == null
-    var id by rememberSaveable(position?.id) { mutableStateOf(position?.id.orEmpty()) }
     var name by rememberSaveable(position?.id) { mutableStateOf(position?.name.orEmpty()) }
     var description by rememberSaveable(position?.id) { mutableStateOf(position?.description.orEmpty()) }
+    var selectedPositionVariantIds by rememberSaveable(position?.id) {
+        mutableStateOf(initiallySelectedPositionVariantIds.toSet())
+    }
 
     EditorScrollContainer {
-        SectionCard(title = if (isCreateMode) "Новая позиция" else "Редактирование позиции") {
+        SectionCard(title = if (isCreateMode) "Новый напиток" else "Редактирование напитка") {
             Text(
                 text = if (isCreateMode) {
-                    "Создайте продукт на отдельной странице, затем привязывайте к нему варианты."
+                    "Напиток создаётся отдельно от товаров. Сразу выберите, с какими товарами он доступен."
                 } else {
-                    "ID зафиксирован, здесь меняются только название и описание."
+                    "Здесь меняются название, описание и состав доступных товаров для напитка."
                 },
-                style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider),
+                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
             )
 
-            AppFormTextField(
-                value = id,
-                onValueChange = { id = it },
-                label = "ID",
-                enabled = isCreateMode,
-                singleLine = true,
-            )
             AppFormTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -703,16 +749,28 @@ private fun PositionEditorScreen(
                 minLines = 3,
             )
 
+            PositionVariantsSelector(
+                positionVariants = availablePositionVariants,
+                selectedPositionVariantIds = selectedPositionVariantIds,
+                onCheckedChange = { positionVariantId, isChecked ->
+                    selectedPositionVariantIds = if (isChecked) {
+                        selectedPositionVariantIds + positionVariantId
+                    } else {
+                        selectedPositionVariantIds - positionVariantId
+                    }
+                },
+            )
+
             ActionRow(
                 primaryTitle = if (isCreateMode) "Добавить" else "Сохранить",
                 onPrimaryClick = {
-                    onSave(id, name, description) {
-                        id = ""
+                    onSave(name, description, selectedPositionVariantIds.toList()) {
                         name = ""
                         description = ""
+                        selectedPositionVariantIds = emptySet()
                     }
                 },
-                primaryEnabled = id.isNotBlank() && name.isNotBlank() && !isSaving,
+                primaryEnabled = name.isNotBlank() && !isSaving,
                 primaryColor = if (isCreateMode) AppTheme.colorScheme.green else AppTheme.colorScheme.accent,
                 secondaryTitle = if (isCreateMode) null else "Удалить",
                 onSecondaryClick = { onDelete?.invoke() },
@@ -725,51 +783,30 @@ private fun PositionEditorScreen(
 
 @Composable
 private fun VariantEditorScreen(
-    position: Position?,
     variant: PositionVariant?,
     isSaving: Boolean,
-    onSave: (String, String, Float, Boolean, () -> Unit) -> Unit,
+    onSave: (String, Float, Boolean, () -> Unit) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     val isCreateMode = variant == null
-    if (position == null) {
-        MissingSelectionState(
-            title = "Позиция не выбрана",
-            description = "Вернитесь назад, выберите позицию и затем откройте страницу добавления или редактирования варианта.",
-        )
-        return
-    }
     if (variant == null && onDelete != null) {
         MissingSelectionState(
-            title = "Вариант не выбран",
-            description = "Вернитесь назад, выберите вариант из списка и затем откройте страницу редактирования.",
+            title = "Товар не выбран",
+            description = "Вернитесь назад, выберите товар из списка и затем откройте страницу редактирования.",
         )
         return
     }
 
-    var id by rememberSaveable(variant?.id, position.id) { mutableStateOf(variant?.id.orEmpty()) }
-    var name by rememberSaveable(variant?.id, position.id) { mutableStateOf(variant?.name.orEmpty()) }
-    var price by rememberSaveable(variant?.id, position.id) {
+    var name by rememberSaveable(variant?.id) { mutableStateOf(variant?.name.orEmpty()) }
+    var price by rememberSaveable(variant?.id) {
         mutableStateOf(variant?.price?.format(2).orEmpty())
     }
-    var isActive by rememberSaveable(variant?.id, position.id) { mutableStateOf(variant?.isActive ?: true) }
+    var isActive by rememberSaveable(variant?.id) { mutableStateOf(variant?.isActive ?: true) }
 
     val parsedPrice = remember(price) { price.replace(",", ".").toFloatOrNull() }
 
     EditorScrollContainer {
-        SectionCard(title = if (isCreateMode) "Новый вариант" else "Редактирование варианта") {
-            Text(
-                text = "Родительская позиция: ${position.name}",
-                style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider),
-            )
-
-            AppFormTextField(
-                value = id,
-                onValueChange = { id = it },
-                label = "ID",
-                enabled = isCreateMode,
-                singleLine = true,
-            )
+        SectionCard(title = if (isCreateMode) "Новый товар" else "Редактирование товара") {
             AppFormTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -795,21 +832,49 @@ private fun VariantEditorScreen(
                 primaryTitle = if (isCreateMode) "Добавить" else "Сохранить",
                 onPrimaryClick = {
                     parsedPrice?.let { value ->
-                        onSave(id, name, value, isActive) {
-                            id = ""
+                        onSave(name, value, isActive) {
                             name = ""
                             price = ""
                             isActive = true
                         }
                     }
                 },
-                primaryEnabled = id.isNotBlank() && name.isNotBlank() && parsedPrice != null && !isSaving,
+                primaryEnabled = name.isNotBlank() && parsedPrice != null && !isSaving,
                 primaryColor = if (isCreateMode) AppTheme.colorScheme.green else AppTheme.colorScheme.accent,
                 secondaryTitle = if (isCreateMode) null else "Удалить",
                 onSecondaryClick = { onDelete?.invoke() },
                 secondaryEnabled = !isSaving,
                 isSaving = isSaving,
             )
+        }
+    }
+}
+
+@Composable
+private fun PositionVariantsSelector(
+    positionVariants: List<PositionVariant>,
+    selectedPositionVariantIds: Set<String>,
+    onCheckedChange: (String, Boolean) -> Unit,
+) {
+    SectionCard(title = "Товары для напитка") {
+        if (positionVariants.isEmpty()) {
+            Text(
+                text = "Сначала добавьте товары в соседнем разделе каталога.",
+                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
+            )
+            return@SectionCard
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+        ) {
+            positionVariants.forEach { variant ->
+                SwitchRow(
+                    title = "${variant.name} • ${variant.price.format(2)}",
+                    checked = variant.id in selectedPositionVariantIds,
+                    onCheckedChange = { onCheckedChange(variant.id, it) },
+                )
+            }
         }
     }
 }
@@ -849,23 +914,52 @@ private fun HeaderActions(
     primaryEnabled: Boolean = true,
     secondaryEnabled: Boolean = true,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
-    ) {
-        SectionActionButton(
-            title = primaryTitle,
-            onClick = onPrimaryClick,
-            enabled = primaryEnabled,
-            color = AppTheme.colorScheme.green,
-        )
+    BoxWithConstraints {
+        val stackButtons = maxWidth < 340.dp
 
-        secondaryTitle?.let {
-            SectionActionButton(
-                title = secondaryTitle,
-                onClick = onSecondaryClick,
-                enabled = secondaryEnabled,
-                color = AppTheme.colorScheme.accent,
-            )
+        if (stackButtons) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+            ) {
+                SectionActionButton(
+                    title = primaryTitle,
+                    onClick = onPrimaryClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = primaryEnabled,
+                    color = AppTheme.colorScheme.green,
+                )
+
+                secondaryTitle?.let {
+                    SectionActionButton(
+                        title = secondaryTitle,
+                        onClick = onSecondaryClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = secondaryEnabled,
+                        color = AppTheme.colorScheme.accent,
+                    )
+                }
+            }
+        } else {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+            ) {
+                SectionActionButton(
+                    title = primaryTitle,
+                    onClick = onPrimaryClick,
+                    enabled = primaryEnabled,
+                    color = AppTheme.colorScheme.green,
+                )
+
+                secondaryTitle?.let {
+                    SectionActionButton(
+                        title = secondaryTitle,
+                        onClick = onSecondaryClick,
+                        enabled = secondaryEnabled,
+                        color = AppTheme.colorScheme.accent,
+                    )
+                }
+            }
         }
     }
 }
@@ -887,12 +981,12 @@ private fun SelectionSummary(
     ) {
         Text(
             text = title,
-            style = AppTheme.typography.title,
+            style = MaterialTheme.typography.titleLarge,
         )
         Text(
             text = subtitle,
             color = subtitleColor,
-            style = AppTheme.typography.body,
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
@@ -910,7 +1004,7 @@ private fun SwitchRow(
         Text(
             text = title,
             modifier = Modifier.weight(1f),
-            style = AppTheme.typography.body,
+            style = MaterialTheme.typography.bodyLarge,
         )
         Switch(
             checked = checked,
@@ -946,7 +1040,7 @@ private fun SectionCard(
                 ) {
                     Text(
                         text = title,
-                        style = AppTheme.typography.title,
+                        style = MaterialTheme.typography.headlineSmall,
                     )
 
                     action?.invoke()
@@ -960,7 +1054,7 @@ private fun SectionCard(
                     Text(
                         text = title,
                         modifier = Modifier.weight(1f),
-                        style = AppTheme.typography.big,
+                        style = MaterialTheme.typography.headlineMedium,
                     )
 
                     action?.invoke()
@@ -993,7 +1087,7 @@ private fun SectionActionButton(
     ) {
         Text(
             text = title,
-            style = AppTheme.typography.body.copy(
+            style = MaterialTheme.typography.labelLarge.copy(
                 color = if (enabled) AppTheme.colorScheme.text else AppTheme.colorScheme.divider,
             ),
         )
@@ -1012,9 +1106,9 @@ private fun AppFormTextField(
 ) {
     val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
     val textStyle = if (enabled) {
-        AppTheme.typography.body.copy(color = AppTheme.colorScheme.text)
+        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.text)
     } else {
-        AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider)
+        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider)
     }
 
     Column(
@@ -1023,7 +1117,7 @@ private fun AppFormTextField(
     ) {
         Text(
             text = label,
-            style = AppTheme.typography.body,
+            style = MaterialTheme.typography.labelLarge,
         )
 
         BoxWithConstraints(

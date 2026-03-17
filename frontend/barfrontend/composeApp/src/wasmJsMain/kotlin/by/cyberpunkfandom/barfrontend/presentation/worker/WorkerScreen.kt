@@ -94,7 +94,10 @@ fun WorkerScreen(
                     navController.popBackStack(route = WorkerHomeRoute(workerId!!), inclusive = false)
                 },
                 onOrderFinished = { orderId ->
-                    navController.navigateToWorkerOrderConfirmation(orderId)
+                    navController.navigateToWorkerOrderConfirmation(
+                        orderId = orderId,
+                        workerId = workerId!!,
+                    )
                 },
                 onPositionDetailsRequest = { positionId ->
                     navController.navigateToWorkerPositionDetails(positionId)

@@ -1,4 +1,4 @@
-package by.cyberpunkfandom.barfrontend.presentation.worker.auth
+package by.cyberpunkfandom.barfrontend.presentation.cashier.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,11 +23,11 @@ import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun WorkerAuthScreen(
+fun CashierAuthScreen(
     onError: (code: ExceptionCodes) -> Unit,
     onBackRequest: () -> Unit,
-    onWorkerSelected: (workerId: Int) -> Unit,
-    viewModel: WorkerAuthViewModel,
+    onCashierSelected: (cashierId: Int) -> Unit,
+    viewModel: CashierAuthViewModel,
 ) {
     LaunchedEffect(Unit) {
         viewModel.onError.collect { code ->
@@ -36,12 +36,12 @@ fun WorkerAuthScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.onWorkerSelected.collect { workerId ->
-            onWorkerSelected(workerId)
+        viewModel.onCashierSelected.collect { cashierId ->
+            onCashierSelected(cashierId)
         }
     }
 
-    WorkerAuthScreen(
+    CashierAuthScreen(
         onBackClick = onBackRequest,
         workers = viewModel.workers.collectAsStateWithLifecycle().value,
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
@@ -50,7 +50,7 @@ fun WorkerAuthScreen(
 }
 
 @Composable
-private fun WorkerAuthScreen(
+private fun CashierAuthScreen(
     onBackClick: () -> Unit,
     workers: List<Worker>,
     isLoading: Boolean,
@@ -58,7 +58,7 @@ private fun WorkerAuthScreen(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         AppTopBar(
-            title = "Кто бармен?",
+            title = "Кто кассир?",
             leftIcon = painterResource(Res.drawable.back_24dp),
             onLeftIconClick = onBackClick,
         )
@@ -76,8 +76,8 @@ private fun WorkerAuthScreen(
 
             workers.isEmpty() -> {
                 AppStateMessage(
-                    title = "Стендовики-бармены не найдены",
-                    description = "Добавьте стендовика с ролью бармена в каталоге кассира.",
+                    title = "Стендовики-кассиры не найдены",
+                    description = "Добавьте стендовика с ролью кассира в каталоге.",
                     modifier = Modifier.weight(1f),
                 )
             }

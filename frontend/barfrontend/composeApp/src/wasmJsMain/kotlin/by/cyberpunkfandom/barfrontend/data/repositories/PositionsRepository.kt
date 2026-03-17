@@ -20,11 +20,15 @@ class PositionsRepository(
     }
 
     suspend fun createPosition(
-        id: String,
         name: String,
         description: String,
+        positionVariantIds: List<String>,
     ): Position {
-        val dto = mainService.createPosition(id = id, name = name, description = description)
+        val dto = mainService.createPosition(
+            name = name,
+            description = description,
+            positionVariantIds = positionVariantIds,
+        )
         return positionMapper.getDomain(dto)
     }
 
@@ -32,8 +36,14 @@ class PositionsRepository(
         positionId: String,
         name: String?,
         description: String?,
+        positionVariantIds: List<String>? = null,
     ): Position {
-        val dto = mainService.updatePosition(positionId = positionId, name = name, description = description)
+        val dto = mainService.updatePosition(
+            positionId = positionId,
+            name = name,
+            description = description,
+            positionVariantIds = positionVariantIds,
+        )
         return positionMapper.getDomain(dto)
     }
 

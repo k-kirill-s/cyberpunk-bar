@@ -15,7 +15,7 @@ interface OrdersRepository {
 
     suspend fun getOrder(id: Int): OrderFull
 
-    suspend fun createOrder(): OrderFull
+    suspend fun createOrder(createdByWorkerId: Int): OrderFull
 
     suspend fun deleteOrder(id: Int)
 
@@ -25,7 +25,7 @@ interface OrdersRepository {
 
     suspend fun startOrder(id: Int, workerId: Int): OrderFull
 
-    suspend fun finishOrder(id: Int): OrderFull
+    suspend fun finishOrder(id: Int, workerId: Int): OrderFull
 
     suspend fun giveOrder(id: Int): OrderFull
 

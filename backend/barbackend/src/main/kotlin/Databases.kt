@@ -3,6 +3,7 @@ package by.cyberpunkfandom
 import by.cyberpunkfandom.data.database.orderevents.OrderStatusChangedEventsTable
 import by.cyberpunkfandom.data.database.orders.OrdersTable
 import by.cyberpunkfandom.data.database.positionitems.PositionItemsTable
+import by.cyberpunkfandom.data.database.positionvariantpositions.PositionVariantPositionsTable
 import by.cyberpunkfandom.data.database.positions.PositionsTable
 import by.cyberpunkfandom.data.database.positionvariants.PositionVariantsTable
 import by.cyberpunkfandom.data.database.workers.WorkersTable
@@ -32,10 +33,22 @@ fun Application.configureDatabases() {
         SchemaUtils.createMissingTablesAndColumns(
             PositionsTable,
             PositionVariantsTable,
+            PositionVariantPositionsTable,
             OrdersTable,
             PositionItemsTable,
             OrderStatusChangedEventsTable,
             WorkersTable,
+        )
+
+        exec("ALTER TABLE position_variants ALTER COLUMN position_id DROP NOT NULL")
+        exec(
+            """
+            INSERT INTO position_variant_positions (position_id, position_variant_id)
+            SELECT position_id, id
+            FROM position_variants
+            WHERE position_id IS NOT NULL
+            ON CONFLICT DO NOTHING
+            """.trimIndent()
         )
     }
 }

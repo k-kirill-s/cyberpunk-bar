@@ -7,6 +7,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,6 +19,8 @@ import androidx.navigation.compose.rememberNavController
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.cashierAddPositionComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.navigateToCashierAddPosition
+import by.cyberpunkfandom.barfrontend.presentation.cashier.auth.CashierAuthRoute
+import by.cyberpunkfandom.barfrontend.presentation.cashier.auth.cashierAuthComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.cashierCancelOrderComposable
 import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.navigateToCashierCancelOrder
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderRoute
@@ -27,6 +30,7 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.cashier
 import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.navigateToCashierGiveAwayOrder
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeRoute
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.cashierHomeComposable
+import by.cyberpunkfandom.barfrontend.presentation.cashier.home.navigateToCashierHome
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -35,6 +39,7 @@ fun CashierScreen(
     onBackRequest: () -> Unit,
     viewModel: CashierViewModel = koinViewModel(),
 ) {
+    var cashierId by remember { mutableStateOf<Int?>(null) }
     var currentOrderId by remember { mutableStateOf<Int?>(null) }
 
     val scope = rememberCoroutineScope()
@@ -46,6 +51,16 @@ fun CashierScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.onError.collect { showErrorSnackbar(it) }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.onBackAllowed.collect { onBackRequest() }
+    }
+
+    val handleBackRequest = remember(viewModel) { { viewModel.onBackClick() } }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = {
@@ -55,13 +70,23 @@ fun CashierScreen(
         val navController = rememberNavController()
         NavHost(
             navController = navController,
-            startDestination = CashierHomeRoute,
+            startDestination = CashierAuthRoute,
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
+            cashierAuthComposable(
+                onError = { showErrorSnackbar(it) },
+                onBackRequest = handleBackRequest,
+                onCashierSelected = { selectedCashierId ->
+                    cashierId = selectedCashierId
+                    viewModel.onCashierSelected(selectedCashierId)
+                    navController.navigateToCashierHome(selectedCashierId)
+                },
+            )
+
             cashierHomeComposable(
                 onError = { showErrorSnackbar(it) },
-                onBackRequest = onBackRequest,
+                onBackRequest = handleBackRequest,
                 onOpenCreateOrderRequest = { orderId ->
                     currentOrderId = orderId
                     navController.navigateToCashierCreateOrder(orderId)
@@ -81,7 +106,7 @@ fun CashierScreen(
                     currentOrderId?.let { navController.navigateToCashierAddPosition(it) }
                 },
                 onOrderFormed = {
-                    navController.popBackStack(CashierHomeRoute, inclusive = false)
+                    cashierId?.let { navController.popBackStack(CashierHomeRoute(it), inclusive = false) }
                 }
             )
 

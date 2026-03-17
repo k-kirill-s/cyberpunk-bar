@@ -9,6 +9,8 @@ data class OrderFullDto(
     val createdAt: Long,
     val updatedAt: Long,
     val status: String,
+    val createdBy: WorkerDto?,
+    val completedBy: WorkerDto?,
     val price: Float,
     val positionItems: List<PositionItemDto>,
 )

@@ -124,7 +124,7 @@ private fun TopBar(
 ) {
     AppTopBar(
         modifier = modifier,
-        title = title ?: "Добавление позиции",
+        title = title ?: "Добавление напитка",
         leftIcon = painterResource(Res.drawable.back_24dp),
         onLeftIconClick = onBackClick,
     )

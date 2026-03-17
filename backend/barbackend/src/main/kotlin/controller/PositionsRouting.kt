@@ -35,14 +35,14 @@ fun Application.positionsRouting() {
         post("positions") {
             call.requireAdminAccess(adminCredentials)
             val formParameters = call.receiveParameters()
-            val id = formParameters["id"].requiredParameter()
             val name = formParameters["name"].requiredParameter()
             val description = formParameters["description"].orEmpty()
+            val positionVariantIds = formParameters.getAll("position_variant_id").orEmpty()
 
             val position = positionsRepository.addPosition(
-                id = id,
                 name = name,
                 description = description,
+                positionVariantIds = positionVariantIds,
             )
 
             val positionDto = positionDtoMapper.getDto(position)
@@ -55,11 +55,13 @@ fun Application.positionsRouting() {
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val description = formParameters["description"]
+            val positionVariantIds = formParameters.getAll("position_variant_id")
 
             val position = positionsRepository.updatePosition(
                 id = id,
                 name = name,
                 description = description,
+                positionVariantIds = positionVariantIds,
             )
 
             val positionDto = positionDtoMapper.getDto(position)

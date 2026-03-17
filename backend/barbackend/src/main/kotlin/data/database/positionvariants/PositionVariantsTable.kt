@@ -15,5 +15,7 @@ object PositionVariantsTable : IdTable<String>("position_variants") {
     val price = float("price")
     val isActive = bool("is_active").default(true)
 
-    val position = reference("position_id", PositionsTable, onDelete = ReferenceOption.CASCADE)
+    // Legacy column retained for schema compatibility; product-to-drink links now live in
+    // position_variant_positions so products can exist independently.
+    val position = optReference("position_id", PositionsTable, onDelete = ReferenceOption.CASCADE)
 }

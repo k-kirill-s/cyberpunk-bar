@@ -10,5 +10,9 @@ class WorkerEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var isOnLine by WorkersTable.isOnLine
 
+    var canBeCashier by WorkersTable.canBeCashier
+
+    var canBeBartender by WorkersTable.canBeBartender
+
     companion object : IntEntityClass<WorkerEntity>(WorkersTable)
 }

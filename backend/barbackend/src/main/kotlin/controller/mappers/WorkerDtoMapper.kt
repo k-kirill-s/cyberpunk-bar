@@ -10,6 +10,8 @@ class WorkerDtoMapper {
             id = domain.id,
             name = domain.name,
             isOnLine = domain.isOnLine,
+            canBeCashier = domain.canBeCashier,
+            canBeBartender = domain.canBeBartender,
         )
     }
 }

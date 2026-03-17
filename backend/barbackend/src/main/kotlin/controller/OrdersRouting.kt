@@ -59,7 +59,10 @@ fun Application.ordersRouting() {
         }
 
         post("/orders") {
-            val order = ordersRepository.createOrder()
+            val formParameters = call.receiveParameters()
+            val createdByWorkerId = formParameters["created_by_worker_id"].requiredIntParameter()
+
+            val order = ordersRepository.createOrder(createdByWorkerId)
 
             val dto = orderFullDtoMapper.getDto(order)
             call.respond(dto)
@@ -97,8 +100,10 @@ fun Application.ordersRouting() {
 
         post("/orders/{id}/finish") {
             val id = call.parameters["id"].requiredIntParameter()
+            val formParameters = call.receiveParameters()
+            val workerId = formParameters["completed_by_worker_id"].requiredIntParameter()
 
-            val order = ordersRepository.finishOrder(id)
+            val order = ordersRepository.finishOrder(id, workerId)
 
             val dto = orderFullDtoMapper.getDto(order)
             call.respond(dto)

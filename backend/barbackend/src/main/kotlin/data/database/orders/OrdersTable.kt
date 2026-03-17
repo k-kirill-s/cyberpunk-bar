@@ -26,4 +26,16 @@ object OrdersTable : IntIdTable("orders") {
         WorkersTable,
         onDelete = ReferenceOption.SET_NULL,
     )
+
+    val createdByWorkerId = optReference(
+        "created_by_worker_id",
+        WorkersTable,
+        onDelete = ReferenceOption.SET_NULL,
+    )
+
+    val completedByWorkerId = optReference(
+        "completed_by_worker_id",
+        WorkersTable,
+        onDelete = ReferenceOption.SET_NULL,
+    )
 }

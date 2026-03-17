@@ -9,9 +9,9 @@ interface PositionsRepository {
     suspend fun getActivePositions(): List<Position>
 
     suspend fun addPosition(
-        id: String,
         name: String,
         description: String,
+        positionVariantIds: List<String>,
     ): Position
 
     suspend fun deletePosition(
@@ -22,5 +22,6 @@ interface PositionsRepository {
         id: String,
         name: String?,
         description: String?,
+        positionVariantIds: List<String>?,
     ): Position
 }
