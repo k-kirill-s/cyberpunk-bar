@@ -171,7 +171,11 @@ private fun AdminFormField(
     onTrailingActionClick: (() -> Unit)? = null,
 ) {
     val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
-    val textStyle = if (enabled) AppTheme.typography.body else AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider)
+    val textStyle = if (enabled) {
+        AppTheme.typography.body.copy(color = AppTheme.colorScheme.text)
+    } else {
+        AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider)
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),

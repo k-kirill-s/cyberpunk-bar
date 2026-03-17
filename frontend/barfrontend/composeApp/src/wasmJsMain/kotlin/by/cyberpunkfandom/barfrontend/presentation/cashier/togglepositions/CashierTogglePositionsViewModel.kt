@@ -70,7 +70,10 @@ class CashierTogglePositionsViewModel(
         selectedPositionVariantId.value = positionVariant.id
     }
 
-    fun createWorker(name: String) = mutateCatalog {
+    fun createWorker(
+        name: String,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         val worker = workersRepository.createWorker(name.trim())
         refreshData(selectWorkerId = worker.id)
     }
@@ -79,7 +82,8 @@ class CashierTogglePositionsViewModel(
         workerId: Int,
         name: String,
         isOnLine: Boolean,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         workersRepository.updateWorker(
             workerId = workerId,
             name = name.trim(),
@@ -88,7 +92,10 @@ class CashierTogglePositionsViewModel(
         refreshData(selectWorkerId = workerId)
     }
 
-    fun deleteWorker(workerId: Int) = mutateCatalog {
+    fun deleteWorker(
+        workerId: Int,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         workersRepository.deleteWorker(workerId)
         refreshData(
             selectWorkerId = null,
@@ -99,7 +106,8 @@ class CashierTogglePositionsViewModel(
         id: String,
         name: String,
         description: String,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         val position = positionsRepository.createPosition(
             id = id.trim(),
             name = name.trim(),
@@ -112,7 +120,8 @@ class CashierTogglePositionsViewModel(
         positionId: String,
         name: String,
         description: String,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionsRepository.updatePosition(
             positionId = positionId,
             name = name.trim(),
@@ -121,7 +130,10 @@ class CashierTogglePositionsViewModel(
         refreshData(selectPositionId = positionId, selectVariantId = selectedPositionVariantId.value)
     }
 
-    fun deletePosition(positionId: String) = mutateCatalog {
+    fun deletePosition(
+        positionId: String,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionsRepository.deletePosition(positionId)
         refreshData(
             selectPositionId = positions.value.firstOrNull { it.id != positionId }?.id,
@@ -134,7 +146,8 @@ class CashierTogglePositionsViewModel(
         id: String,
         name: String,
         price: Float,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         val variant = positionVariantsRepository.createPositionVariant(
             positionId = positionId,
             id = id.trim(),
@@ -152,7 +165,8 @@ class CashierTogglePositionsViewModel(
         name: String,
         price: Float,
         isActive: Boolean,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionVariantsRepository.updatePositionVariant(
             positionVariantId = positionVariantId,
             name = name.trim(),
@@ -165,7 +179,10 @@ class CashierTogglePositionsViewModel(
         )
     }
 
-    fun deletePositionVariant(positionVariantId: String) = mutateCatalog {
+    fun deletePositionVariant(
+        positionVariantId: String,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionVariantsRepository.deletePositionVariant(positionVariantId)
         refreshData(
             selectPositionId = selectedPositionId.value,
@@ -173,11 +190,15 @@ class CashierTogglePositionsViewModel(
         )
     }
 
-    private fun mutateCatalog(block: suspend () -> Unit) {
+    private fun mutateCatalog(
+        onSuccess: () -> Unit = {},
+        block: suspend () -> Unit,
+    ) {
         viewModelScope.launch(exceptionHandler) {
             isSaving.emit(true)
             try {
                 block()
+                onSuccess()
             } finally {
                 isSaving.emit(false)
                 isLoading.emit(false)
