@@ -1,30 +1,33 @@
 package by.cyberpunkfandom.barfrontend.presentation.worker.order
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.check_24dp
 import barfrontend.composeapp.generated.resources.close_24dp
-import barfrontend.composeapp.generated.resources.help_24dp
 import by.cyberpunkfandom.barfrontend.domain.OrderFull
 import by.cyberpunkfandom.barfrontend.domain.Position
 import by.cyberpunkfandom.barfrontend.domain.PositionItem
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppHorizontalDivider
-import by.cyberpunkfandom.barfrontend.presentation.core.components.AppIconButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppSwipeToActionBox
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
@@ -135,7 +138,7 @@ private fun WorkerOrderScreen(
         )
 
         AppBoxButton(
-            title = "Готово",
+            title = "Подтвердить сборку",
             onClick = onDoneClick,
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,6 +180,21 @@ private fun OrderContentColumn(
     }
 
     LazyColumn(modifier = modifier) {
+        item {
+            Text(
+                text = "Отмечайте готовые позиции кнопкой «Готово» или свайпом вправо.",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppTheme.dimensions.basePadding),
+                color = AppTheme.colorScheme.divider,
+                style = AppTheme.typography.body,
+            )
+        }
+
+        item {
+            AppHorizontalDivider(type = DividerType.THIN)
+        }
+
         order.positionItems.forEachIndexed { index, positionItem ->
             item {
                 PositionItemRow(
@@ -213,28 +231,64 @@ private fun PositionItemRow(
         swipeIcon = painterResource(Res.drawable.check_24dp),
         modifier = modifier,
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .background(color = if (completed) AppTheme.colorScheme.green else AppTheme.colorScheme.surface)
                 .padding(AppTheme.dimensions.basePadding)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "${index + 1} ${positionItem.position.name} (${positionItem.positionVariant.name})",
-                    style = AppTheme.typography.title,
+            Text(
+                text = "${index + 1} ${positionItem.position.name} (${positionItem.positionVariant.name})",
+                style = AppTheme.typography.title,
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = AppTheme.dimensions.basePadding),
+                horizontalArrangement = Arrangement.spacedBy(
+                    space = AppTheme.dimensions.basePadding / 2,
+                    alignment = Alignment.End,
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (!completed) {
+                    PositionItemActionButton(
+                        title = "Состав",
+                        onClick = onDetailsClick,
+                        color = AppTheme.colorScheme.accent,
+                    )
+                }
+
+                PositionItemActionButton(
+                    title = if (completed) "Вернуть" else "Готово",
+                    onClick = if (completed) onCancelClick else onCompletedSwiped,
+                    color = if (completed) AppTheme.colorScheme.red else AppTheme.colorScheme.green,
                 )
             }
-
-            val (iconRes, onClick) = if (completed) {
-                Res.drawable.close_24dp to onCancelClick
-            } else {
-                Res.drawable.help_24dp to onDetailsClick
-            }
-            AppIconButton(
-                painter = painterResource(iconRes),
-                onClick = onClick,
-            )
         }
     }
+}
 
+@Composable
+private fun PositionItemActionButton(
+    title: String,
+    onClick: () -> Unit,
+    color: Color,
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
+            .background(color)
+            .clickable(onClick = onClick)
+            .padding(
+                horizontal = AppTheme.dimensions.basePadding,
+                vertical = AppTheme.dimensions.basePadding / 2,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = AppTheme.typography.body,
+        )
+    }
 }
