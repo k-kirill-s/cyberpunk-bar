@@ -4,6 +4,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,6 +25,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
@@ -714,11 +720,12 @@ internal fun AdminNavigationCard(
     ) {
         Text(
             text = countText,
+            color = AppTheme.colorScheme.warning,
             style = MaterialTheme.typography.headlineSmall,
         )
         Text(
             text = summary,
-            color = AppTheme.colorScheme.divider,
+            color = AppTheme.colorScheme.textSecondary,
             style = MaterialTheme.typography.bodyLarge,
         )
     }
@@ -833,17 +840,23 @@ private fun AnalyticsMetricCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(AppTheme.colorScheme.background)
+            .background(AppTheme.colorScheme.surfaceMuted)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .padding(AppTheme.dimensions.basePadding),
         verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
     ) {
         Text(
             text = title,
-            color = AppTheme.colorScheme.divider,
+            color = AppTheme.colorScheme.textSecondary,
             style = MaterialTheme.typography.bodyLarge,
         )
         Text(
             text = value,
+            color = AppTheme.colorScheme.warning,
             style = MaterialTheme.typography.headlineSmall,
         )
     }
@@ -869,7 +882,7 @@ private fun <T> AnalyticsSalesSection(
         if (rows.isEmpty()) {
             Text(
                 text = emptyText,
-                color = AppTheme.colorScheme.divider,
+                color = AppTheme.colorScheme.textSecondary,
                 style = MaterialTheme.typography.bodyLarge,
             )
             return@Column
@@ -907,7 +920,7 @@ private fun AnalyticsWorkersSection(
         if (workers.isEmpty()) {
             Text(
                 text = "Стендовики пока не добавлены.",
-                color = AppTheme.colorScheme.divider,
+                color = AppTheme.colorScheme.textSecondary,
                 style = MaterialTheme.typography.bodyLarge,
             )
             return@Column
@@ -948,7 +961,7 @@ private fun PositionVariantsSelector(
         if (positionVariants.isEmpty()) {
             Text(
                 text = "Сначала добавьте товары в соответствующем разделе админки.",
-                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
+                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.textSecondary),
             )
             return@SectionCard
         }
@@ -1057,13 +1070,18 @@ private fun SelectionSummary(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    subtitleColor: Color = AppTheme.colorScheme.divider,
+    subtitleColor: Color = AppTheme.colorScheme.textSecondary,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(AppTheme.colorScheme.background)
+            .background(AppTheme.colorScheme.surfaceMuted)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .padding(AppTheme.dimensions.basePadding),
         verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
     ) {
@@ -1097,6 +1115,14 @@ private fun SwitchRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = AppTheme.colorScheme.accentGlow,
+                checkedTrackColor = AppTheme.colorScheme.accent.copy(alpha = 0.34f),
+                checkedBorderColor = AppTheme.colorScheme.accent,
+                uncheckedThumbColor = AppTheme.colorScheme.textSecondary,
+                uncheckedTrackColor = AppTheme.colorScheme.surfaceMuted,
+                uncheckedBorderColor = AppTheme.colorScheme.dividerStrong,
+            ),
         )
     }
 }
@@ -1113,6 +1139,11 @@ private fun SectionCard(
             .animateContentSize()
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
             .background(AppTheme.colorScheme.surface)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .padding(AppTheme.dimensions.basePadding),
         verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
     ) {
@@ -1162,11 +1193,32 @@ private fun SectionActionButton(
     enabled: Boolean = true,
     color: Color = AppTheme.colorScheme.green,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(if (enabled) color else AppTheme.colorScheme.surfaceSelected)
-            .clickable(enabled = enabled, onClick = onClick)
+            .background(
+                if (enabled) {
+                    color.copy(alpha = if (isHovered) 0.20f else 0.14f)
+                } else {
+                    AppTheme.colorScheme.surfaceSelected.copy(alpha = 0.42f)
+                },
+            )
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = if (enabled) color else AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
+            .hoverable(interactionSource = interactionSource, enabled = enabled)
+            .focusable(interactionSource = interactionSource, enabled = enabled)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick,
+            )
             .padding(
                 horizontal = AppTheme.dimensions.basePadding,
                 vertical = AppTheme.dimensions.basePadding / 2,
@@ -1176,7 +1228,7 @@ private fun SectionActionButton(
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge.copy(
-                color = if (enabled) AppTheme.colorScheme.text else AppTheme.colorScheme.divider,
+                color = if (enabled) AppTheme.colorScheme.text else AppTheme.colorScheme.textSecondary,
             ),
         )
     }
@@ -1192,11 +1244,16 @@ private fun AppFormTextField(
     singleLine: Boolean = false,
     minLines: Int = 1,
 ) {
-    val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
+    var isFocused by remember { mutableStateOf(false) }
+    val borderColor = when {
+        !enabled -> AppTheme.colorScheme.divider
+        isFocused -> AppTheme.colorScheme.accent
+        else -> AppTheme.colorScheme.dividerStrong
+    }
     val textStyle = if (enabled) {
         MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.text)
     } else {
-        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider)
+        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.textSecondary)
     }
 
     Column(
@@ -1205,16 +1262,16 @@ private fun AppFormTextField(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge.copy(color = AppTheme.colorScheme.textSecondary),
         )
 
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-                .background(AppTheme.colorScheme.background)
+                .background(AppTheme.colorScheme.surfaceMuted)
                 .border(
-                    width = AppTheme.dimensions.thinDivider,
+                    width = AppTheme.dimensions.thinDivider * 2,
                     color = borderColor,
                     shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
                 )
@@ -1225,6 +1282,7 @@ private fun AppFormTextField(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onFocusChanged { isFocused = it.isFocused }
                     .heightIn(min = if (singleLine) 24.dp else 96.dp),
                 enabled = enabled,
                 singleLine = singleLine,
@@ -1261,8 +1319,13 @@ private fun <T, K> SelectableList(
                         if (isSelected) {
                             AppTheme.colorScheme.surfaceSelected
                         } else {
-                            AppTheme.colorScheme.background
+                            AppTheme.colorScheme.surfaceMuted
                         },
+                    )
+                    .border(
+                        width = AppTheme.dimensions.thinDivider * 2,
+                        color = if (isSelected) AppTheme.colorScheme.accent else AppTheme.colorScheme.divider,
+                        shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
                     )
                     .clickable { onItemClick(item) }
                     .padding(AppTheme.dimensions.basePadding),

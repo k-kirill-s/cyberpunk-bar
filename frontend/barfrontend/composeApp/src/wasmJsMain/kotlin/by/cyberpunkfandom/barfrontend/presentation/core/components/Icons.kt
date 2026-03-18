@@ -1,5 +1,8 @@
 package by.cyberpunkfandom.barfrontend.presentation.core.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,7 +21,16 @@ fun AppIconButton(
 ) {
     IconButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
+            .background(
+                color = AppTheme.colorScheme.surface.copy(alpha = 0.82f),
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.dividerStrong,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            ),
     ) {
         AppIcon(painter = painter)
     }

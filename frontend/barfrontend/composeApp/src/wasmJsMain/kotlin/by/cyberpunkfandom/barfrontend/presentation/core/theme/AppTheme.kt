@@ -20,7 +20,7 @@ private val tabletAppDimensions = AppDimensions(
     bigButtonHeight = 120.dp,
     divider = 4.dp,
     thinDivider = 2.dp,
-    cornerRadius = 16.dp,
+    cornerRadius = 10.dp,
 )
 
 private val phoneAppDimensions = AppDimensions(
@@ -32,7 +32,7 @@ private val phoneAppDimensions = AppDimensions(
     bigButtonHeight = 96.dp,
     divider = 2.dp,
     thinDivider = 1.dp,
-    cornerRadius = 16.dp,
+    cornerRadius = 10.dp,
 )
 
 private val tabletAppTypography = AppTypography(
@@ -67,6 +67,7 @@ fun AppTheme(
     val appTypography = if (isTabletMode) tabletAppTypography else phoneAppTypography
 
     CompositionLocalProvider(
+        LocalAppColorScheme provides cyberpunkAppColorScheme,
         LocalAppDimensions provides appDimensions,
         LocalAppTypography provides appTypography,
         LocalContentColor provides AppTheme.colorScheme.text,

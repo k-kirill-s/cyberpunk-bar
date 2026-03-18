@@ -1,6 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.infoboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
@@ -125,7 +126,7 @@ private fun InfoBoardScreen(
                 OrdersBox(
                     ordersNames = finishedOrdersNames,
                     title = "Готовы",
-                    textColor = AppTheme.colorScheme.green,
+                    textColor = AppTheme.colorScheme.success,
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 280.dp),
@@ -161,7 +162,7 @@ private fun InfoBoardScreen(
                 OrdersBox(
                     ordersNames = finishedOrdersNames,
                     title = "Готовы",
-                    textColor = AppTheme.colorScheme.green,
+                    textColor = AppTheme.colorScheme.success,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
@@ -191,6 +192,11 @@ private fun BackButtonOverlay(
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
             .background(AppTheme.colorScheme.surface.copy(alpha = 0.92f))
             .clickable(enabled = isVisible, onClick = onClick)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.dividerStrong,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .padding(
                 horizontal = AppTheme.dimensions.basePadding * 0.75f,
                 vertical = AppTheme.dimensions.basePadding / 2,
@@ -204,7 +210,7 @@ private fun BackButtonOverlay(
             AppIcon(painter = painterResource(Res.drawable.back_24dp))
             Text(
                 text = "Назад",
-                style = AppTheme.typography.body,
+                style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.text),
             )
         }
     }

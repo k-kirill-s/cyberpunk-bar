@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -114,11 +115,16 @@ private fun AdminFormField(
     trailingActionLabel: String? = null,
     onTrailingActionClick: (() -> Unit)? = null,
 ) {
-    val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
+    var isFocused by rememberSaveable { mutableStateOf(false) }
+    val borderColor = when {
+        !enabled -> AppTheme.colorScheme.divider
+        isFocused -> AppTheme.colorScheme.accent
+        else -> AppTheme.colorScheme.dividerStrong
+    }
     val textStyle = if (enabled) {
         MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.text)
     } else {
-        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider)
+        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.textSecondary)
     }
 
     Column(
@@ -127,15 +133,15 @@ private fun AdminFormField(
     ) {
         Text(
             text = label,
-            style = AppTheme.typography.body,
+            style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.textSecondary),
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppTheme.colorScheme.background, RoundedCornerShape(AppTheme.dimensions.cornerRadius))
+                .background(AppTheme.colorScheme.surfaceMuted, RoundedCornerShape(AppTheme.dimensions.cornerRadius))
                 .border(
-                    width = AppTheme.dimensions.thinDivider,
+                    width = AppTheme.dimensions.thinDivider * 2,
                     color = borderColor,
                     shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
                 )
@@ -148,6 +154,7 @@ private fun AdminFormField(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .weight(1f)
+                    .onFocusChanged { isFocused = it.isFocused }
                     .heightIn(min = 24.dp),
                 enabled = enabled,
                 singleLine = true,
@@ -161,7 +168,7 @@ private fun AdminFormField(
                     text = trailingActionLabel,
                     modifier = Modifier.clickable(enabled = enabled, onClick = onTrailingActionClick),
                     style = AppTheme.typography.body.copy(
-                        color = if (enabled) AppTheme.colorScheme.accent else AppTheme.colorScheme.divider,
+                        color = if (enabled) AppTheme.colorScheme.accent else AppTheme.colorScheme.textSecondary,
                     ),
                 )
             }

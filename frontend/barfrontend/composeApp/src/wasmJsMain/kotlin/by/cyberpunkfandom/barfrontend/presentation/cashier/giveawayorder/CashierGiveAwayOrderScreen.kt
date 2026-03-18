@@ -1,6 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
@@ -122,6 +124,11 @@ private fun OrdersList(
                         .fillMaxWidth()
                         .height(AppTheme.dimensions.itemHeight)
                         .background(color = if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
+                        .border(
+                            width = AppTheme.dimensions.thinDivider * 2,
+                            color = if (isSelected) AppTheme.colorScheme.success else AppTheme.colorScheme.divider,
+                            shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+                        )
                         .clickable(onClick = { onOrderClick(order.id) })
                         .padding(horizontal = AppTheme.dimensions.basePadding),
                     contentAlignment = Alignment.CenterStart,

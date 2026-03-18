@@ -1,6 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.worker.order
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.check_24dp
@@ -233,7 +235,12 @@ private fun PositionItemRow(
     ) {
         Column(
             modifier = Modifier
-                .background(color = if (completed) AppTheme.colorScheme.green else AppTheme.colorScheme.surface)
+                .background(color = if (completed) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
+                .border(
+                    width = AppTheme.dimensions.thinDivider * 2,
+                    color = if (completed) AppTheme.colorScheme.success else AppTheme.colorScheme.divider,
+                    shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+                )
                 .padding(AppTheme.dimensions.basePadding)
         ) {
             Text(
@@ -278,17 +285,22 @@ private fun PositionItemActionButton(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(color)
+            .background(color.copy(alpha = 0.14f))
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = color,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .clickable(onClick = onClick)
             .padding(
                 horizontal = AppTheme.dimensions.basePadding,
-                vertical = AppTheme.dimensions.basePadding / 2,
+                vertical = 12.dp,
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = title,
-            style = AppTheme.typography.body,
+            style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.text),
         )
     }
 }
