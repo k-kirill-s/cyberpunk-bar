@@ -40,10 +40,11 @@ build_frontend_bundle() {
     printf 'Building frontend bundle on host...\n'
     (
         cd "$ROOT_DIR/frontend/barfrontend" &&
-        ./gradlew :composeApp:wasmJsBrowserProductionWebpack \
+        ./gradlew \
+            :composeApp:compileProductionExecutableKotlinWasmJs \
+            :composeApp:wasmJsBrowserProductionWebpack \
             :composeApp:wasmJsBrowserDistribution \
-            --rerun-tasks \
-            -x :composeApp:compileProductionExecutableKotlinWasmJsOptimize
+            --rerun-tasks
     )
 }
 
