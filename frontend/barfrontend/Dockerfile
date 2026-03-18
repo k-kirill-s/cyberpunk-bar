@@ -28,14 +28,16 @@ FROM deps AS build
 COPY --chown=gradle:gradle . .
 
 # Build production distribution for Kotlin/Wasm (Compose Multiplatform).
-# `compileProductionExecutableKotlinWasmJsOptimize` hangs under Docker's
-# linux/amd64 emulation on Apple Silicon, while the distribution itself
-# builds and runs correctly without that final Binaryen optimization pass.
+# The distribution sync expects the production executable artifacts to already
+# exist. Skipping the Binaryen optimize task avoids the Apple Silicon amd64
+# hang, but it also removes the compile task from the dependency graph, so we
+# run the compile step explicitly first.
 RUN --mount=type=cache,id=frontend-gradle-cache,target=/home/gradle/.gradle,sharing=locked \
     --mount=type=cache,id=frontend-konan-cache,target=/home/gradle/.konan,sharing=locked \
     --mount=type=cache,id=frontend-npm-cache,target=/home/gradle/.npm,sharing=locked \
     --mount=type=cache,id=frontend-kotlin-js-store-cache,target=/home/gradle/src/kotlin-js-store,sharing=locked \
-    gradle :composeApp:wasmJsBrowserDistribution \
+    gradle :composeApp:compileProductionExecutableKotlinWasmJs \
+      :composeApp:wasmJsBrowserDistribution \
       -x :composeApp:compileProductionExecutableKotlinWasmJsOptimize \
       --no-daemon
 
