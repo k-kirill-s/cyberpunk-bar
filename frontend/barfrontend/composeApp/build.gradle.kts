@@ -18,6 +18,15 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    proxy = mutableListOf(
+                        KotlinWebpackConfig.DevServer.Proxy(
+                            context = mutableListOf("/api"),
+                            target = "http://127.0.0.1:8042",
+                            pathRewrite = mutableMapOf("^/api" to ""),
+                            secure = false,
+                            changeOrigin = true,
+                        )
+                    )
                     static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
                         add(rootDirPath)
