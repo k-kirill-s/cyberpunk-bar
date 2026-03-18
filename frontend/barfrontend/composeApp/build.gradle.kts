@@ -32,8 +32,6 @@ kotlin {
     sourceSets {
         all {
             languageSettings.optIn("kotlin.time.ExperimentalTime")
-            kotlin.exclude("**/* 2.kt")
-            kotlin.exclude("**/* 3.kt")
         }
 
         commonMain.dependencies {

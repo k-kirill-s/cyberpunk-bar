@@ -1,35 +1,61 @@
-This is a Kotlin Multiplatform project targeting Web.
+# barfrontend
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+Compose Multiplatform Wasm frontend for the cyberpunk bar stack.
 
+## What it contains
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+- cashier flow for creating and giving away orders
+- worker flow for active order processing
+- info board flow for queue display
+- administrator UI for catalog and team management
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+Main frontend code lives in:
 
-You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+- `composeApp/src/wasmJsMain/kotlin`
+- `composeApp/src/wasmJsMain/resources`
+- `nginx.conf`
+
+## Local Gradle commands
+
+```sh
+./gradlew check
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+./gradlew :composeApp:wasmJsBrowserDistribution
+```
 
 ## Docker
 
-Build and run the production bundle with Docker:
+Build the production image from this directory:
 
-1. Build image
-   - `docker build -t bar-frontend:latest .`
-2. Run container
-   - `docker run --rm -p 8080:80 bar-frontend:latest`
+```sh
+docker build -t bar-frontend:latest .
+docker run --rm -p 8080:80 bar-frontend:latest
+```
 
-Or use docker compose from the `frontend` folder:
+The container serves the built Wasm bundle with nginx on port `80`.
 
-- `docker compose up --build`
+Important Docker detail:
 
-The app will be available at http://localhost:8080/.
+- the build stage runs on `linux/amd64`, even on Apple Silicon, because the
+  Kotlin/Wasm Binaryen download used by the production distribution task is not
+  currently available for Linux `arm64`
+- the Dockerfile uses named BuildKit cache mounts for Gradle, Konan, npm, and
+  `kotlin-js-store`, so repeat builds are much faster than the first cold build
 
-Note: The backend host/port is currently hardcoded in `composeApp/src/wasmJsMain/kotlin/by/cyberpunkfandom/barfrontend/data/di/DataNetworkModule.kt`. Adjust it as needed for your environment.
+## API contract
+
+The frontend service layer calls relative `/api/...` endpoints. In the normal
+Docker flow, nginx proxies those requests to the backend container, so the
+frontend must not hardcode a backend host for the containerized path.
+
+If you run the Wasm dev server without nginx, provide an equivalent proxy to
+the backend yourself.
+
+## PWA resources
+
+PWA-related files live under `composeApp/src/wasmJsMain/resources/`, including:
+
+- `manifest.webmanifest`
+- `service-worker.js`
+- `register-service-worker.js`
+- install icons

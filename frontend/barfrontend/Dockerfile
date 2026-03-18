@@ -16,10 +16,10 @@ COPY --chown=gradle:gradle composeApp/build.gradle.kts composeApp/build.gradle.k
 
 RUN mkdir -p composeApp
 
-RUN --mount=type=cache,target=/home/gradle/.gradle \
-    --mount=type=cache,target=/home/gradle/.konan \
-    --mount=type=cache,target=/home/gradle/.npm \
-    --mount=type=cache,target=/home/gradle/src/kotlin-js-store \
+RUN --mount=type=cache,id=frontend-gradle-cache,target=/home/gradle/.gradle,sharing=locked \
+    --mount=type=cache,id=frontend-konan-cache,target=/home/gradle/.konan,sharing=locked \
+    --mount=type=cache,id=frontend-npm-cache,target=/home/gradle/.npm,sharing=locked \
+    --mount=type=cache,id=frontend-kotlin-js-store-cache,target=/home/gradle/src/kotlin-js-store,sharing=locked \
     gradle kotlinNpmInstall kotlinBinaryenSetup --no-daemon
 
 FROM deps AS build
@@ -28,10 +28,10 @@ FROM deps AS build
 COPY --chown=gradle:gradle . .
 
 # Build production distribution for Kotlin/Wasm (Compose Multiplatform).
-RUN --mount=type=cache,target=/home/gradle/.gradle \
-    --mount=type=cache,target=/home/gradle/.konan \
-    --mount=type=cache,target=/home/gradle/.npm \
-    --mount=type=cache,target=/home/gradle/src/kotlin-js-store \
+RUN --mount=type=cache,id=frontend-gradle-cache,target=/home/gradle/.gradle,sharing=locked \
+    --mount=type=cache,id=frontend-konan-cache,target=/home/gradle/.konan,sharing=locked \
+    --mount=type=cache,id=frontend-npm-cache,target=/home/gradle/.npm,sharing=locked \
+    --mount=type=cache,id=frontend-kotlin-js-store-cache,target=/home/gradle/src/kotlin-js-store,sharing=locked \
     gradle :composeApp:wasmJsBrowserDistribution --no-daemon
 
 # # Runtime stage: serve with nginx
@@ -40,4 +40,4 @@ FROM nginx:alpine AS runtime
 COPY --from=build /home/gradle/src/composeApp/build/dist/wasmJs/productionExecutable/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost/ > /dev/null || exit 1
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://127.0.0.1/ > /dev/null || exit 1

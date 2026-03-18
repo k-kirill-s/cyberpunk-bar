@@ -4,6 +4,9 @@ set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
+export COMPOSE_BAKE="${COMPOSE_BAKE:-true}"
+
 usage() {
     cat <<'EOF'
 Usage:
