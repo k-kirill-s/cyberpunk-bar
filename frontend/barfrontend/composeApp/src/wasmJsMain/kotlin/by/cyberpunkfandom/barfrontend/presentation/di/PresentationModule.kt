@@ -50,7 +50,12 @@ val presentationModule = module {
             positionItemsRepository = get(),
         )
     }
-    viewModelOf(::CashierGiveAwayOrderViewModel)
+    viewModel { parameters ->
+        CashierGiveAwayOrderViewModel(
+            cashierId = parameters.get(),
+            ordersRepository = get(),
+        )
+    }
     viewModelOf(::CashierCancelOrderViewModel)
     viewModelOf(::CashierTogglePositionsViewModel)
 

@@ -36,6 +36,24 @@ for service in "$@"; do
     validate_service "$service"
 done
 
+build_frontend_bundle() {
+    printf 'Building frontend bundle on host...\n'
+    (
+        cd "$ROOT_DIR/frontend/barfrontend" &&
+        ./gradlew :composeApp:wasmJsBrowserProductionWebpack \
+            :composeApp:wasmJsBrowserDistribution \
+            --rerun-tasks \
+            -x :composeApp:compileProductionExecutableKotlinWasmJsOptimize
+    )
+}
+
+for service in "$@"; do
+    if [ "$service" = "frontend" ]; then
+        build_frontend_bundle
+        break
+    fi
+done
+
 printf 'Building images for: %s\n' "$*"
 (cd "$ROOT_DIR" && docker compose build "$@")
 

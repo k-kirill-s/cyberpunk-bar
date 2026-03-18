@@ -24,5 +24,7 @@ class OrderFullEntity(id: EntityID<Int>) : IntEntity(id) {
 
     val completedBy by WorkerEntity optionalReferencedOn OrdersTable.completedByWorkerId
 
+    val givenBy by WorkerEntity optionalReferencedOn OrdersTable.givenByWorkerId
+
     companion object : IntEntityClass<OrderFullEntity>(OrdersTable)
 }

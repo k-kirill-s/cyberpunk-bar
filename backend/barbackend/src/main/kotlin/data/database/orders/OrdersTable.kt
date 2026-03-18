@@ -38,4 +38,10 @@ object OrdersTable : IntIdTable("orders") {
         WorkersTable,
         onDelete = ReferenceOption.SET_NULL,
     )
+
+    val givenByWorkerId = optReference(
+        "given_by_worker_id",
+        WorkersTable,
+        onDelete = ReferenceOption.SET_NULL,
+    )
 }

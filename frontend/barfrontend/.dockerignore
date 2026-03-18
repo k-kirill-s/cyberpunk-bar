@@ -14,6 +14,26 @@
 # Build outputs
 build
 composeApp/build
+!composeApp/build/
+!composeApp/build/dist/
+!composeApp/build/dist/wasmJs/
+!composeApp/build/dist/wasmJs/productionExecutable/
+!composeApp/build/dist/wasmJs/productionExecutable/**
+!composeApp/build/compileSync/
+!composeApp/build/compileSync/wasmJs/
+!composeApp/build/compileSync/wasmJs/main/
+!composeApp/build/compileSync/wasmJs/main/productionExecutable/
+!composeApp/build/compileSync/wasmJs/main/productionExecutable/**
+!composeApp/build/compose/
+!composeApp/build/compose/skiko-runtime-processed-wasmjs/
+!composeApp/build/compose/skiko-runtime-processed-wasmjs/**
+!build/
+!build/js/
+!build/js/node_modules/
+!build/js/node_modules/@js-joda/
+!build/js/node_modules/@js-joda/core/
+!build/js/node_modules/@js-joda/core/dist/
+!build/js/node_modules/@js-joda/core/dist/js-joda.esm.js
 
 # JS tooling caches
 kotlin-js-store

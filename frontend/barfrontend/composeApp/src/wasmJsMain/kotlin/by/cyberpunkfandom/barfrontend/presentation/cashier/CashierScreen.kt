@@ -92,7 +92,7 @@ fun CashierScreen(
                     navController.navigateToCashierCreateOrder(orderId)
                 },
                 onGiveAwayOrderRequest = {
-                    navController.navigateToCashierGiveAwayOrder()
+                    cashierId?.let { navController.navigateToCashierGiveAwayOrder(it) }
                 },
                 onCancelOrderRequest = {
                     navController.navigateToCashierCancelOrder()

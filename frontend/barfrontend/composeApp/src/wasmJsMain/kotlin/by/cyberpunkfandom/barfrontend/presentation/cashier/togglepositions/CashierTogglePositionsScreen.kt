@@ -40,9 +40,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.core.format
+import by.cyberpunkfandom.barfrontend.domain.AdminAnalytics
+import by.cyberpunkfandom.barfrontend.domain.DrinkAnalytics
 import by.cyberpunkfandom.barfrontend.domain.Position
 import by.cyberpunkfandom.barfrontend.domain.PositionVariant
+import by.cyberpunkfandom.barfrontend.domain.ProductAnalytics
 import by.cyberpunkfandom.barfrontend.domain.Worker
+import by.cyberpunkfandom.barfrontend.domain.WorkerAnalytics
 import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
@@ -77,6 +81,9 @@ fun CashierTogglePositionsScreen(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         isSaving = viewModel.isSaving.collectAsStateWithLifecycle().value,
         workers = viewModel.workers.collectAsStateWithLifecycle().value,
+        analytics = viewModel.analytics.collectAsStateWithLifecycle().value,
+        isAnalyticsRefreshing = viewModel.isAnalyticsRefreshing.collectAsStateWithLifecycle().value,
+        onAnalyticsRefreshClick = viewModel::onAnalyticsRefreshClick,
         selectedWorkerId = viewModel.selectedWorkerId.collectAsStateWithLifecycle().value,
         onWorkerClick = viewModel::onWorkerClick,
         onCreateWorker = { name, canBeCashier, canBeBartender, onSuccess ->
@@ -118,6 +125,9 @@ private fun CashierTogglePositionsScreen(
     isLoading: Boolean,
     isSaving: Boolean,
     workers: List<Worker>,
+    analytics: AdminAnalytics?,
+    isAnalyticsRefreshing: Boolean,
+    onAnalyticsRefreshClick: () -> Unit,
     selectedWorkerId: Int?,
     onWorkerClick: (Worker) -> Unit,
     onCreateWorker: (String, Boolean, Boolean, () -> Unit) -> Unit,
@@ -178,6 +188,9 @@ private fun CashierTogglePositionsScreen(
         when (currentPage) {
             CatalogPage.OVERVIEW -> CatalogOverviewScreen(
                 workers = workers,
+                analytics = analytics,
+                isAnalyticsRefreshing = isAnalyticsRefreshing,
+                onAnalyticsRefreshClick = onAnalyticsRefreshClick,
                 selectedWorker = selectedWorker,
                 onWorkerClick = onWorkerClick,
                 onOpenCreateWorker = { currentPage = CatalogPage.CREATE_WORKER },
@@ -301,6 +314,9 @@ private fun CashierTogglePositionsScreen(
 @Composable
 private fun CatalogOverviewScreen(
     workers: List<Worker>,
+    analytics: AdminAnalytics?,
+    isAnalyticsRefreshing: Boolean,
+    onAnalyticsRefreshClick: () -> Unit,
     selectedWorker: Worker?,
     onWorkerClick: (Worker) -> Unit,
     onOpenCreateWorker: () -> Unit,
@@ -331,6 +347,13 @@ private fun CatalogOverviewScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
             ) {
+                AnalyticsPanel(
+                    analytics = analytics,
+                    isRefreshing = isAnalyticsRefreshing,
+                    onRefreshClick = onAnalyticsRefreshClick,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
                 WorkersPanel(
                     workers = workers,
                     selectedWorker = selectedWorker,
@@ -382,6 +405,13 @@ private fun CatalogOverviewScreen(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
                 ) {
+                    AnalyticsPanel(
+                        analytics = analytics,
+                        isRefreshing = isAnalyticsRefreshing,
+                        onRefreshClick = onAnalyticsRefreshClick,
+                        modifier = Modifier.weight(1.1f),
+                    )
+
                     PositionsPanel(
                         positions = positions,
                         selectedPosition = selectedPosition,
@@ -402,6 +432,220 @@ private fun CatalogOverviewScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsPanel(
+    analytics: AdminAnalytics?,
+    isRefreshing: Boolean,
+    onRefreshClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SectionCard(
+        title = "Аналитика",
+        modifier = modifier,
+        action = {
+            SectionActionButton(
+                title = if (isRefreshing) "Обновляем..." else "Обновить",
+                onClick = onRefreshClick,
+                enabled = !isRefreshing,
+                color = AppTheme.colorScheme.accent,
+            )
+        },
+    ) {
+        if (analytics == null) {
+            AppStateMessage(
+                title = "Загружаем аналитику",
+                isLoading = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 220.dp),
+            )
+            return@SectionCard
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+        ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val compactMetrics = maxWidth < 680.dp
+
+                if (compactMetrics) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding / 2),
+                    ) {
+                        AnalyticsMetricCard(
+                            title = "Выдано заказов",
+                            value = analytics.soldOrdersCount.toString(),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Продано позиций",
+                            value = analytics.soldItemsCount.toString(),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Выручка",
+                            value = analytics.totalRevenue.format(2),
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding / 2),
+                    ) {
+                        AnalyticsMetricCard(
+                            title = "Выдано заказов",
+                            value = analytics.soldOrdersCount.toString(),
+                            modifier = Modifier.weight(1f),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Продано позиций",
+                            value = analytics.soldItemsCount.toString(),
+                            modifier = Modifier.weight(1f),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Выручка",
+                            value = analytics.totalRevenue.format(2),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+
+            AnalyticsSalesSection(
+                title = "Продажи по напиткам",
+                rows = analytics.drinks,
+                name = DrinkAnalytics::positionName,
+                count = DrinkAnalytics::soldCount,
+                revenue = DrinkAnalytics::revenue,
+                emptyText = "Выданных напитков пока нет.",
+            )
+
+            AnalyticsSalesSection(
+                title = "Продажи по товарам",
+                rows = analytics.products,
+                name = ProductAnalytics::positionVariantName,
+                count = ProductAnalytics::soldCount,
+                revenue = ProductAnalytics::revenue,
+                emptyText = "Проданных товаров пока нет.",
+            )
+
+            AnalyticsWorkersSection(workers = analytics.workers)
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsMetricCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
+            .background(AppTheme.colorScheme.background)
+            .padding(AppTheme.dimensions.basePadding),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+    ) {
+        Text(
+            text = title,
+            color = AppTheme.colorScheme.divider,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+        )
+    }
+}
+
+@Composable
+private fun <T> AnalyticsSalesSection(
+    title: String,
+    rows: List<T>,
+    name: (T) -> String,
+    count: (T) -> Int,
+    revenue: (T) -> Float,
+    emptyText: String,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        if (rows.isEmpty()) {
+            Text(
+                text = emptyText,
+                color = AppTheme.colorScheme.divider,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            return@Column
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 260.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+        ) {
+            rows.forEach { row ->
+                SelectionSummary(
+                    title = name(row),
+                    subtitle = "${count(row)} шт • ${revenue(row).format(2)}",
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsWorkersSection(
+    workers: List<WorkerAnalytics>,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+    ) {
+        Text(
+            text = "Команда",
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        if (workers.isEmpty()) {
+            Text(
+                text = "Стендовики пока не добавлены.",
+                color = AppTheme.colorScheme.divider,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            return@Column
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 320.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+        ) {
+            workers.forEach { worker ->
+                SelectionSummary(
+                    title = worker.workerName,
+                    subtitle = buildString {
+                        append("Создал заказов: ${worker.createdOrdersCount}")
+                        append(" • ")
+                        append("Собрал заказов: ${worker.preparedOrdersCount}")
+                        append(" • ")
+                        append("Выдал заказов: ${worker.givenOrdersCount}")
+                        append(" • ")
+                        append("Приготовил напитков: ${worker.preparedDrinksCount}")
+                    },
+                )
             }
         }
     }

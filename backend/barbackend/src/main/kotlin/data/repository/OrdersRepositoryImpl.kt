@@ -123,9 +123,15 @@ class OrdersRepositoryImpl(
         changeOrderStatus(id, OrderStatus.FINISHED)
     }
 
-    override suspend fun giveOrder(id: Int): OrderFull = suspendTransaction {
+    override suspend fun giveOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
+        val worker = getWorker(workerId)
+        requireCashier(worker)
+
         assertOrder(id) { order ->
             checkOrderStatus(order, OrderStatus.FINISHED)
+        }
+        OrdersTable.update(where = { OrdersTable.id eq id }) {
+            it[this.givenByWorkerId] = workerId
         }
         changeOrderStatus(id, OrderStatus.GIVEN)
     }

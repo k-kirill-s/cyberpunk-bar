@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CashierGiveAwayOrderViewModel(
+    private val cashierId: Int,
     private val ordersRepository: OrdersRepository,
 ) : ViewModel() {
 
@@ -62,7 +63,10 @@ class CashierGiveAwayOrderViewModel(
         viewModelScope.launch(exceptionHandler) {
             isGiveAwayLoading.update { true }
             try {
-                ordersRepository.giveAwayOrder(selectedOrderId)
+                ordersRepository.giveAwayOrder(
+                    orderId = selectedOrderId,
+                    givenByWorkerId = cashierId,
+                )
                 this@CashierGiveAwayOrderViewModel.selectedOrderId.update { null }
                 updateOrders()
             } finally {
