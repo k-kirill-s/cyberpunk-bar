@@ -5,7 +5,7 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 ENV_FILE="$ROOT_DIR/.env"
 
-frontend_port=8021
+frontend_port=8043
 
 if [ -f "$ENV_FILE" ]; then
     frontend_port=$(awk -F= '
@@ -15,7 +15,7 @@ if [ -f "$ENV_FILE" ]; then
             exit
         }
     ' "$ENV_FILE")
-    frontend_port=${frontend_port:-8021}
+    frontend_port=${frontend_port:-8043}
 fi
 
 detect_lan_ip() {

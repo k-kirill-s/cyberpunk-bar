@@ -9,7 +9,7 @@
 .env
 
 # Gradle caches (keep gradle/wrapper)
-.gradle
+.gradle*
 
 # Build outputs
 build
@@ -21,4 +21,3 @@ node_modules
 
 # Misc
 Dockerfile*
-

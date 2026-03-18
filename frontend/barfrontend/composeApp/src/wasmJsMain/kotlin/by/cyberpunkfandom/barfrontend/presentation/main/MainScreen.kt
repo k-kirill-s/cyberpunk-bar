@@ -58,7 +58,9 @@ fun MainScreen() {
                 onBackRequest = { navController.popBackStack() }
             )
 
-            infoBoardComposable()
+            infoBoardComposable(
+                onBackRequest = { navController.popBackStack() }
+            )
 
             adminComposable(
                 onBackRequest = { navController.popBackStack() }

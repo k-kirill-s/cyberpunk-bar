@@ -46,7 +46,7 @@ fun WorkerHomeScreen(
         }
     }
 
-    WorkerAuthScreen(
+    WorkerHomeContent(
         onBackClick = onBackRequest,
         worker = viewModel.worker.collectAsStateWithLifecycle().value,
         orderToCollect = viewModel.orderToCollect.collectAsStateWithLifecycle().value,
@@ -61,7 +61,7 @@ fun WorkerHomeScreen(
 }
 
 @Composable
-private fun WorkerAuthScreen(
+private fun WorkerHomeContent(
     onBackClick: () -> Unit,
     worker: Worker?,
     orderToCollect: OrderFull?,

@@ -5,7 +5,9 @@ import by.cyberpunkfandom.barfrontend.domain.Order
 import by.cyberpunkfandom.barfrontend.domain.OrderStatus
 import kotlin.time.Instant
 
-class OrderMapper {
+class OrderMapper(
+    private val workerMapper: WorkerMapper,
+) {
 
     fun getDomain(dto: OrderDto): Order {
         return Order(
@@ -14,6 +16,8 @@ class OrderMapper {
             createdAt = Instant.fromEpochMilliseconds(dto.createdAt),
             updatedAt = Instant.fromEpochMilliseconds(dto.updatedAt),
             status = OrderStatus.valueOf(dto.status),
+            createdBy = dto.createdBy?.let(workerMapper::getDomain),
+            completedBy = dto.completedBy?.let(workerMapper::getDomain),
         )
     }
 }

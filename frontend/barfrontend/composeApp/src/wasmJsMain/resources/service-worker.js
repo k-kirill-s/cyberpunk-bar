@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = "cyberpunk-bar-shell-v1";
-const RUNTIME_CACHE = "cyberpunk-bar-runtime-v1";
+const APP_SHELL_CACHE = "cyberpunk-bar-shell-v2";
+const RUNTIME_CACHE = "cyberpunk-bar-runtime-v2";
 const OFFLINE_FALLBACK = "/offline.html";
 const APP_SHELL_URLS = [
     "/",
@@ -89,8 +89,10 @@ async function handleStaticAssetRequest(request) {
     }
 
     const response = await fetch(request);
-    const cache = await caches.open(RUNTIME_CACHE);
-    cache.put(request, response.clone());
+    if (response.ok) {
+        const cache = await caches.open(RUNTIME_CACHE);
+        cache.put(request, response.clone());
+    }
     return response;
 }
 

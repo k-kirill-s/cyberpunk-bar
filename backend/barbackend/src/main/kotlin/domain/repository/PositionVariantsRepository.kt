@@ -4,13 +4,13 @@ import by.cyberpunkfandom.domain.models.PositionVariant
 
 interface PositionVariantsRepository {
 
-    suspend fun getPositionVariants(
+    suspend fun getPositionVariants(): List<PositionVariant>
+
+    suspend fun getPositionVariantsByPosition(
         positionId: String,
     ): List<PositionVariant>
 
     suspend fun addPositionVariant(
-        positionId: String,
-        id: String,
         name: String,
         price: Float,
     ): PositionVariant

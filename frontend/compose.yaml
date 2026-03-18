@@ -4,5 +4,5 @@ services:
     build:
       context: barfrontend
     ports:
-      - "8021:80"
+      - "8043:80"
     # If you need CORS to backend, ensure backend host/port in code matches.

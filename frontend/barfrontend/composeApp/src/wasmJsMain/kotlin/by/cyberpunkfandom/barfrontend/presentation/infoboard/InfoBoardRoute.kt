@@ -11,11 +11,16 @@ import org.koin.compose.viewmodel.koinViewModel
 @Serializable
 data object InfoBoardRoute
 
-fun NavGraphBuilder.infoBoardComposable() {
+fun NavGraphBuilder.infoBoardComposable(
+    onBackRequest: () -> Unit,
+) {
     composable<InfoBoardRoute> { navBackStackEntry ->
         val route = navBackStackEntry.toRoute<InfoBoardRoute>()
         val viewModel = koinViewModel<InfoBoardViewModel>()
-        InfoBoardScreen(viewModel = viewModel)
+        InfoBoardScreen(
+            onBackRequest = onBackRequest,
+            viewModel = viewModel,
+        )
     }
 }
 
@@ -25,4 +30,3 @@ fun NavController.navigateToInfoBoard(
     val route = InfoBoardRoute
     navigate(route, builder)
 }
-

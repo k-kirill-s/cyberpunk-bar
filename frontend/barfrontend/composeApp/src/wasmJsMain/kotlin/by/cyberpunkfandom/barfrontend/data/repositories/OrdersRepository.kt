@@ -52,8 +52,8 @@ class OrdersRepository(
         return orderFullMapper.getDomain(dto)
     }
 
-    suspend fun createOrder(): OrderFull {
-        val dto = mainService.createOrder()
+    suspend fun createOrder(createdByWorkerId: Int): OrderFull {
+        val dto = mainService.createOrder(createdByWorkerId)
         return orderFullMapper.getDomain(dto)
     }
 
@@ -67,8 +67,8 @@ class OrdersRepository(
         return orderFullMapper.getDomain(dto)
     }
 
-    suspend fun finishOrder(orderId: Int): OrderFull {
-        val dto = mainService.finishOrder(orderId)
+    suspend fun finishOrder(orderId: Int, completedByWorkerId: Int): OrderFull {
+        val dto = mainService.finishOrder(orderId, completedByWorkerId)
         return orderFullMapper.getDomain(dto)
     }
 

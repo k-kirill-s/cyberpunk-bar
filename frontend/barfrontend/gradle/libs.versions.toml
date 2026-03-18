@@ -1,6 +1,6 @@
 [versions]
-androidx-lifecycle = "2.9.0"
-composeMultiplatform = "1.8.1"
+androidx-lifecycle = "2.9.6"
+composeMultiplatform = "1.9.3"
 junit = "4.13.2"
 kotlin = "2.1.21"
 koin-bom = "4.0.3"
@@ -13,7 +13,7 @@ kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.
 
 junit = { module = "junit:junit", version.ref = "junit" }
 
-compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version = "2.9.0-beta02" }
+compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version = "2.9.1" }
 
 androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }

@@ -8,6 +8,8 @@ data class OrderFull(
     val createdAt: Instant,
     val updatedAt: Instant,
     val status: OrderStatus,
+    val createdBy: Worker?,
+    val completedBy: Worker?,
     val price: Float,
     val positionItems: List<PositionItem>,
 )

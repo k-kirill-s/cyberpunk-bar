@@ -1,16 +1,15 @@
 package by.cyberpunkfandom.barfrontend.presentation.admin
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -25,11 +24,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
 import barfrontend.composeapp.generated.resources.back_24dp
@@ -95,6 +91,7 @@ private fun AdminLoginScreen(
 ) {
     var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppTopBar(
@@ -135,7 +132,13 @@ private fun AdminLoginScreen(
                     onValueChange = { password = it },
                     label = "Пароль",
                     enabled = !isAuthorizing,
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (isPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    trailingActionLabel = if (isPasswordVisible) "Скрыть" else "Показать",
+                    onTrailingActionClick = { isPasswordVisible = !isPasswordVisible },
                 )
 
                 AppBigButton(
@@ -158,9 +161,10 @@ private fun AdminFormField(
     label: String,
     enabled: Boolean,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingActionLabel: String? = null,
+    onTrailingActionClick: (() -> Unit)? = null,
 ) {
-    val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
-    val textStyle = if (enabled) AppTheme.typography.body else AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider)
+    val textStyle = AppTheme.typography.body
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -171,30 +175,44 @@ private fun AdminFormField(
             style = AppTheme.typography.body,
         )
 
-        Box(
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-                .background(AppTheme.colorScheme.background)
-                .border(
-                    width = AppTheme.dimensions.thinDivider,
-                    color = borderColor,
-                    shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+                .fillMaxWidth(),
+            enabled = enabled,
+            singleLine = true,
+            textStyle = textStyle,
+            visualTransformation = visualTransformation,
+            shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            trailingIcon = {
+                if (trailingActionLabel != null && onTrailingActionClick != null) {
+                Text(
+                    text = trailingActionLabel,
+                    modifier = Modifier
+                        .clickable(
+                            enabled = enabled,
+                            onClick = onTrailingActionClick,
+                        ),
+                    style = AppTheme.typography.body.copy(
+                        color = if (enabled) AppTheme.colorScheme.accent else AppTheme.colorScheme.divider,
+                    ),
                 )
-                .padding(AppTheme.dimensions.basePadding),
-        ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 24.dp),
-                enabled = enabled,
-                singleLine = true,
-                textStyle = textStyle,
-                cursorBrush = SolidColor(AppTheme.colorScheme.accent),
-                visualTransformation = visualTransformation,
-            )
-        }
+                }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = AppTheme.colorScheme.text,
+                unfocusedTextColor = AppTheme.colorScheme.text,
+                disabledTextColor = AppTheme.colorScheme.divider,
+                focusedBorderColor = AppTheme.colorScheme.accent,
+                unfocusedBorderColor = AppTheme.colorScheme.divider,
+                disabledBorderColor = AppTheme.colorScheme.surfaceSelected,
+                focusedContainerColor = AppTheme.colorScheme.background,
+                unfocusedContainerColor = AppTheme.colorScheme.background,
+                disabledContainerColor = AppTheme.colorScheme.background,
+                cursorColor = AppTheme.colorScheme.accent,
+            ),
+        )
     }
 }

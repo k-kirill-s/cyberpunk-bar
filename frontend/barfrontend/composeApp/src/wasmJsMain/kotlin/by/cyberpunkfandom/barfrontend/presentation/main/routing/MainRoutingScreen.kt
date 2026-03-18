@@ -55,7 +55,7 @@ fun MainRoutingScreen(
             )
 
             Text(
-                text = "Операционный пульт для кассы, сборки и табло заказов.",
+                text = "Операционный пульт для кассы, бармена и табло заказов.",
                 style = AppTheme.typography.body,
             )
 
@@ -73,8 +73,8 @@ fun MainRoutingScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     MainMenuCard(
-                        title = "Сборщик",
-                        description = "Выбор сотрудника и работа с текущим заказом.",
+                        title = "Бармен",
+                        description = "Выбор стендовика и работа с текущим заказом.",
                         color = workerHighlight,
                         isCompact = true,
                         onClick = onOpenWorkerRequest,
@@ -121,8 +121,8 @@ fun MainRoutingScreen(
                                 .fillMaxHeight(),
                         )
                         MainMenuCard(
-                            title = "Сборщик",
-                            description = "Выбор сотрудника и работа с текущим заказом.",
+                            title = "Бармен",
+                            description = "Выбор стендовика и работа с текущим заказом.",
                             color = workerHighlight,
                             isCompact = false,
                             onClick = onOpenWorkerRequest,

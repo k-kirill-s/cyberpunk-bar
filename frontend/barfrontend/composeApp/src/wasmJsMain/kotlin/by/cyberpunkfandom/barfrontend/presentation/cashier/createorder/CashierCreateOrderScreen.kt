@@ -157,7 +157,7 @@ private fun ItemsList(
         positionItems.isEmpty() -> {
             AppStateMessage(
                 title = "Заказ пока пустой",
-                description = "Добавьте хотя бы одну позицию перед формированием заказа.",
+                description = "Добавьте хотя бы один напиток перед формированием заказа.",
                 modifier = modifier,
             )
             return
@@ -210,7 +210,7 @@ private fun BottomBar(
                     .fillMaxHeight(),
             )
             AppBoxButton(
-                title = "Добавить позицию",
+                title = "Добавить напиток",
                 onClick = onAddPositionClick,
                 modifier = Modifier
                     .weight(2f)

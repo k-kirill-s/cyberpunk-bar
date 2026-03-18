@@ -16,6 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 class CashierHomeViewModel(
+    private val cashierId: Int,
     private val ordersRepository: OrdersRepository,
 ) : ViewModel() {
 
@@ -41,7 +42,7 @@ class CashierHomeViewModel(
         lastTimeCreateOrderClick = Clock.System.now()
 
         viewModelScope.launch(exceptionHandler) {
-            val orderId = ordersRepository.createOrder().id
+            val orderId = ordersRepository.createOrder(createdByWorkerId = cashierId).id
             _onOpenCreateOrderRequest.trySend(orderId)
         }
     }

@@ -10,6 +10,14 @@ class PositionVariantsRepository(
 ) {
 
     suspend fun getPositionVariants(
+        withNotActive: Boolean = false,
+    ): List<PositionVariant> {
+        val dtoList = mainService.getPositionVariants()
+        return dtoList.map { positionVariantMapper.getDomain(it) }
+            .filter { withNotActive || it.isActive }
+    }
+
+    suspend fun getPositionVariants(
         positionId: String,
         withNotActive: Boolean = false,
     ): List<PositionVariant> {
@@ -27,14 +35,10 @@ class PositionVariantsRepository(
     }
 
     suspend fun createPositionVariant(
-        positionId: String,
-        id: String,
         name: String,
         price: Float,
     ): PositionVariant {
         val dto = mainService.createPositionVariant(
-            positionId = positionId,
-            id = id,
             name = name,
             price = price,
         )

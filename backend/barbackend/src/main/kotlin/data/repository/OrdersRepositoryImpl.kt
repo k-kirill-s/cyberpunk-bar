@@ -8,6 +8,7 @@ import by.cyberpunkfandom.data.database.acquireTransactionLock
 import by.cyberpunkfandom.data.database.suspendTransaction
 import by.cyberpunkfandom.data.mappers.OrderFullMapper
 import by.cyberpunkfandom.data.mappers.OrderMapper
+import by.cyberpunkfandom.data.database.workers.WorkerEntity
 import by.cyberpunkfandom.domain.exceptions.ExceptionCodes
 import by.cyberpunkfandom.domain.exceptions.GeneralException
 import by.cyberpunkfandom.domain.models.Order
@@ -53,10 +54,15 @@ class OrdersRepositoryImpl(
 
     override suspend fun getOrder(id: Int): OrderFull = suspendTransaction { getOrderFull(id) }
 
-    override suspend fun createOrder(): OrderFull = suspendTransaction {
+    override suspend fun createOrder(createdByWorkerId: Int): OrderFull = suspendTransaction {
+        val worker = getWorker(createdByWorkerId)
+        requireCashier(worker)
+
         val entity = OrderFullEntity.new {}
+        OrdersTable.update(where = { OrdersTable.id eq entity.id.value }) {
+            it[this.createdByWorkerId] = createdByWorkerId
+        }
         changeOrderStatus(entity.id.value, OrderStatus.CREATED)
-        orderFullMapper.getDomain(entity)
     }
 
     override suspend fun deleteOrder(id: Int): Unit = suspendTransaction {
@@ -88,6 +94,8 @@ class OrdersRepositoryImpl(
 
     override suspend fun startOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
         acquireTransactionLock(START_ORDER_LOCK)
+        val worker = getWorker(workerId)
+        requireBartender(worker)
 
         assertOrder(id) { order ->
             checkOrderStatus(order, OrderStatus.FORMED)
@@ -99,9 +107,18 @@ class OrdersRepositoryImpl(
         changeOrderStatus(id, OrderStatus.STARTED)
     }
 
-    override suspend fun finishOrder(id: Int): OrderFull = suspendTransaction {
+    override suspend fun finishOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
+        getWorker(workerId)
+
         assertOrder(id) { order ->
             checkOrderStatus(order, OrderStatus.STARTED)
+            if (order.worker?.id?.value != workerId) {
+                throw GeneralException(ExceptionCodes.ORDER_IN_INCOMPATIBLE_STATUS)
+            }
+        }
+
+        OrdersTable.update(where = { OrdersTable.id eq id }) {
+            it[this.completedByWorkerId] = workerId
         }
         changeOrderStatus(id, OrderStatus.FINISHED)
     }
@@ -136,6 +153,22 @@ class OrdersRepositoryImpl(
     private fun getOrderFull(orderId: Int): OrderFull {
         val orderFullEntity = OrderFullEntity.findById(orderId) ?: throw GeneralException(ExceptionCodes.ORDER_NOT_FOUND)
         return orderFullMapper.getDomain(orderFullEntity)
+    }
+
+    private fun getWorker(workerId: Int): WorkerEntity {
+        return WorkerEntity.findById(workerId) ?: throw GeneralException(ExceptionCodes.WORKER_NOT_FOUND)
+    }
+
+    private fun requireCashier(worker: WorkerEntity) {
+        if (!worker.canBeCashier) {
+            throw GeneralException(ExceptionCodes.WORKER_ROLE_NOT_ALLOWED)
+        }
+    }
+
+    private fun requireBartender(worker: WorkerEntity) {
+        if (!worker.canBeBartender) {
+            throw GeneralException(ExceptionCodes.WORKER_ROLE_NOT_ALLOWED)
+        }
     }
 
     private fun getOrdersQuery(statuses: List<OrderStatus> = OrderStatus.entries): Query {

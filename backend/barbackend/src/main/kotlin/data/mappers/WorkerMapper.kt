@@ -10,6 +10,8 @@ class WorkerMapper {
             id = entity.id.value,
             name = entity.name,
             isOnLine = entity.isOnLine,
+            canBeCashier = entity.canBeCashier,
+            canBeBartender = entity.canBeBartender,
         )
     }
 }

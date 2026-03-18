@@ -18,26 +18,29 @@ fun Application.positionVariantsRouting() {
     val positionVariantDtoMapper by inject<PositionVariantDtoMapper>()
 
     routing {
-        get("/positions/{position_id}/position_variants") {
-            val positionId = call.parameters["position_id"].requiredParameter()
-
-            val positionVariants = positionVariantsRepository.getPositionVariants(positionId)
+        get("/position_variants") {
+            val positionVariants = positionVariantsRepository.getPositionVariants()
             val positionVariantsDto = positionVariants.map { positionVariantDtoMapper.getDto(it) }
 
             call.respond(positionVariantsDto)
         }
 
-        post("/positions/{position_id}/position_variants") {
-            call.requireAdminAccess(adminCredentials)
+        get("/positions/{position_id}/position_variants") {
             val positionId = call.parameters["position_id"].requiredParameter()
+
+            val positionVariants = positionVariantsRepository.getPositionVariantsByPosition(positionId)
+            val positionVariantsDto = positionVariants.map { positionVariantDtoMapper.getDto(it) }
+
+            call.respond(positionVariantsDto)
+        }
+
+        post("/position_variants") {
+            call.requireAdminAccess(adminCredentials)
             val formParameters = call.receiveParameters()
-            val id = formParameters["id"].requiredParameter()
             val name = formParameters["name"].requiredParameter()
             val price = formParameters["price"].requiredFloatParameter()
 
             val positionVariant = positionVariantsRepository.addPositionVariant(
-                positionId = positionId,
-                id = id,
                 name = name,
                 price = price,
             )

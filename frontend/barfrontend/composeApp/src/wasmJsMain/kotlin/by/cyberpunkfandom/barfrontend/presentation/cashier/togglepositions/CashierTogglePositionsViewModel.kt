@@ -42,6 +42,7 @@ class CashierTogglePositionsViewModel(
     val workers: MutableStateFlow<List<Worker>> = MutableStateFlow(emptyList())
     val positions: MutableStateFlow<List<Position>> = MutableStateFlow(emptyList())
     val positionVariants: MutableStateFlow<List<PositionVariant>> = MutableStateFlow(emptyList())
+    val selectedPositionVariantIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
 
     val selectedWorkerId: MutableStateFlow<Int?> = MutableStateFlow(null)
     val selectedPositionId: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -59,10 +60,11 @@ class CashierTogglePositionsViewModel(
     }
 
     fun onPositionClick(position: Position) {
-        selectedPositionId.value = position.id
-        selectedPositionVariantId.value = null
         viewModelScope.launch(exceptionHandler) {
-            positionVariants.emit(loadPositionVariants(position.id))
+            refreshData(
+                selectPositionId = position.id,
+                selectVariantId = selectedPositionVariantId.value,
+            )
         }
     }
 
@@ -70,8 +72,17 @@ class CashierTogglePositionsViewModel(
         selectedPositionVariantId.value = positionVariant.id
     }
 
-    fun createWorker(name: String) = mutateCatalog {
-        val worker = workersRepository.createWorker(name.trim())
+    fun createWorker(
+        name: String,
+        canBeCashier: Boolean,
+        canBeBartender: Boolean,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
+        val worker = workersRepository.createWorker(
+            name = name.trim(),
+            canBeCashier = canBeCashier,
+            canBeBartender = canBeBartender,
+        )
         refreshData(selectWorkerId = worker.id)
     }
 
@@ -79,16 +90,24 @@ class CashierTogglePositionsViewModel(
         workerId: Int,
         name: String,
         isOnLine: Boolean,
-    ) = mutateCatalog {
+        canBeCashier: Boolean,
+        canBeBartender: Boolean,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         workersRepository.updateWorker(
             workerId = workerId,
             name = name.trim(),
             isOnLine = isOnLine,
+            canBeCashier = canBeCashier,
+            canBeBartender = canBeBartender,
         )
         refreshData(selectWorkerId = workerId)
     }
 
-    fun deleteWorker(workerId: Int) = mutateCatalog {
+    fun deleteWorker(
+        workerId: Int,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         workersRepository.deleteWorker(workerId)
         refreshData(
             selectWorkerId = null,
@@ -96,14 +115,15 @@ class CashierTogglePositionsViewModel(
     }
 
     fun createPosition(
-        id: String,
         name: String,
         description: String,
-    ) = mutateCatalog {
+        positionVariantIds: List<String>,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         val position = positionsRepository.createPosition(
-            id = id.trim(),
             name = name.trim(),
             description = description.trim(),
+            positionVariantIds = positionVariantIds,
         )
         refreshData(selectPositionId = position.id)
     }
@@ -112,16 +132,22 @@ class CashierTogglePositionsViewModel(
         positionId: String,
         name: String,
         description: String,
-    ) = mutateCatalog {
+        positionVariantIds: List<String>,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionsRepository.updatePosition(
             positionId = positionId,
             name = name.trim(),
             description = description.trim(),
+            positionVariantIds = positionVariantIds,
         )
         refreshData(selectPositionId = positionId, selectVariantId = selectedPositionVariantId.value)
     }
 
-    fun deletePosition(positionId: String) = mutateCatalog {
+    fun deletePosition(
+        positionId: String,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionsRepository.deletePosition(positionId)
         refreshData(
             selectPositionId = positions.value.firstOrNull { it.id != positionId }?.id,
@@ -130,19 +156,16 @@ class CashierTogglePositionsViewModel(
     }
 
     fun createPositionVariant(
-        positionId: String,
-        id: String,
         name: String,
         price: Float,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         val variant = positionVariantsRepository.createPositionVariant(
-            positionId = positionId,
-            id = id.trim(),
             name = name.trim(),
             price = price,
         )
         refreshData(
-            selectPositionId = positionId,
+            selectPositionId = selectedPositionId.value,
             selectVariantId = variant.id,
         )
     }
@@ -152,7 +175,8 @@ class CashierTogglePositionsViewModel(
         name: String,
         price: Float,
         isActive: Boolean,
-    ) = mutateCatalog {
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionVariantsRepository.updatePositionVariant(
             positionVariantId = positionVariantId,
             name = name.trim(),
@@ -165,7 +189,10 @@ class CashierTogglePositionsViewModel(
         )
     }
 
-    fun deletePositionVariant(positionVariantId: String) = mutateCatalog {
+    fun deletePositionVariant(
+        positionVariantId: String,
+        onSuccess: () -> Unit = {},
+    ) = mutateCatalog(onSuccess) {
         positionVariantsRepository.deletePositionVariant(positionVariantId)
         refreshData(
             selectPositionId = selectedPositionId.value,
@@ -173,11 +200,15 @@ class CashierTogglePositionsViewModel(
         )
     }
 
-    private fun mutateCatalog(block: suspend () -> Unit) {
+    private fun mutateCatalog(
+        onSuccess: () -> Unit = {},
+        block: suspend () -> Unit,
+    ) {
         viewModelScope.launch(exceptionHandler) {
             isSaving.emit(true)
             try {
                 block()
+                onSuccess()
             } finally {
                 isSaving.emit(false)
                 isLoading.emit(false)
@@ -192,6 +223,9 @@ class CashierTogglePositionsViewModel(
     ) {
         val updatedWorkers = workersRepository.getWorkers().sortedBy { it.name.lowercase() }
         val updatedPositions = positionsRepository.getPositions().sortedBy { it.name.lowercase() }
+        val updatedPositionVariants = positionVariantsRepository
+            .getPositionVariants(withNotActive = true)
+            .sortedBy { it.name.lowercase() }
 
         val resolvedPositionId = when {
             updatedPositions.isEmpty() -> null
@@ -199,14 +233,15 @@ class CashierTogglePositionsViewModel(
             else -> updatedPositions.first().id
         }
 
-        val updatedVariants = resolvedPositionId?.let { loadPositionVariants(it) }.orEmpty()
+        val linkedVariants = resolvedPositionId?.let { loadPositionVariants(it) }.orEmpty()
         val resolvedVariantId = selectVariantId?.takeIf { candidateId ->
-            updatedVariants.any { it.id == candidateId }
+            updatedPositionVariants.any { it.id == candidateId }
         }
 
         workers.emit(updatedWorkers)
         positions.emit(updatedPositions)
-        positionVariants.emit(updatedVariants)
+        positionVariants.emit(updatedPositionVariants)
+        selectedPositionVariantIds.emit(linkedVariants.mapTo(mutableSetOf()) { it.id })
 
         selectedWorkerId.emit(selectWorkerId?.takeIf { candidateId ->
             updatedWorkers.any { it.id == candidateId }

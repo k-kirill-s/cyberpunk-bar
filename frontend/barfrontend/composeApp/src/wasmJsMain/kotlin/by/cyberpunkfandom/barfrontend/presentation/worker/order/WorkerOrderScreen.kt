@@ -110,7 +110,7 @@ private fun WorkerOrderScreen(
     order ?: run {
         AppStateMessage(
             title = "Заказ недоступен",
-            description = "Вернитесь на экран сотрудника и выберите другой заказ.",
+            description = "Вернитесь на экран бармена и выберите другой заказ.",
         )
         return
     }
@@ -169,8 +169,8 @@ private fun OrderContentColumn(
 ) {
     if (order.positionItems.isEmpty()) {
         AppStateMessage(
-            title = "В заказе нет позиций",
-            description = "Кассир должен добавить позиции до начала сборки.",
+            title = "В заказе нет напитков",
+            description = "Кассир должен добавить напитки до начала сборки.",
             modifier = modifier,
         )
         return

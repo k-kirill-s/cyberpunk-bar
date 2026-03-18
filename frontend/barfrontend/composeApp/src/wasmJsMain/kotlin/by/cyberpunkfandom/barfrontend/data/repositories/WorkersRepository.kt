@@ -19,8 +19,16 @@ class WorkersRepository(
         return workerMapper.getDomain(dto)
     }
 
-    suspend fun createWorker(name: String): Worker {
-        val dto = mainService.createWorker(name)
+    suspend fun createWorker(
+        name: String,
+        canBeCashier: Boolean,
+        canBeBartender: Boolean,
+    ): Worker {
+        val dto = mainService.createWorker(
+            name = name,
+            canBeCashier = canBeCashier,
+            canBeBartender = canBeBartender,
+        )
         return workerMapper.getDomain(dto)
     }
 
@@ -28,11 +36,15 @@ class WorkersRepository(
         workerId: Int,
         name: String?,
         isOnLine: Boolean?,
+        canBeCashier: Boolean? = null,
+        canBeBartender: Boolean? = null,
     ): Worker {
         val dto = mainService.updateWorker(
             workerId = workerId,
             name = name,
             isOnLine = isOnLine,
+            canBeCashier = canBeCashier,
+            canBeBartender = canBeBartender,
         )
         return workerMapper.getDomain(dto)
     }

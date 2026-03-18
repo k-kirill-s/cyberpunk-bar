@@ -8,4 +8,6 @@ data class Order(
     val createdAt: Instant,
     val updatedAt: Instant,
     val status: OrderStatus,
+    val createdBy: Worker?,
+    val completedBy: Worker?,
 )

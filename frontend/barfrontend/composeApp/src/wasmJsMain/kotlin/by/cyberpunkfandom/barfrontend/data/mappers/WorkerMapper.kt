@@ -10,6 +10,8 @@ class WorkerMapper {
             id = dto.id,
             name = dto.name,
             isOnLine = dto.isOnLine,
+            canBeCashier = dto.canBeCashier,
+            canBeBartender = dto.canBeBartender,
         )
     }
 }

@@ -9,4 +9,6 @@ data class OrderDto(
     val createdAt: Long,
     val updatedAt: Long,
     val status: String,
+    val createdBy: WorkerDto?,
+    val completedBy: WorkerDto?,
 )

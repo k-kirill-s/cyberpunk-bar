@@ -46,6 +46,9 @@ fun Application.module() {
             val statusCode = when (cause.code) {
                 ExceptionCodes.MISSING_PARAMETER -> HttpStatusCode.BadRequest
                 ExceptionCodes.ADMIN_AUTH_FAILED -> HttpStatusCode.Unauthorized
+                ExceptionCodes.WORKER_NOT_FOUND -> HttpStatusCode.NotFound
+                ExceptionCodes.WORKER_MUST_HAVE_ROLE -> HttpStatusCode.BadRequest
+                ExceptionCodes.WORKER_ROLE_NOT_ALLOWED -> HttpStatusCode.Forbidden
                 ExceptionCodes.ORDER_NOT_FOUND -> HttpStatusCode.NotFound
                 ExceptionCodes.ORDER_IN_INCOMPATIBLE_STATUS -> HttpStatusCode.Conflict
                 ExceptionCodes.ORDER_MUST_HAVE_ITEMS -> HttpStatusCode.BadRequest

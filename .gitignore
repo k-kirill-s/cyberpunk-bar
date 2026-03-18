@@ -15,4 +15,5 @@ tmp/
 **/.gradle/
 **/build/
 **/.kotlin/
+backend/barbackend/bin/
 frontend/barfrontend/kotlin-js-store/

@@ -42,6 +42,11 @@ The repository contains a Kotlin/Ktor backend, a Kotlin Multiplatform Compose/Wa
    ./scripts/build-images.sh
    ```
 
+   The script enables Docker BuildKit and Compose Bake by default. The first
+   frontend build can still take a while because the Kotlin/Wasm production
+   bundle runs an optimization step, but repeated builds should reuse Docker
+   and Gradle caches aggressively.
+
 3. Start the stack:
 
    ```sh
@@ -75,14 +80,21 @@ Service-specific image builds are also supported:
 ./scripts/build-images.sh frontend
 ```
 
+`./scripts/build-images.sh` exports:
+
+- `DOCKER_BUILDKIT=1`
+- `COMPOSE_BAKE=true`
+
+unless you already set them yourself.
+
 ## Configuration
 
 Default local settings live in `.env.example`:
 
 ```dotenv
 DB_PORT=5420
-BACKEND_PORT=8020
-FRONTEND_PORT=8021
+BACKEND_PORT=8042
+FRONTEND_PORT=8043
 BACKEND_IMAGE=cyberpunk-bar-backend:local
 FRONTEND_IMAGE=cyberpunk-bar-frontend:local
 ADMIN_USERNAME=cyberadm
@@ -112,6 +124,11 @@ git push origin v1.0.0
 It publishes multi-platform images for `linux/amd64` and `linux/arm64`, and
 adds version, major/minor, and commit SHA tags automatically.
 
+The current frontend Dockerfile intentionally uses an `amd64` build stage even
+when publishing `arm64` images, because the Kotlin/Wasm Binaryen download used
+by the production build is not currently available for Linux `arm64`. The final
+runtime image is still published for both target platforms.
+
 After the first publish, verify that the packages are visible in GitHub
 Packages and set them to public if you want anonymous pulls.
 
@@ -126,7 +143,7 @@ FRONTEND_IMAGE=ghcr.io/<owner>/cyberpunk-bar-frontend:1.0.0
 Then start the stack as usual:
 
 ```sh
-docker compose -p bar up -d
+./scripts/start-stack.sh
 ```
 
 ## Runtime architecture
@@ -157,6 +174,10 @@ cd backend/barbackend
 
 At startup the application reads `DB_*` environment variables and creates missing tables with Exposed.
 
+The backend Docker image now uses a dedicated dependency warmup stage instead of
+running a full source-less Gradle build. That keeps the Docker cache useful
+without the misleading `NO-SOURCE` output from a fake compile phase.
+
 Main route groups currently cover:
 
 - orders
@@ -179,6 +200,10 @@ cd frontend/barfrontend
 ```
 
 The production Docker image builds the Wasm distribution and serves it with nginx using [`frontend/barfrontend/nginx.conf`](frontend/barfrontend/nginx.conf).
+
+For local and CI Docker builds, the frontend image keeps stable named caches for
+Gradle, Konan, npm, and `kotlin-js-store`. Warm builds are therefore much
+faster than the first cold build.
 
 The frontend service layer calls relative `/api/...` endpoints. That works out of the box in the Docker stack because nginx handles the proxy. If you run the frontend development server standalone, you need to provide an equivalent proxy or another compatible API path.
 

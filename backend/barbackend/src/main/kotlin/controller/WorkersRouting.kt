@@ -29,8 +29,14 @@ fun Application.workersRouting() {
             call.requireAdminAccess(adminCredentials)
             val formParameters = call.receiveParameters()
             val name = formParameters["name"].requiredParameter()
+            val canBeCashier = formParameters["can_be_cashier"]?.toBoolean() ?: true
+            val canBeBartender = formParameters["can_be_bartender"]?.toBoolean() ?: true
 
-            val worker = workersRepository.addWorker(name = name)
+            val worker = workersRepository.addWorker(
+                name = name,
+                canBeCashier = canBeCashier,
+                canBeBartender = canBeBartender,
+            )
             val workerDto = workerDtoMapper.getDto(worker)
             call.respond(workerDto)
         }
@@ -40,8 +46,10 @@ fun Application.workersRouting() {
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val isOnLine = formParameters["is_on_line"]?.toBoolean()
+            val canBeCashier = formParameters["can_be_cashier"]?.toBoolean()
+            val canBeBartender = formParameters["can_be_bartender"]?.toBoolean()
 
-            if (name != null) {
+            if (name != null || canBeCashier != null || canBeBartender != null) {
                 call.requireAdminAccess(adminCredentials)
             }
 
@@ -49,6 +57,8 @@ fun Application.workersRouting() {
                 id = id,
                 name = name,
                 isOnLine = isOnLine,
+                canBeCashier = canBeCashier,
+                canBeBartender = canBeBartender,
             )
 
             val workerDto = workerDtoMapper.getDto(worker)

@@ -11,7 +11,10 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Serializable
-data class WorkerOrderConfirmationRoute(val orderId: Int)
+data class WorkerOrderConfirmationRoute(
+    val orderId: Int,
+    val workerId: Int,
+)
 
 fun NavGraphBuilder.workerOrderConfirmationComposable(
     onError: (code: ExceptionCodes) -> Unit,
@@ -21,7 +24,7 @@ fun NavGraphBuilder.workerOrderConfirmationComposable(
     composable<WorkerOrderConfirmationRoute> { navBackStackEntry ->
         val route = navBackStackEntry.toRoute<WorkerOrderConfirmationRoute>()
         val viewModel = koinViewModel<WorkerOrderConfirmationViewModel>(
-            parameters = { parametersOf(route.orderId) }
+            parameters = { parametersOf(route.orderId, route.workerId) }
         )
         WorkerOrderConfirmationScreen(
             onError = onError,
@@ -34,9 +37,12 @@ fun NavGraphBuilder.workerOrderConfirmationComposable(
 
 fun NavController.navigateToWorkerOrderConfirmation(
     orderId: Int,
+    workerId: Int,
     builder: NavOptionsBuilder.() -> Unit = {},
 ) {
-    val route = WorkerOrderConfirmationRoute(orderId)
+    val route = WorkerOrderConfirmationRoute(
+        orderId = orderId,
+        workerId = workerId,
+    )
     navigate(route, builder)
 }
-
