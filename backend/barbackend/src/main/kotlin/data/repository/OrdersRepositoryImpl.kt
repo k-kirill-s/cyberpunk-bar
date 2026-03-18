@@ -108,8 +108,7 @@ class OrdersRepositoryImpl(
     }
 
     override suspend fun finishOrder(id: Int, workerId: Int): OrderFull = suspendTransaction {
-        val worker = getWorker(workerId)
-        requireBartender(worker)
+        getWorker(workerId)
 
         assertOrder(id) { order ->
             checkOrderStatus(order, OrderStatus.STARTED)

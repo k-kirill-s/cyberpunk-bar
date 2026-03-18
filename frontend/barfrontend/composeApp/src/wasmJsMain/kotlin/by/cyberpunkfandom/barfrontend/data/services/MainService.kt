@@ -177,7 +177,13 @@ class MainService(
             formParameters = parameters {
                 name?.let { append("name", it) }
                 description?.let { append("description", it) }
-                positionVariantIds?.forEach { append("position_variant_id", it) }
+                positionVariantIds?.let { variantIds ->
+                    if (variantIds.isEmpty()) {
+                        append("position_variant_id", "")
+                    } else {
+                        variantIds.forEach { append("position_variant_id", it) }
+                    }
+                }
             }
         ) {
             applyAdminHeaders()

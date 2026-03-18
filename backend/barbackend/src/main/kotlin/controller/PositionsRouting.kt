@@ -37,7 +37,11 @@ fun Application.positionsRouting() {
             val formParameters = call.receiveParameters()
             val name = formParameters["name"].requiredParameter()
             val description = formParameters["description"].orEmpty()
-            val positionVariantIds = formParameters.getAll("position_variant_id").orEmpty()
+            val positionVariantIds = formParameters
+                .getAll("position_variant_id")
+                ?.map(String::trim)
+                ?.filter(String::isNotEmpty)
+                .orEmpty()
 
             val position = positionsRepository.addPosition(
                 name = name,
@@ -55,7 +59,10 @@ fun Application.positionsRouting() {
             val formParameters = call.receiveParameters()
             val name = formParameters["name"]
             val description = formParameters["description"]
-            val positionVariantIds = formParameters.getAll("position_variant_id")
+            val positionVariantIds = formParameters
+                .getAll("position_variant_id")
+                ?.map(String::trim)
+                ?.filter(String::isNotEmpty)
 
             val position = positionsRepository.updatePosition(
                 id = id,
