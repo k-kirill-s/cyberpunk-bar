@@ -1,4 +1,4 @@
-package by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions
+package by.cyberpunkfandom.barfrontend.presentation.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-class CashierTogglePositionsViewModel(
+class AdminCatalogViewModel(
     private val adminRepository: AdminRepository,
     private val positionsRepository: PositionsRepository,
     private val positionVariantsRepository: PositionVariantsRepository,
@@ -29,7 +29,7 @@ class CashierTogglePositionsViewModel(
     private var hasLoaded = false
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Napier.e("error", throwable)
+        Napier.e("admin catalog error", throwable)
         if (throwable is GeneralException) {
             _onError.trySend(throwable.code)
         } else {
@@ -40,45 +40,65 @@ class CashierTogglePositionsViewModel(
     private val _onError: Channel<ExceptionCodes> = Channel(Channel.BUFFERED)
     val onError: Flow<ExceptionCodes> = _onError.receiveAsFlow()
 
-    val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val isSaving: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isAnalyticsRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isLoading = MutableStateFlow(true)
+    val isSaving = MutableStateFlow(false)
+    val isAnalyticsRefreshing = MutableStateFlow(false)
 
-    val workers: MutableStateFlow<List<Worker>> = MutableStateFlow(emptyList())
-    val positions: MutableStateFlow<List<Position>> = MutableStateFlow(emptyList())
-    val positionVariants: MutableStateFlow<List<PositionVariant>> = MutableStateFlow(emptyList())
-    val selectedPositionVariantIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
-    val analytics: MutableStateFlow<AdminAnalytics?> = MutableStateFlow(null)
+    val workers = MutableStateFlow<List<Worker>>(emptyList())
+    val positions = MutableStateFlow<List<Position>>(emptyList())
+    val positionVariants = MutableStateFlow<List<PositionVariant>>(emptyList())
+    val selectedPositionVariantIds = MutableStateFlow<Set<String>>(emptySet())
+    val analytics = MutableStateFlow<AdminAnalytics?>(null)
 
-    val selectedWorkerId: MutableStateFlow<Int?> = MutableStateFlow(null)
-    val selectedPositionId: MutableStateFlow<String?> = MutableStateFlow(null)
-    val selectedPositionVariantId: MutableStateFlow<String?> = MutableStateFlow(null)
+    val selectedWorkerId = MutableStateFlow<Int?>(null)
+    val selectedPositionId = MutableStateFlow<String?>(null)
+    val selectedPositionVariantId = MutableStateFlow<String?>(null)
 
     fun ensureLoaded() {
         if (hasLoaded) return
 
         viewModelScope.launch(exceptionHandler) {
-            refreshData()
-            hasLoaded = true
-            isLoading.emit(false)
+            isLoading.emit(true)
+            try {
+                refreshData()
+                hasLoaded = true
+            } finally {
+                isLoading.emit(false)
+            }
         }
     }
 
-    fun onWorkerClick(worker: Worker) {
-        selectedWorkerId.value = worker.id
+    fun selectWorker(worker: Worker) {
+        selectWorkerById(worker.id)
     }
 
-    fun onPositionClick(position: Position) {
+    fun selectWorkerById(workerId: Int?) {
+        selectedWorkerId.value = workerId?.takeIf { candidateId ->
+            workers.value.any { it.id == candidateId }
+        }
+    }
+
+    fun selectPosition(position: Position) {
+        selectPositionById(position.id)
+    }
+
+    fun selectPositionById(positionId: String?) {
         viewModelScope.launch(exceptionHandler) {
             refreshData(
-                selectPositionId = position.id,
+                selectPositionId = positionId,
                 selectVariantId = selectedPositionVariantId.value,
             )
         }
     }
 
-    fun onPositionVariantClick(positionVariant: PositionVariant) {
-        selectedPositionVariantId.value = positionVariant.id
+    fun selectPositionVariant(positionVariant: PositionVariant) {
+        selectPositionVariantById(positionVariant.id)
+    }
+
+    fun selectPositionVariantById(positionVariantId: String?) {
+        selectedPositionVariantId.value = positionVariantId?.takeIf { candidateId ->
+            positionVariants.value.any { it.id == candidateId }
+        }
     }
 
     fun onAnalyticsRefreshClick() {
@@ -87,6 +107,7 @@ class CashierTogglePositionsViewModel(
                 analytics.emit(null)
                 return@launch
             }
+
             isAnalyticsRefreshing.emit(true)
             try {
                 analytics.emit(adminRepository.getAnalytics())
@@ -133,9 +154,7 @@ class CashierTogglePositionsViewModel(
         onSuccess: () -> Unit = {},
     ) = mutateCatalog(onSuccess) {
         workersRepository.deleteWorker(workerId)
-        refreshData(
-            selectWorkerId = null,
-        )
+        refreshData(selectWorkerId = null)
     }
 
     fun createPosition(
