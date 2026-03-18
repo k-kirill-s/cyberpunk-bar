@@ -6,3 +6,13 @@ html, body {
     overflow-x: hidden;
     overflow-y: auto;
 }
+
+html,
+body,
+canvas,
+input,
+textarea,
+button,
+select {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Noto Sans", sans-serif;
+}

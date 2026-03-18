@@ -63,12 +63,12 @@ fun AdminLoginScreen(
             ) {
                 Text(
                     text = "Вход в управление каталогом и командой.",
-                    style = AppTheme.typography.body,
+                    style = AppTheme.typography.title,
                 )
 
                 Text(
                     text = "Используйте логин и пароль из настроек стека (`ADMIN_USERNAME`, `ADMIN_PASSWORD`).",
-                    style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.divider),
+                    style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.textSecondary),
                 )
 
                 AdminFormField(
@@ -133,7 +133,7 @@ private fun AdminFormField(
     ) {
         Text(
             text = label,
-            style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.textSecondary),
+            style = MaterialTheme.typography.labelLarge.copy(color = AppTheme.colorScheme.textSecondary),
         )
 
         Row(
@@ -167,7 +167,7 @@ private fun AdminFormField(
                 Text(
                     text = trailingActionLabel,
                     modifier = Modifier.clickable(enabled = enabled, onClick = onTrailingActionClick),
-                    style = AppTheme.typography.body.copy(
+                    style = MaterialTheme.typography.labelLarge.copy(
                         color = if (enabled) AppTheme.colorScheme.accent else AppTheme.colorScheme.textSecondary,
                     ),
                 )
