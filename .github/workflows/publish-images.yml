@@ -29,6 +29,23 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Java
+        if: matrix.service == 'frontend'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build frontend bundle
+        if: matrix.service == 'frontend'
+        working-directory: frontend/barfrontend
+        run: |
+          ./gradlew \
+            :composeApp:compileProductionExecutableKotlinWasmJs \
+            :composeApp:wasmJsBrowserProductionWebpack \
+            :composeApp:wasmJsBrowserDistribution \
+            --rerun-tasks
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
