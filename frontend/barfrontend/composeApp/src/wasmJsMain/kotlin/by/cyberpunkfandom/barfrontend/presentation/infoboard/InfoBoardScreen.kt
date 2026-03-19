@@ -97,12 +97,13 @@ private fun InfoBoardScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            .background(AppTheme.colorScheme.background)
             .hoverable(interactionSource = interactionSource)
     ) {
         val isCompact = maxWidth < 900.dp
         val showBackButton = isCompact || isHovered
-        val boardHeaderHeight = if (isCompact) 88.dp else 104.dp
-        val boardFooterHeight = if (isCompact) 84.dp else 96.dp
+        val boardHeaderHeight = if (isCompact) 76.dp else 88.dp
+        val boardFooterHeight = if (isCompact) 72.dp else 80.dp
         val currentTimeLabel = rememberInfoBoardTimeLabel()
 
         Box(
@@ -257,16 +258,15 @@ private fun InfoBoardChrome(
                     .fillMaxWidth()
                     .align(Alignment.TopCenter),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding / 2),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 BoardBadge(
                     text = "Trauma Team Canteen Bar",
                     color = AppTheme.colorScheme.accentSecondary,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
                 BoardBadge(
                     text = "ОПЕРАТИВНАЯ ОЧЕРЕДЬ ЗАКАЗОВ",
                     color = AppTheme.colorScheme.warning,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
 
@@ -275,24 +275,21 @@ private fun InfoBoardChrome(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding / 2),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 BoardBadge(
                     text = currentTimeLabel,
                     color = AppTheme.colorScheme.accent,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
                 BoardBadge(
-                    text = "ТАБЛО СБОРКИ // ОЧЕРЕДЬ И ВЫДАЧА",
+                    text = "ТАБЛО // ОЧЕРЕДЬ И ВЫДАЧА",
                     color = AppTheme.colorScheme.accentSecondary,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
         } else {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.align(Alignment.TopCenter),
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BoardBadge(
@@ -306,10 +303,8 @@ private fun InfoBoardChrome(
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BoardBadge(
@@ -317,7 +312,7 @@ private fun InfoBoardChrome(
                     color = AppTheme.colorScheme.accent,
                 )
                 BoardBadge(
-                    text = "ТАБЛО СБОРКИ // ОЧЕРЕДЬ И ВЫДАЧА",
+                    text = "ТАБЛО // ОЧЕРЕДЬ И ВЫДАЧА",
                     color = AppTheme.colorScheme.accentSecondary,
                 )
             }
@@ -333,16 +328,16 @@ private fun BoardBadge(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius * 1.6f))
-            .background(color.copy(alpha = 0.16f))
+            .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius * 0.6f))
+            .background(AppTheme.colorScheme.surface.copy(alpha = 0.92f))
             .border(
                 width = AppTheme.dimensions.thinDivider * 2,
                 color = color.copy(alpha = 0.78f),
-                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius * 1.6f),
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius * 0.6f),
             )
             .padding(
-                horizontal = AppTheme.dimensions.basePadding,
-                vertical = AppTheme.dimensions.basePadding * 0.5f,
+                horizontal = AppTheme.dimensions.basePadding * 0.85f,
+                vertical = AppTheme.dimensions.basePadding * 0.35f,
             ),
     ) {
         Text(
@@ -351,7 +346,7 @@ private fun BoardBadge(
             textAlign = TextAlign.Center,
             style = AppTheme.typography.body.copy(
                 fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.sp,
+                letterSpacing = 0.9.sp,
             ),
         )
     }
@@ -424,7 +419,7 @@ private fun OrdersBoxScaffold(
     modifier: Modifier = Modifier,
     ordersNamesContent: @Composable () -> Unit,
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(AppTheme.dimensions.basePadding / 2)) {
         Spacer(Modifier.height(AppTheme.dimensions.basePadding * 2))
 
         Text(
@@ -433,7 +428,11 @@ private fun OrdersBoxScaffold(
             style = AppTheme.typography.big,
         )
 
-        Spacer(Modifier.height(AppTheme.dimensions.basePadding * 4))
+        Spacer(Modifier.height(AppTheme.dimensions.basePadding * 1.5f))
+
+        AppHorizontalDivider()
+
+        Spacer(Modifier.height(AppTheme.dimensions.basePadding * 2.5f))
 
         Box(
             modifier = Modifier
