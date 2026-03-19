@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,6 +103,11 @@ private fun InfoBoardScreen(
     ) {
         val isCompact = maxWidth < 900.dp
         val showBackButton = isCompact || isHovered
+        val layout = rememberInfoBoardLayout(
+            maxWidth = maxWidth,
+            maxHeight = maxHeight,
+            isCompact = isCompact,
+        )
         val boardHeaderHeight = if (isCompact) 76.dp else 88.dp
         val boardFooterHeight = if (isCompact) 72.dp else 80.dp
         val currentTimeLabel = rememberInfoBoardTimeLabel()
@@ -124,6 +130,7 @@ private fun InfoBoardScreen(
                         ordersNames = formedOrdersNames,
                         title = "В очереди",
                         textColor = AppTheme.colorScheme.text,
+                        layout = layout,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 280.dp),
@@ -135,6 +142,7 @@ private fun InfoBoardScreen(
                         ordersNames = startedOrdersNames,
                         title = "В процессе",
                         textColor = AppTheme.colorScheme.text,
+                        layout = layout,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 280.dp),
@@ -146,6 +154,7 @@ private fun InfoBoardScreen(
                         ordersNames = finishedOrdersNames,
                         title = "Готовы",
                         textColor = AppTheme.colorScheme.success,
+                        layout = layout,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 280.dp),
@@ -160,6 +169,7 @@ private fun InfoBoardScreen(
                         ordersNames = formedOrdersNames,
                         title = "В очереди",
                         textColor = AppTheme.colorScheme.text,
+                        layout = layout,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
@@ -171,6 +181,7 @@ private fun InfoBoardScreen(
                         ordersNames = startedOrdersNames,
                         title = "В процессе",
                         textColor = AppTheme.colorScheme.text,
+                        layout = layout,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
@@ -182,6 +193,7 @@ private fun InfoBoardScreen(
                         ordersNames = finishedOrdersNames,
                         title = "Готовы",
                         textColor = AppTheme.colorScheme.success,
+                        layout = layout,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
@@ -193,6 +205,7 @@ private fun InfoBoardScreen(
         InfoBoardChrome(
             currentTimeLabel = currentTimeLabel,
             isCompact = isCompact,
+            layout = layout,
             modifier = Modifier.fillMaxSize(),
         )
 
@@ -249,6 +262,7 @@ private fun BackButtonOverlay(
 private fun InfoBoardChrome(
     currentTimeLabel: String,
     isCompact: Boolean,
+    layout: InfoBoardLayout,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.padding(AppTheme.dimensions.basePadding)) {
@@ -261,12 +275,9 @@ private fun InfoBoardChrome(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 BoardBadge(
-                    text = "Trauma Team Canteen Bar",
+                    text = "Trauma Team Canteen",
                     color = AppTheme.colorScheme.accentSecondary,
-                )
-                BoardBadge(
-                    text = "ОПЕРАТИВНАЯ ОЧЕРЕДЬ ЗАКАЗОВ",
-                    color = AppTheme.colorScheme.warning,
+                    textStyle = layout.titleStyle,
                 )
             }
 
@@ -280,10 +291,12 @@ private fun InfoBoardChrome(
                 BoardBadge(
                     text = currentTimeLabel,
                     color = AppTheme.colorScheme.accent,
+                    textStyle = layout.badgeStyle,
                 )
                 BoardBadge(
                     text = "ТАБЛО // ОЧЕРЕДЬ И ВЫДАЧА",
                     color = AppTheme.colorScheme.accentSecondary,
+                    textStyle = layout.badgeStyle,
                 )
             }
         } else {
@@ -293,12 +306,9 @@ private fun InfoBoardChrome(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BoardBadge(
-                    text = "Trauma Team Canteen Bar",
+                    text = "Trauma Team Canteen",
                     color = AppTheme.colorScheme.accentSecondary,
-                )
-                BoardBadge(
-                    text = "ОПЕРАТИВНАЯ ОЧЕРЕДЬ ЗАКАЗОВ",
-                    color = AppTheme.colorScheme.warning,
+                    textStyle = layout.titleStyle,
                 )
             }
 
@@ -310,10 +320,12 @@ private fun InfoBoardChrome(
                 BoardBadge(
                     text = currentTimeLabel,
                     color = AppTheme.colorScheme.accent,
+                    textStyle = layout.badgeStyle,
                 )
                 BoardBadge(
                     text = "ТАБЛО // ОЧЕРЕДЬ И ВЫДАЧА",
                     color = AppTheme.colorScheme.accentSecondary,
+                    textStyle = layout.badgeStyle,
                 )
             }
         }
@@ -324,6 +336,7 @@ private fun InfoBoardChrome(
 private fun BoardBadge(
     text: String,
     color: Color,
+    textStyle: TextStyle,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -344,10 +357,7 @@ private fun BoardBadge(
             text = text,
             color = AppTheme.colorScheme.text,
             textAlign = TextAlign.Center,
-            style = AppTheme.typography.body.copy(
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.9.sp,
-            ),
+            style = textStyle,
         )
     }
 }
@@ -377,17 +387,16 @@ private fun OrdersBox(
     ordersNames: List<String>,
     title: String,
     textColor: Color,
+    layout: InfoBoardLayout,
     modifier: Modifier = Modifier,
 ) {
     OrdersBoxScaffold(
         title = title,
+        titleStyle = layout.titleStyle,
         modifier = modifier,
     ) {
         if (ordersNames.isEmpty()) {
-            AppStateMessage(
-                title = "Пусто",
-                description = "Новых заказов пока нет.",
-            )
+            InfoBoardEmptyState(layout = layout)
             return@OrdersBoxScaffold
         }
 
@@ -398,14 +407,18 @@ private fun OrdersBox(
             horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
         ) {
             val chunkedOrdersNames = ordersNames.chunked(5)
-            val textStyle = if (chunkedOrdersNames.size > 2) AppTheme.typography.display else AppTheme.typography.displayLarge
+            val textStyle = if (chunkedOrdersNames.size > 2) {
+                scaleTextStyle(layout.orderStyle, 0.82f)
+            } else {
+                layout.orderStyle
+            }
             chunkedOrdersNames.forEach { ordersNames ->
                 OrdersNamesColumn(
                     ordersNames = ordersNames,
                     textStyle = textStyle,
                     textColor = textColor,
                     modifier = Modifier
-                        .widthIn(min = 220.dp)
+                        .widthIn(min = layout.orderColumnMinWidth)
                         .fillMaxHeight()
                 )
             }
@@ -416,6 +429,7 @@ private fun OrdersBox(
 @Composable
 private fun OrdersBoxScaffold(
     title: String,
+    titleStyle: TextStyle,
     modifier: Modifier = Modifier,
     ordersNamesContent: @Composable () -> Unit,
 ) {
@@ -425,7 +439,7 @@ private fun OrdersBoxScaffold(
         Text(
             text = title,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = AppTheme.typography.big,
+            style = titleStyle,
         )
 
         Spacer(Modifier.height(AppTheme.dimensions.basePadding * 1.5f))
@@ -442,6 +456,134 @@ private fun OrdersBoxScaffold(
             ordersNamesContent()
         }
     }
+}
+
+@Composable
+private fun InfoBoardEmptyState(layout: InfoBoardLayout) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = "Пусто",
+            textAlign = TextAlign.Center,
+            style = layout.emptyTitleStyle,
+        )
+
+        Text(
+            text = "Новых заказов пока нет.",
+            modifier = Modifier.padding(top = AppTheme.dimensions.basePadding),
+            textAlign = TextAlign.Center,
+            style = layout.emptyBodyStyle,
+        )
+    }
+}
+
+private data class InfoBoardLayout(
+    val titleStyle: TextStyle,
+    val orderStyle: TextStyle,
+    val emptyTitleStyle: TextStyle,
+    val emptyBodyStyle: TextStyle,
+    val badgeStyle: TextStyle,
+    val orderColumnMinWidth: Dp,
+)
+
+@Composable
+private fun rememberInfoBoardLayout(
+    maxWidth: Dp,
+    maxHeight: Dp,
+    isCompact: Boolean,
+): InfoBoardLayout {
+    return when {
+        isCompact -> InfoBoardLayout(
+            titleStyle = AppTheme.typography.title.copy(
+                fontSize = 34.sp,
+                lineHeight = 40.sp,
+            ),
+            orderStyle = AppTheme.typography.display.copy(
+                fontSize = 84.sp,
+                lineHeight = 92.sp,
+            ),
+            emptyTitleStyle = AppTheme.typography.title.copy(
+                fontSize = 24.sp,
+                lineHeight = 30.sp,
+            ),
+            emptyBodyStyle = AppTheme.typography.body.copy(
+                fontSize = 18.sp,
+                lineHeight = 24.sp,
+                color = AppTheme.colorScheme.textSecondary,
+            ),
+            badgeStyle = AppTheme.typography.body.copy(
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.8.sp,
+            ),
+            orderColumnMinWidth = 160.dp,
+        )
+
+        maxWidth >= 1800.dp && maxHeight >= 980.dp -> InfoBoardLayout(
+            titleStyle = AppTheme.typography.big.copy(
+                fontSize = 64.sp,
+                lineHeight = 70.sp,
+            ),
+            orderStyle = AppTheme.typography.displayLarge.copy(
+                fontSize = 120.sp,
+                lineHeight = 128.sp,
+            ),
+            emptyTitleStyle = AppTheme.typography.title.copy(
+                fontSize = 34.sp,
+                lineHeight = 40.sp,
+            ),
+            emptyBodyStyle = AppTheme.typography.body.copy(
+                fontSize = 22.sp,
+                lineHeight = 30.sp,
+                color = AppTheme.colorScheme.textSecondary,
+            ),
+            badgeStyle = AppTheme.typography.body.copy(
+                fontSize = 18.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.8.sp,
+            ),
+            orderColumnMinWidth = 220.dp,
+        )
+
+        else -> InfoBoardLayout(
+            titleStyle = AppTheme.typography.big.copy(
+                fontSize = 50.sp,
+                lineHeight = 58.sp,
+            ),
+            orderStyle = AppTheme.typography.displayLarge.copy(
+                fontSize = 92.sp,
+                lineHeight = 100.sp,
+            ),
+            emptyTitleStyle = AppTheme.typography.title.copy(
+                fontSize = 28.sp,
+                lineHeight = 34.sp,
+            ),
+            emptyBodyStyle = AppTheme.typography.body.copy(
+                fontSize = 18.sp,
+                lineHeight = 24.sp,
+                color = AppTheme.colorScheme.textSecondary,
+            ),
+            badgeStyle = AppTheme.typography.body.copy(
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.7.sp,
+            ),
+            orderColumnMinWidth = 180.dp,
+        )
+    }
+}
+
+private fun scaleTextStyle(style: TextStyle, scale: Float): TextStyle {
+    return style.copy(
+        fontSize = style.fontSize * scale,
+        lineHeight = style.lineHeight * scale,
+    )
 }
 
 @Composable
