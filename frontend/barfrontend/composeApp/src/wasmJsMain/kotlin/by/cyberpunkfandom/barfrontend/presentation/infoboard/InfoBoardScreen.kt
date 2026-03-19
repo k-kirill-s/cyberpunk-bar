@@ -278,6 +278,7 @@ private fun InfoBoardChrome(
                     text = "Trauma Team Canteen",
                     color = AppTheme.colorScheme.accentSecondary,
                     textStyle = layout.titleStyle,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -301,14 +302,15 @@ private fun InfoBoardChrome(
             }
         } else {
             Row(
-                modifier = Modifier.align(Alignment.TopCenter),
-                horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter),
             ) {
                 BoardBadge(
                     text = "Trauma Team Canteen",
                     color = AppTheme.colorScheme.accentSecondary,
                     textStyle = layout.titleStyle,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -352,6 +354,7 @@ private fun BoardBadge(
                 horizontal = AppTheme.dimensions.basePadding * 0.85f,
                 vertical = AppTheme.dimensions.basePadding * 0.35f,
             ),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
