@@ -1,25 +1,84 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
     <title>Cyberpunk Bar icon</title>
-    <rect width="512" height="512" rx="112" fill="#111318"/>
-    <path
-        d="M136 144h240l-20 64c-18 58-63 102-120 120-57-18-102-62-120-120l-20-64Z"
-        fill="#0f81e6"
-    />
-    <path
-        d="M182 126h148l34 108c15 48 52 87 99 103v27H49v-27c47-16 84-55 99-103l34-108Z"
-        fill="#d6e3ff"
-        fill-opacity=".14"
-    />
-    <path
-        d="M203 170h106l-10 34c-9 29-31 52-58 61-28-9-50-32-59-61l-9-34Z"
-        fill="#d6e3ff"
-    />
-    <path
-        d="M220 302h72v90h-72z"
-        fill="#0f81e6"
-    />
-    <path
-        d="M170 392h172a26 26 0 0 1 0 52H170a26 26 0 0 1 0-52Z"
-        fill="#aac7ff"
-    />
+    <defs>
+        <linearGradient id="bg" x1="256" y1="24" x2="256" y2="488" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#1a1030"/>
+            <stop offset="1" stop-color="#080b15"/>
+        </linearGradient>
+        <filter id="glow-cyan" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="10" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <filter id="glow-pink" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="14" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+    <g fill="none" stroke="#43edff" stroke-opacity=".08" stroke-width="3">
+        <path d="M84 96h56l28 48-28 48H84l-28-48 28-48Z"/>
+        <path d="M176 96h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M268 96h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M360 96h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M38 176h56l28 48-28 48H38l-28-48 28-48Z"/>
+        <path d="M130 176h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M222 176h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M314 176h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M84 256h56l28 48-28 48H84l-28-48 28-48Z"/>
+        <path d="M176 256h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M268 256h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M360 256h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M38 336h56l28 48-28 48H38l-28-48 28-48Z"/>
+        <path d="M130 336h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M222 336h56l28 48-28 48h-56l-28-48 28-48Z"/>
+        <path d="M314 336h56l28 48-28 48h-56l-28-48 28-48Z"/>
+    </g>
+
+    <g filter="url(#glow-pink)" opacity=".36">
+        <rect x="340" y="102" width="28" height="138" rx="10" fill="#ff5c78"/>
+        <rect x="285" y="157" width="138" height="28" rx="10" fill="#ff5c78"/>
+    </g>
+
+    <rect x="48" y="48" width="416" height="416" rx="92" fill="none" stroke="#ff5c78" stroke-width="8"/>
+    <rect x="70" y="70" width="372" height="372" rx="70" fill="none" stroke="#43edff" stroke-width="4"/>
+
+    <g fill="none" stroke="#43edff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-cyan)">
+        <path d="M180 156h152l-16 48c-12 38-39 68-72 82-34-14-61-44-73-82l-15-48Z"/>
+        <path d="M213 180 201 286"/>
+        <path d="M256 180v116"/>
+        <path d="M299 180 311 286"/>
+        <path d="M192 248h128"/>
+    </g>
+
+    <g fill="none" stroke="#ff6c70" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M186 364 334 214"/>
+        <path d="M338 150 372 208"/>
+        <path d="M320 124 356 138 338 150"/>
+        <path d="M312 232 328 214"/>
+    </g>
+
+    <g fill="none" stroke="#ffb347" stroke-linecap="round">
+        <path d="M370 134 386 120"/>
+        <path d="M380 146 402 142"/>
+        <path d="M364 118 370 96"/>
+    </g>
+
+    <g stroke="#43edff" stroke-width="5">
+        <path d="M64 96h40" />
+        <path d="M64 96v40" />
+        <path d="M448 96h-40" />
+        <path d="M448 96v40" />
+        <path d="M64 416h40" />
+        <path d="M64 416v-40" />
+        <path d="M448 416h-40" />
+        <path d="M448 416v-40" />
+    </g>
 </svg>
