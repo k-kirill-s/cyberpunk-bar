@@ -111,8 +111,10 @@ fun Application.ordersRouting() {
 
         post("/orders/{id}/give") {
             val id = call.parameters["id"].requiredIntParameter()
+            val formParameters = call.receiveParameters()
+            val workerId = formParameters["worker_id"].requiredIntParameter()
 
-            val order = ordersRepository.giveOrder(id)
+            val order = ordersRepository.giveOrder(id, workerId)
 
             val dto = orderFullDtoMapper.getDto(order)
             call.respond(dto)

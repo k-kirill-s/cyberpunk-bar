@@ -40,7 +40,7 @@ fun AppStateMessage(
                 text = it,
                 modifier = Modifier.padding(top = AppTheme.dimensions.basePadding),
                 textAlign = TextAlign.Center,
-                style = AppTheme.typography.body,
+                style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.textSecondary),
             )
         }
     }

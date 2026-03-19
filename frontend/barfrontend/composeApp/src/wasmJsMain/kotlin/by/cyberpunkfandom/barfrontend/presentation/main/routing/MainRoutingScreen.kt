@@ -40,8 +40,8 @@ fun MainRoutingScreen(
             .padding(AppTheme.dimensions.basePadding),
     ) {
         val isCompact = maxWidth < 860.dp
-        val workerHighlight = Color(0xFF5D7287)
-        val adminHighlight = Color(0xFF6D4C1B)
+        val workerHighlight = AppTheme.colorScheme.accentGlow
+        val adminHighlight = AppTheme.colorScheme.accentSecondary
 
         Column(
             modifier = Modifier
@@ -83,7 +83,7 @@ fun MainRoutingScreen(
                     MainMenuCard(
                         title = "Табло",
                         description = "Очередь, сборка и готовые заказы в реальном времени.",
-                        color = AppTheme.colorScheme.green,
+                        color = AppTheme.colorScheme.warning,
                         isCompact = true,
                         onClick = onOpenBoardRequest,
                         modifier = Modifier.fillMaxWidth(),
@@ -141,7 +141,7 @@ fun MainRoutingScreen(
                         MainMenuCard(
                             title = "Табло",
                             description = "Очередь, сборка и готовые заказы в реальном времени.",
-                            color = AppTheme.colorScheme.green,
+                            color = AppTheme.colorScheme.warning,
                             isCompact = false,
                             onClick = onOpenBoardRequest,
                             modifier = Modifier
@@ -178,10 +178,10 @@ private fun MainMenuCard(
         modifier = modifier
             .heightIn(min = if (isCompact) 156.dp else 0.dp)
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(if (isCompact) color.copy(alpha = 0.22f) else color)
+            .background(color.copy(alpha = if (isCompact) 0.16f else 0.12f))
             .border(
                 border = BorderStroke(
-                    width = if (isCompact) 2.dp else 0.dp,
+                    width = 2.dp,
                     color = color,
                 ),
                 shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
@@ -202,7 +202,7 @@ private fun MainMenuCard(
             Text(
                 text = description,
                 textAlign = if (isCompact) TextAlign.Start else TextAlign.Center,
-                style = AppTheme.typography.body,
+                style = AppTheme.typography.body.copy(color = AppTheme.colorScheme.textSecondary),
             )
         }
     }

@@ -1,6 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.di
 
 import by.cyberpunkfandom.barfrontend.presentation.admin.AdminViewModel
+import by.cyberpunkfandom.barfrontend.presentation.admin.AdminCatalogViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.CashierViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.addposition.CashierAddPositionViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.auth.CashierAuthViewModel
@@ -8,7 +9,6 @@ import by.cyberpunkfandom.barfrontend.presentation.cashier.cancelorder.CashierCa
 import by.cyberpunkfandom.barfrontend.presentation.cashier.createorder.CashierCreateOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.giveawayorder.CashierGiveAwayOrderViewModel
 import by.cyberpunkfandom.barfrontend.presentation.cashier.home.CashierHomeViewModel
-import by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions.CashierTogglePositionsViewModel
 import by.cyberpunkfandom.barfrontend.presentation.infoboard.InfoBoardViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.MainViewModel
 import by.cyberpunkfandom.barfrontend.presentation.main.routing.MainRoutingViewModel
@@ -26,6 +26,7 @@ val presentationModule = module {
     viewModelOf(::MainViewModel)
     viewModelOf(::MainRoutingViewModel)
     viewModelOf(::AdminViewModel)
+    viewModelOf(::AdminCatalogViewModel)
 
     viewModelOf(::CashierViewModel)
     viewModelOf(::CashierAuthViewModel)
@@ -50,9 +51,13 @@ val presentationModule = module {
             positionItemsRepository = get(),
         )
     }
-    viewModelOf(::CashierGiveAwayOrderViewModel)
+    viewModel { parameters ->
+        CashierGiveAwayOrderViewModel(
+            cashierId = parameters.get(),
+            ordersRepository = get(),
+        )
+    }
     viewModelOf(::CashierCancelOrderViewModel)
-    viewModelOf(::CashierTogglePositionsViewModel)
 
     viewModelOf(::WorkerViewModel)
     viewModelOf(::WorkerAuthViewModel)

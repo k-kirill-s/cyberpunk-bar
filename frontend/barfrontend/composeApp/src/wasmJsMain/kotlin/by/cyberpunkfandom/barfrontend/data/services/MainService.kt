@@ -1,5 +1,6 @@
 package by.cyberpunkfandom.barfrontend.data.services
 
+import by.cyberpunkfandom.barfrontend.data.models.AdminAnalyticsDto
 import by.cyberpunkfandom.barfrontend.data.models.ErrorDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderDto
 import by.cyberpunkfandom.barfrontend.data.models.OrderFullDto
@@ -46,6 +47,12 @@ class MainService(
                 append("password", password)
             },
         ).bodyOrThrowGeneralError<Unit>()
+    }
+
+    suspend fun getAdminAnalytics(): AdminAnalyticsDto {
+        return httpClient.get(api("admin/analytics")) {
+            applyAdminHeaders()
+        }.bodyOrThrowGeneralError()
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -97,8 +104,13 @@ class MainService(
         ).bodyOrThrowGeneralError()
     }
 
-    suspend fun giveAwayOrder(orderId: Int): OrderFullDto {
-        return httpClient.post(api("orders/${orderId}/give")).bodyOrThrowGeneralError()
+    suspend fun giveAwayOrder(orderId: Int, workerId: Int): OrderFullDto {
+        return httpClient.submitForm(
+            url = api("orders/${orderId}/give"),
+            formParameters = parameters {
+                append("worker_id", workerId.toString())
+            },
+        ).bodyOrThrowGeneralError()
     }
 
     suspend fun declineOrder(orderId: Int): OrderFullDto {

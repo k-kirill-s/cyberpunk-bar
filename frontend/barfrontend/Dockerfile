@@ -1,50 +1,44 @@
-# syntax=docker/dockerfile:1.7
-
-# Build on amd64 because the Kotlin/Wasm Binaryen download used by the
-# distribution task is not available for linux/arm64.
-FROM --platform=linux/amd64 gradle:8-jdk21 AS deps
-
-WORKDIR /home/gradle/src
-ENV GRADLE_USER_HOME=/home/gradle/.gradle
-ENV KONAN_DATA_DIR=/home/gradle/.konan
-
-# Copy only build configuration first so dependency/toolchain setup stays cached
-# when application sources change.
-COPY --chown=gradle:gradle settings.gradle.kts build.gradle.kts gradle.properties ./
-COPY --chown=gradle:gradle gradle/libs.versions.toml gradle/libs.versions.toml
-COPY --chown=gradle:gradle composeApp/build.gradle.kts composeApp/build.gradle.kts
-
-RUN mkdir -p composeApp
-
-RUN --mount=type=cache,id=frontend-gradle-cache,target=/home/gradle/.gradle,sharing=locked \
-    --mount=type=cache,id=frontend-konan-cache,target=/home/gradle/.konan,sharing=locked \
-    --mount=type=cache,id=frontend-npm-cache,target=/home/gradle/.npm,sharing=locked \
-    --mount=type=cache,id=frontend-kotlin-js-store-cache,target=/home/gradle/src/kotlin-js-store,sharing=locked \
-    gradle kotlinNpmInstall kotlinBinaryenSetup --no-daemon
-
-FROM deps AS build
-
-# Copy project sources after the dependency/toolchain layer.
-COPY --chown=gradle:gradle . .
-
-# Build production distribution for Kotlin/Wasm (Compose Multiplatform).
-# The distribution sync expects the production executable artifacts to already
-# exist. Skipping the Binaryen optimize task avoids the Apple Silicon amd64
-# hang, but it also removes the compile task from the dependency graph, so we
-# run the compile step explicitly first.
-RUN --mount=type=cache,id=frontend-gradle-cache,target=/home/gradle/.gradle,sharing=locked \
-    --mount=type=cache,id=frontend-konan-cache,target=/home/gradle/.konan,sharing=locked \
-    --mount=type=cache,id=frontend-npm-cache,target=/home/gradle/.npm,sharing=locked \
-    --mount=type=cache,id=frontend-kotlin-js-store-cache,target=/home/gradle/src/kotlin-js-store,sharing=locked \
-    gradle :composeApp:compileProductionExecutableKotlinWasmJs \
-      :composeApp:wasmJsBrowserDistribution \
-      -x :composeApp:compileProductionExecutableKotlinWasmJsOptimize \
-      --no-daemon
-
-# # Runtime stage: serve with nginx
 FROM nginx:alpine AS runtime
 
-COPY --from=build /home/gradle/src/composeApp/build/dist/wasmJs/productionExecutable/ /usr/share/nginx/html/
+COPY composeApp/build/dist/wasmJs/productionExecutable/ /usr/share/nginx/html/
+COPY composeApp/build/compileSync/wasmJs/main/productionExecutable/kotlin/composeApp.mjs /usr/share/nginx/html/
+COPY composeApp/build/compileSync/wasmJs/main/productionExecutable/kotlin/composeApp.uninstantiated.mjs /usr/share/nginx/html/
+COPY composeApp/build/compileSync/wasmJs/main/productionExecutable/kotlin/composeApp.wasm /usr/share/nginx/html/
+COPY composeApp/build/compileSync/wasmJs/main/productionExecutable/kotlin/composeApp.wasm.map /usr/share/nginx/html/
+COPY composeApp/build/compose/skiko-runtime-processed-wasmjs/ /usr/share/nginx/html/
+COPY build/js/node_modules/@js-joda/core/dist/js-joda.esm.js /usr/share/nginx/html/vendor/js-joda.esm.js
+RUN cat <<'EOF' > /usr/share/nginx/html/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>barfrontend</title>
+    <link type="text/css" rel="stylesheet" href="styles.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "@js-joda/core": "/vendor/js-joda.esm.js"
+            }
+        }
+    </script>
+    <script type="module">
+        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+            const registrations = navigator.serviceWorker?.getRegistrations?.() ?? Promise.resolve([])
+            registrations.then((items) => Promise.all(items.map((item) => item.unregister())))
+            if ("caches" in window) {
+                caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+            }
+        }
+        import "/composeApp.mjs";
+    </script>
+</head>
+<body>
+</body>
+</html>
+EOF
+RUN find /usr/share/nginx/html -type d -exec chmod 755 {} \; \
+ && find /usr/share/nginx/html -type f -exec chmod 644 {} \;
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://127.0.0.1/ > /dev/null || exit 1

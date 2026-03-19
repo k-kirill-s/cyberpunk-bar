@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = "cyberpunk-bar-shell-v2";
-const RUNTIME_CACHE = "cyberpunk-bar-runtime-v2";
+const APP_SHELL_CACHE = "cyberpunk-bar-shell-v3";
+const RUNTIME_CACHE = "cyberpunk-bar-runtime-v3";
 const OFFLINE_FALLBACK = "/offline.html";
 const APP_SHELL_URLS = [
     "/",

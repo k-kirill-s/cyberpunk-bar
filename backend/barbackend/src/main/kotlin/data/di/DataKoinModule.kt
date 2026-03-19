@@ -20,4 +20,5 @@ val dataKoinModule = module {
     singleOf(::OrdersRepositoryImpl) bind OrdersRepository::class
     singleOf(::PositionItemsRepositoryImpl) bind PositionItemsRepository::class
     singleOf(::WorkersRepositoryImpl) bind WorkersRepository::class
+    singleOf(::AdminAnalyticsRepositoryImpl) bind AdminAnalyticsRepository::class
 }

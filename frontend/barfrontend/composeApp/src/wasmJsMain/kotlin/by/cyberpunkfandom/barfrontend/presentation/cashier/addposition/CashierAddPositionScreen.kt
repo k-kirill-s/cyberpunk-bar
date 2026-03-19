@@ -1,6 +1,7 @@
 package by.cyberpunkfandom.barfrontend.presentation.cashier.addposition
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import barfrontend.composeapp.generated.resources.Res
@@ -190,6 +192,11 @@ private fun <T> ItemsColumn(
                     modifier = Modifier.fillMaxWidth()
                         .height(AppTheme.dimensions.itemHeight)
                         .background(color = if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.surface)
+                        .border(
+                            width = AppTheme.dimensions.thinDivider * 2,
+                            color = if (isSelected) AppTheme.colorScheme.accent else AppTheme.colorScheme.divider,
+                            shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+                        )
                         .clickable(onClick = { onClick(item) })
                         .padding(horizontal = AppTheme.dimensions.basePadding),
                     contentAlignment = Alignment.CenterStart,

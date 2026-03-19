@@ -27,7 +27,7 @@ interface OrdersRepository {
 
     suspend fun finishOrder(id: Int, workerId: Int): OrderFull
 
-    suspend fun giveOrder(id: Int): OrderFull
+    suspend fun giveOrder(id: Int, workerId: Int): OrderFull
 
     suspend fun declineOrder(id: Int): OrderFull
 }

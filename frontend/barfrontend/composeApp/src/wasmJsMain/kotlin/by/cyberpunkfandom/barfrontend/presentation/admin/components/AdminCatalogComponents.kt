@@ -1,16 +1,19 @@
-package by.cyberpunkfandom.barfrontend.presentation.cashier.togglepositions
+package by.cyberpunkfandom.barfrontend.presentation.admin.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,9 +25,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,296 +36,44 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import barfrontend.composeapp.generated.resources.Res
-import barfrontend.composeapp.generated.resources.back_24dp
 import by.cyberpunkfandom.barfrontend.core.format
+import by.cyberpunkfandom.barfrontend.domain.AdminAnalytics
+import by.cyberpunkfandom.barfrontend.domain.DrinkAnalytics
 import by.cyberpunkfandom.barfrontend.domain.Position
 import by.cyberpunkfandom.barfrontend.domain.PositionVariant
+import by.cyberpunkfandom.barfrontend.domain.ProductAnalytics
 import by.cyberpunkfandom.barfrontend.domain.Worker
-import by.cyberpunkfandom.barfrontend.domain.exceptions.ExceptionCodes
+import by.cyberpunkfandom.barfrontend.domain.WorkerAnalytics
+import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBigButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppBoxButton
 import by.cyberpunkfandom.barfrontend.presentation.core.components.AppStateMessage
-import by.cyberpunkfandom.barfrontend.presentation.core.components.AppTopBar
 import by.cyberpunkfandom.barfrontend.presentation.core.theme.AppTheme
-import org.jetbrains.compose.resources.painterResource
-
-private enum class CatalogPage {
-    OVERVIEW,
-    CREATE_WORKER,
-    EDIT_WORKER,
-    CREATE_POSITION,
-    EDIT_POSITION,
-    CREATE_VARIANT,
-    EDIT_VARIANT,
-}
 
 @Composable
-fun CashierTogglePositionsScreen(
-    onError: (code: ExceptionCodes) -> Unit,
-    onBackRequest: () -> Unit,
-    viewModel: CashierTogglePositionsViewModel,
-) {
-    LaunchedEffect(Unit) {
-        viewModel.onError.collect { code ->
-            onError(code)
-        }
-    }
-
-    CashierTogglePositionsScreen(
-        onBackClick = onBackRequest,
-        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
-        isSaving = viewModel.isSaving.collectAsStateWithLifecycle().value,
-        workers = viewModel.workers.collectAsStateWithLifecycle().value,
-        selectedWorkerId = viewModel.selectedWorkerId.collectAsStateWithLifecycle().value,
-        onWorkerClick = viewModel::onWorkerClick,
-        onCreateWorker = { name, canBeCashier, canBeBartender, onSuccess ->
-            viewModel.createWorker(name, canBeCashier, canBeBartender, onSuccess)
-        },
-        onUpdateWorker = { workerId, name, isOnLine, canBeCashier, canBeBartender, onSuccess ->
-            viewModel.updateWorker(workerId, name, isOnLine, canBeCashier, canBeBartender, onSuccess)
-        },
-        onDeleteWorker = { workerId, onSuccess -> viewModel.deleteWorker(workerId, onSuccess) },
-        positions = viewModel.positions.collectAsStateWithLifecycle().value,
-        selectedPositionId = viewModel.selectedPositionId.collectAsStateWithLifecycle().value,
-        selectedPositionVariantIds = viewModel.selectedPositionVariantIds.collectAsStateWithLifecycle().value,
-        onPositionClick = viewModel::onPositionClick,
-        onCreatePosition = { name, description, positionVariantIds, onSuccess ->
-            viewModel.createPosition(name, description, positionVariantIds, onSuccess)
-        },
-        onUpdatePosition = { positionId, name, description, positionVariantIds, onSuccess ->
-            viewModel.updatePosition(positionId, name, description, positionVariantIds, onSuccess)
-        },
-        onDeletePosition = { positionId, onSuccess -> viewModel.deletePosition(positionId, onSuccess) },
-        positionVariants = viewModel.positionVariants.collectAsStateWithLifecycle().value,
-        selectedPositionVariantId = viewModel.selectedPositionVariantId.collectAsStateWithLifecycle().value,
-        onPositionVariantClick = viewModel::onPositionVariantClick,
-        onCreatePositionVariant = { name, price, onSuccess ->
-            viewModel.createPositionVariant(name, price, onSuccess)
-        },
-        onUpdatePositionVariant = { positionVariantId, name, price, isActive, onSuccess ->
-            viewModel.updatePositionVariant(positionVariantId, name, price, isActive, onSuccess)
-        },
-        onDeletePositionVariant = { positionVariantId, onSuccess ->
-            viewModel.deletePositionVariant(positionVariantId, onSuccess)
-        },
-    )
-}
-
-@Composable
-private fun CashierTogglePositionsScreen(
-    onBackClick: () -> Unit,
-    isLoading: Boolean,
-    isSaving: Boolean,
-    workers: List<Worker>,
-    selectedWorkerId: Int?,
-    onWorkerClick: (Worker) -> Unit,
-    onCreateWorker: (String, Boolean, Boolean, () -> Unit) -> Unit,
-    onUpdateWorker: (Int, String, Boolean, Boolean, Boolean, () -> Unit) -> Unit,
-    onDeleteWorker: (Int, () -> Unit) -> Unit,
-    positions: List<Position>,
-    selectedPositionId: String?,
-    selectedPositionVariantIds: Set<String>,
-    onPositionClick: (Position) -> Unit,
-    onCreatePosition: (String, String, List<String>, () -> Unit) -> Unit,
-    onUpdatePosition: (String, String, String, List<String>, () -> Unit) -> Unit,
-    onDeletePosition: (String, () -> Unit) -> Unit,
-    positionVariants: List<PositionVariant>,
-    selectedPositionVariantId: String?,
-    onPositionVariantClick: (PositionVariant) -> Unit,
-    onCreatePositionVariant: (String, Float, () -> Unit) -> Unit,
-    onUpdatePositionVariant: (String, String, Float, Boolean, () -> Unit) -> Unit,
-    onDeletePositionVariant: (String, () -> Unit) -> Unit,
-) {
-    var currentPage by rememberSaveable { mutableStateOf(CatalogPage.OVERVIEW) }
-
-    val selectedWorker = workers.firstOrNull { it.id == selectedWorkerId }
-    val selectedPosition = positions.firstOrNull { it.id == selectedPositionId }
-    val selectedPositionVariant = positionVariants.firstOrNull { it.id == selectedPositionVariantId }
-
-    val topBarTitle = when (currentPage) {
-        CatalogPage.OVERVIEW -> "Каталог и команда"
-        CatalogPage.CREATE_WORKER -> "Новый стендовик"
-        CatalogPage.EDIT_WORKER -> "Стендовик"
-        CatalogPage.CREATE_POSITION -> "Новый напиток"
-        CatalogPage.EDIT_POSITION -> "Напиток"
-        CatalogPage.CREATE_VARIANT -> "Новый товар"
-        CatalogPage.EDIT_VARIANT -> "Товар"
-    }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        AppTopBar(
-            title = topBarTitle,
-            leftIcon = painterResource(Res.drawable.back_24dp),
-            onLeftIconClick = {
-                if (currentPage == CatalogPage.OVERVIEW) {
-                    onBackClick()
-                } else {
-                    currentPage = CatalogPage.OVERVIEW
-                }
-            },
-        )
-
-        if (isLoading && currentPage == CatalogPage.OVERVIEW) {
-            AppStateMessage(
-                title = "Загружаем каталог",
-                isLoading = true,
-                modifier = Modifier.weight(1f),
-            )
-            return
-        }
-
-        when (currentPage) {
-            CatalogPage.OVERVIEW -> CatalogOverviewScreen(
-                workers = workers,
-                selectedWorker = selectedWorker,
-                onWorkerClick = onWorkerClick,
-                onOpenCreateWorker = { currentPage = CatalogPage.CREATE_WORKER },
-                onOpenEditWorker = { currentPage = CatalogPage.EDIT_WORKER },
-                positions = positions,
-                selectedPosition = selectedPosition,
-                selectedPositionVariantIds = selectedPositionVariantIds,
-                positionVariants = positionVariants,
-                selectedPositionVariant = selectedPositionVariant,
-                onPositionClick = onPositionClick,
-                onPositionVariantClick = onPositionVariantClick,
-                onOpenCreatePosition = { currentPage = CatalogPage.CREATE_POSITION },
-                onOpenEditPosition = { currentPage = CatalogPage.EDIT_POSITION },
-                onOpenCreateVariant = { currentPage = CatalogPage.CREATE_VARIANT },
-                onOpenEditVariant = { currentPage = CatalogPage.EDIT_VARIANT },
-            )
-
-            CatalogPage.CREATE_WORKER -> WorkerEditorScreen(
-                worker = null,
-                isSaving = isSaving,
-                onSave = { name, isOnLine, canBeCashier, canBeBartender, onSuccess ->
-                    onCreateWorker(name, canBeCashier, canBeBartender) {
-                        onSuccess()
-                        currentPage = CatalogPage.OVERVIEW
-                    }
-                },
-                onDelete = null,
-            )
-
-            CatalogPage.EDIT_WORKER -> WorkerEditorScreen(
-                worker = selectedWorker,
-                isSaving = isSaving,
-                onSave = { name, isOnLine, canBeCashier, canBeBartender, onSuccess ->
-                    selectedWorker?.let { worker ->
-                        onUpdateWorker(worker.id, name, isOnLine, canBeCashier, canBeBartender) {
-                            onSuccess()
-                            currentPage = CatalogPage.OVERVIEW
-                        }
-                    }
-                },
-                onDelete = selectedWorker?.let { worker ->
-                    {
-                        onDeleteWorker(worker.id) {
-                            currentPage = CatalogPage.OVERVIEW
-                        }
-                    }
-                },
-            )
-
-            CatalogPage.CREATE_POSITION -> PositionEditorScreen(
-                position = null,
-                availablePositionVariants = positionVariants,
-                initiallySelectedPositionVariantIds = emptySet(),
-                isSaving = isSaving,
-                onSave = { name, description, positionVariantIds, onSuccess ->
-                    onCreatePosition(name, description, positionVariantIds) {
-                        onSuccess()
-                        currentPage = CatalogPage.OVERVIEW
-                    }
-                },
-                onDelete = null,
-            )
-
-            CatalogPage.EDIT_POSITION -> PositionEditorScreen(
-                position = selectedPosition,
-                availablePositionVariants = positionVariants,
-                initiallySelectedPositionVariantIds = selectedPositionVariantIds,
-                isSaving = isSaving,
-                onSave = { name, description, positionVariantIds, onSuccess ->
-                    selectedPosition?.let { position ->
-                        onUpdatePosition(position.id, name, description, positionVariantIds) {
-                            onSuccess()
-                            currentPage = CatalogPage.OVERVIEW
-                        }
-                    }
-                },
-                onDelete = selectedPosition?.let { position ->
-                    {
-                        onDeletePosition(position.id) {
-                            currentPage = CatalogPage.OVERVIEW
-                        }
-                    }
-                },
-            )
-
-            CatalogPage.CREATE_VARIANT -> VariantEditorScreen(
-                variant = null,
-                isSaving = isSaving,
-                onSave = { name, price, isActive, onSuccess ->
-                    onCreatePositionVariant(name, price) {
-                        onSuccess()
-                        currentPage = CatalogPage.OVERVIEW
-                    }
-                },
-                onDelete = null,
-            )
-
-            CatalogPage.EDIT_VARIANT -> VariantEditorScreen(
-                variant = selectedPositionVariant,
-                isSaving = isSaving,
-                onSave = { name, price, isActive, onSuccess ->
-                    selectedPositionVariant?.let { variant ->
-                        onUpdatePositionVariant(variant.id, name, price, isActive) {
-                            onSuccess()
-                            currentPage = CatalogPage.OVERVIEW
-                        }
-                    }
-                },
-                onDelete = selectedPositionVariant?.let { variant ->
-                    {
-                        onDeletePositionVariant(variant.id) {
-                            currentPage = CatalogPage.OVERVIEW
-                        }
-                    }
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun CatalogOverviewScreen(
+internal fun AdminOverviewContent(
     workers: List<Worker>,
     selectedWorker: Worker?,
-    onWorkerClick: (Worker) -> Unit,
-    onOpenCreateWorker: () -> Unit,
-    onOpenEditWorker: () -> Unit,
     positions: List<Position>,
     selectedPosition: Position?,
     selectedPositionVariantIds: Set<String>,
     positionVariants: List<PositionVariant>,
     selectedPositionVariant: PositionVariant?,
-    onPositionClick: (Position) -> Unit,
-    onPositionVariantClick: (PositionVariant) -> Unit,
-    onOpenCreatePosition: () -> Unit,
-    onOpenEditPosition: () -> Unit,
-    onOpenCreateVariant: () -> Unit,
-    onOpenEditVariant: () -> Unit,
+    onOpenAnalyticsRequest: () -> Unit,
+    onOpenWorkersRequest: () -> Unit,
+    onOpenPositionsRequest: () -> Unit,
+    onOpenVariantsRequest: () -> Unit,
+    onLogoutRequest: () -> Unit,
 ) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .padding(AppTheme.dimensions.basePadding),
     ) {
-        val isCompact = maxWidth < 1100.dp
+        val isCompact = maxWidth < 900.dp
 
         if (isCompact) {
             Column(
@@ -331,84 +82,156 @@ private fun CatalogOverviewScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
             ) {
-                WorkersPanel(
-                    workers = workers,
-                    selectedWorker = selectedWorker,
-                    onWorkerClick = onWorkerClick,
-                    onOpenCreate = onOpenCreateWorker,
-                    onOpenEdit = onOpenEditWorker,
+                AdminNavigationCard(
+                    title = "Аналитика",
+                    countText = "Отдельный экран отчётов",
+                    summary = "Продажи по напиткам, товарам, выручка и статистика команды.",
+                    onOpenClick = onOpenAnalyticsRequest,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                PositionsPanel(
-                    positions = positions,
-                    selectedPosition = selectedPosition,
-                    linkedProductsCount = selectedPositionVariantIds.size,
-                    onPositionClick = onPositionClick,
-                    onOpenCreate = onOpenCreatePosition,
-                    onOpenEdit = onOpenEditPosition,
+                AdminNavigationCard(
+                    title = "Стендовики",
+                    countText = "Всего: ${workers.size}",
+                    summary = selectedWorker?.let {
+                        buildString {
+                            append(it.name)
+                            append(" • ")
+                            append(
+                                when {
+                                    it.canBeCashier && it.canBeBartender -> "Кассир и бармен"
+                                    it.canBeCashier -> "Кассир"
+                                    it.canBeBartender -> "Бармен"
+                                    else -> "Без роли"
+                                }
+                            )
+                        }
+                    } ?: "Откройте список, чтобы управлять командой.",
+                    onOpenClick = onOpenWorkersRequest,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                VariantsPanel(
-                    positionVariants = positionVariants,
-                    selectedPositionVariant = selectedPositionVariant,
-                    selectedPositionVariantIds = selectedPositionVariantIds,
-                    onPositionVariantClick = onPositionVariantClick,
-                    onOpenCreate = onOpenCreateVariant,
-                    onOpenEdit = onOpenEditVariant,
+                AdminNavigationCard(
+                    title = "Напитки",
+                    countText = "Всего: ${positions.size}",
+                    summary = selectedPosition?.let {
+                        "Выбрано товаров: ${selectedPositionVariantIds.size}"
+                    } ?: "Откройте список напитков и редактируйте их связи с товарами.",
+                    onOpenClick = onOpenPositionsRequest,
                     modifier = Modifier.fillMaxWidth(),
+                )
+
+                AdminNavigationCard(
+                    title = "Товары",
+                    countText = "Всего: ${positionVariants.size}",
+                    summary = selectedPositionVariant?.let {
+                        "${it.name} • ${it.price.format(2)}"
+                    } ?: "Откройте список товаров, чтобы менять цены и активность.",
+                    onOpenClick = onOpenVariantsRequest,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                AppBigButton(
+                    title = "Выйти из админки",
+                    onClick = onLogoutRequest,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = AppTheme.colorScheme.red,
                 )
             }
         } else {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
             ) {
-                WorkersPanel(
-                    workers = workers,
-                    selectedWorker = selectedWorker,
-                    onWorkerClick = onWorkerClick,
-                    onOpenCreate = onOpenCreateWorker,
-                    onOpenEdit = onOpenEditWorker,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-
-                Column(
-                    modifier = Modifier
-                        .weight(2f)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
                 ) {
-                    PositionsPanel(
-                        positions = positions,
-                        selectedPosition = selectedPosition,
-                        linkedProductsCount = selectedPositionVariantIds.size,
-                        onPositionClick = onPositionClick,
-                        onOpenCreate = onOpenCreatePosition,
-                        onOpenEdit = onOpenEditPosition,
+                    AdminNavigationCard(
+                        title = "Аналитика",
+                        countText = "Отдельный экран отчётов",
+                        summary = "Продажи, выручка и команда без смешивания с каталогом.",
+                        onOpenClick = onOpenAnalyticsRequest,
                         modifier = Modifier.weight(1f),
                     )
 
-                    VariantsPanel(
-                        positionVariants = positionVariants,
-                        selectedPositionVariant = selectedPositionVariant,
-                        selectedPositionVariantIds = selectedPositionVariantIds,
-                        onPositionVariantClick = onPositionVariantClick,
-                        onOpenCreate = onOpenCreateVariant,
-                        onOpenEdit = onOpenEditVariant,
+                    AdminNavigationCard(
+                        title = "Стендовики",
+                        countText = "Всего: ${workers.size}",
+                        summary = selectedWorker?.let {
+                            buildString {
+                                append(it.name)
+                                append(" • ")
+                                append(if (it.isOnLine) "В сети" else "Офлайн")
+                            }
+                        } ?: "Откройте раздел и управляйте командой.",
+                        onOpenClick = onOpenWorkersRequest,
                         modifier = Modifier.weight(1f),
                     )
                 }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+                ) {
+                    AdminNavigationCard(
+                        title = "Напитки",
+                        countText = "Всего: ${positions.size}",
+                        summary = selectedPosition?.let {
+                            "${it.name} • товаров: ${selectedPositionVariantIds.size}"
+                        } ?: "Откройте раздел напитков.",
+                        onOpenClick = onOpenPositionsRequest,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    AdminNavigationCard(
+                        title = "Товары",
+                        countText = "Всего: ${positionVariants.size}",
+                        summary = selectedPositionVariant?.let {
+                            "${it.name} • ${if (it.isActive) "Активен" else "Выключен"}"
+                        } ?: "Откройте раздел товаров.",
+                        onOpenClick = onOpenVariantsRequest,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+                AppBigButton(
+                    title = "Выйти из админки",
+                    onClick = onLogoutRequest,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = AppTheme.colorScheme.red,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun WorkersPanel(
+internal fun AdminAnalyticsContent(
+    analytics: AdminAnalytics?,
+    isAnalyticsRefreshing: Boolean,
+    onAnalyticsRefreshClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(AppTheme.dimensions.basePadding)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+    ) {
+        AnalyticsPanel(
+            analytics = analytics,
+            isRefreshing = isAnalyticsRefreshing,
+            onRefreshClick = onAnalyticsRefreshClick,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+internal fun WorkersPanel(
     workers: List<Worker>,
     selectedWorker: Worker?,
     onWorkerClick: (Worker) -> Unit,
@@ -432,7 +255,7 @@ private fun WorkersPanel(
         if (workers.isEmpty()) {
             AppStateMessage(
                 title = "Стендовиков пока нет",
-                description = "Откройте отдельную страницу и создайте первого стендовика.",
+                description = "Создайте первого стендовика на отдельной странице редактирования.",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -445,7 +268,7 @@ private fun WorkersPanel(
             selectedItem = selectedWorker,
             itemKey = Worker::id,
             onItemClick = onWorkerClick,
-            modifier = Modifier.heightIn(min = 220.dp, max = 360.dp),
+            modifier = Modifier.heightIn(min = 220.dp, max = 420.dp),
         ) { worker ->
             Column {
                 Text(text = worker.name, style = MaterialTheme.typography.titleLarge)
@@ -483,7 +306,7 @@ private fun WorkersPanel(
                     append(" • ")
                     append(if (it.isOnLine) "Сейчас в сети" else "Сейчас офлайн")
                 }
-            } ?: "Выберите карточку из списка, затем откройте отдельную страницу редактирования.",
+            } ?: "Выберите стендовика, затем откройте экран редактирования.",
             subtitleColor = if (selectedWorker?.isOnLine == true) {
                 AppTheme.colorScheme.green
             } else {
@@ -494,7 +317,7 @@ private fun WorkersPanel(
 }
 
 @Composable
-private fun PositionsPanel(
+internal fun PositionsPanel(
     positions: List<Position>,
     selectedPosition: Position?,
     linkedProductsCount: Int,
@@ -519,7 +342,7 @@ private fun PositionsPanel(
         if (positions.isEmpty()) {
             AppStateMessage(
                 title = "Напитки пока не заведены",
-                description = "Создайте напиток и сразу отметьте, с какими товарами он продаётся.",
+                description = "Создайте напиток и затем задайте связанные товары.",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -532,7 +355,7 @@ private fun PositionsPanel(
             selectedItem = selectedPosition,
             itemKey = Position::id,
             onItemClick = onPositionClick,
-            modifier = Modifier.heightIn(min = 220.dp, max = 320.dp),
+            modifier = Modifier.heightIn(min = 220.dp, max = 360.dp),
         ) { position ->
             Column {
                 Text(text = position.name, style = MaterialTheme.typography.titleLarge)
@@ -547,13 +370,13 @@ private fun PositionsPanel(
         SelectionSummary(
             title = selectedPosition?.name ?: "Напиток не выбран",
             subtitle = selectedPosition?.let { "Привязано товаров: $linkedProductsCount" }
-                ?: "Выберите напиток, чтобы посмотреть и изменить связанные товары.",
+                ?: "Выберите напиток и откройте отдельный экран редактирования.",
         )
     }
 }
 
 @Composable
-private fun VariantsPanel(
+internal fun VariantsPanel(
     positionVariants: List<PositionVariant>,
     selectedPositionVariant: PositionVariant?,
     selectedPositionVariantIds: Set<String>,
@@ -578,7 +401,7 @@ private fun VariantsPanel(
         if (positionVariants.isEmpty()) {
             AppStateMessage(
                 title = "Товаров пока нет",
-                description = "Добавьте первый товар, задайте ему цену и затем привязывайте к напиткам.",
+                description = "Добавьте товар, задайте цену и затем привязывайте его к напиткам.",
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 220.dp),
@@ -591,7 +414,7 @@ private fun VariantsPanel(
             selectedItem = selectedPositionVariant,
             itemKey = PositionVariant::id,
             onItemClick = onPositionVariantClick,
-            modifier = Modifier.heightIn(min = 220.dp, max = 300.dp),
+            modifier = Modifier.heightIn(min = 220.dp, max = 360.dp),
         ) { variant ->
             Column {
                 Text(text = variant.name, style = MaterialTheme.typography.titleLarge)
@@ -616,14 +439,15 @@ private fun VariantsPanel(
 
         SelectionSummary(
             title = selectedPositionVariant?.name ?: "Товар не выбран",
-            subtitle = selectedPositionVariant?.let { "${it.price.format(2)} • ${if (it.isActive) "Активен" else "Выключен"}" }
-                ?: "Выберите товар, чтобы открыть отдельную страницу редактирования.",
+            subtitle = selectedPositionVariant?.let {
+                "${it.price.format(2)} • ${if (it.isActive) "Активен" else "Выключен"}"
+            } ?: "Выберите товар и откройте отдельный экран редактирования.",
         )
     }
 }
 
 @Composable
-private fun WorkerEditorScreen(
+internal fun WorkerEditorContent(
     worker: Worker?,
     isSaving: Boolean,
     onSave: (String, Boolean, Boolean, Boolean, () -> Unit) -> Unit,
@@ -631,8 +455,8 @@ private fun WorkerEditorScreen(
 ) {
     if (worker == null && onDelete != null) {
         MissingSelectionState(
-            title = "Стендовик не выбран",
-            description = "Вернитесь назад, выберите стендовика в списке и затем откройте страницу редактирования.",
+            title = "Стендовик не найден",
+            description = "Вернитесь назад, выберите стендовика в списке и повторите действие.",
         )
         return
     }
@@ -647,9 +471,9 @@ private fun WorkerEditorScreen(
         SectionCard(title = if (isCreateMode) "Новый стендовик" else "Карточка стендовика") {
             Text(
                 text = if (isCreateMode) {
-                    "Задайте имя и сразу отметьте, может ли стендовик работать кассиром и/или барменом."
+                    "Задайте имя и роли нового стендовика."
                 } else {
-                    "Здесь можно обновить имя стендовика, роли и вручную переключить статус онлайн."
+                    "Здесь меняются имя, роли и статус онлайн."
                 },
                 style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
             )
@@ -702,7 +526,7 @@ private fun WorkerEditorScreen(
 }
 
 @Composable
-private fun PositionEditorScreen(
+internal fun PositionEditorContent(
     position: Position?,
     availablePositionVariants: List<PositionVariant>,
     initiallySelectedPositionVariantIds: Set<String>,
@@ -712,8 +536,8 @@ private fun PositionEditorScreen(
 ) {
     if (position == null && onDelete != null) {
         MissingSelectionState(
-            title = "Напиток не выбран",
-            description = "Вернитесь назад, выберите напиток и затем откройте страницу редактирования.",
+            title = "Напиток не найден",
+            description = "Вернитесь назад, выберите напиток и затем откройте редактирование снова.",
         )
         return
     }
@@ -721,7 +545,7 @@ private fun PositionEditorScreen(
     val isCreateMode = position == null
     var name by rememberSaveable(position?.id) { mutableStateOf(position?.name.orEmpty()) }
     var description by rememberSaveable(position?.id) { mutableStateOf(position?.description.orEmpty()) }
-    var selectedPositionVariantIds by rememberSaveable(position?.id) {
+    var selectedIds by rememberSaveable(position?.id) {
         mutableStateOf(initiallySelectedPositionVariantIds.toSet())
     }
 
@@ -729,9 +553,9 @@ private fun PositionEditorScreen(
         SectionCard(title = if (isCreateMode) "Новый напиток" else "Редактирование напитка") {
             Text(
                 text = if (isCreateMode) {
-                    "Напиток создаётся отдельно от товаров. Сразу выберите, с какими товарами он доступен."
+                    "Напиток создаётся отдельно. Сразу отметьте доступные товары."
                 } else {
-                    "Здесь меняются название, описание и состав доступных товаров для напитка."
+                    "Здесь меняются название, описание и состав доступных товаров."
                 },
                 style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
             )
@@ -742,6 +566,7 @@ private fun PositionEditorScreen(
                 label = "Название",
                 singleLine = true,
             )
+
             AppFormTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -751,12 +576,12 @@ private fun PositionEditorScreen(
 
             PositionVariantsSelector(
                 positionVariants = availablePositionVariants,
-                selectedPositionVariantIds = selectedPositionVariantIds,
+                selectedPositionVariantIds = selectedIds,
                 onCheckedChange = { positionVariantId, isChecked ->
-                    selectedPositionVariantIds = if (isChecked) {
-                        selectedPositionVariantIds + positionVariantId
+                    selectedIds = if (isChecked) {
+                        selectedIds + positionVariantId
                     } else {
-                        selectedPositionVariantIds - positionVariantId
+                        selectedIds - positionVariantId
                     }
                 },
             )
@@ -764,10 +589,10 @@ private fun PositionEditorScreen(
             ActionRow(
                 primaryTitle = if (isCreateMode) "Добавить" else "Сохранить",
                 onPrimaryClick = {
-                    onSave(name, description, selectedPositionVariantIds.toList()) {
+                    onSave(name, description, selectedIds.toList()) {
                         name = ""
                         description = ""
-                        selectedPositionVariantIds = emptySet()
+                        selectedIds = emptySet()
                     }
                 },
                 primaryEnabled = name.isNotBlank() && !isSaving,
@@ -782,25 +607,23 @@ private fun PositionEditorScreen(
 }
 
 @Composable
-private fun VariantEditorScreen(
+internal fun VariantEditorContent(
     variant: PositionVariant?,
     isSaving: Boolean,
     onSave: (String, Float, Boolean, () -> Unit) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
-    val isCreateMode = variant == null
     if (variant == null && onDelete != null) {
         MissingSelectionState(
-            title = "Товар не выбран",
-            description = "Вернитесь назад, выберите товар из списка и затем откройте страницу редактирования.",
+            title = "Товар не найден",
+            description = "Вернитесь назад, выберите товар из списка и повторите действие.",
         )
         return
     }
 
+    val isCreateMode = variant == null
     var name by rememberSaveable(variant?.id) { mutableStateOf(variant?.name.orEmpty()) }
-    var price by rememberSaveable(variant?.id) {
-        mutableStateOf(variant?.price?.format(2).orEmpty())
-    }
+    var price by rememberSaveable(variant?.id) { mutableStateOf(variant?.price?.format(2).orEmpty()) }
     var isActive by rememberSaveable(variant?.id) { mutableStateOf(variant?.isActive ?: true) }
 
     val parsedPrice = remember(price) { price.replace(",", ".").toFloatOrNull() }
@@ -813,6 +636,7 @@ private fun VariantEditorScreen(
                 label = "Название",
                 singleLine = true,
             )
+
             AppFormTextField(
                 value = price,
                 onValueChange = { price = it },
@@ -851,6 +675,283 @@ private fun VariantEditorScreen(
 }
 
 @Composable
+internal fun AdminLoadingState(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    AppStateMessage(
+        title = title,
+        isLoading = true,
+        modifier = modifier.fillMaxSize(),
+    )
+}
+
+@Composable
+internal fun ColumnScope.AdminContentContainer(
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f),
+    ) {
+        content()
+    }
+}
+
+@Composable
+internal fun AdminNavigationCard(
+    title: String,
+    countText: String,
+    summary: String,
+    onOpenClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SectionCard(
+        title = title,
+        modifier = modifier,
+        action = {
+            SectionActionButton(
+                title = "Открыть",
+                onClick = onOpenClick,
+                color = AppTheme.colorScheme.accent,
+            )
+        },
+    ) {
+        Text(
+            text = countText,
+            color = AppTheme.colorScheme.warning,
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Text(
+            text = summary,
+            color = AppTheme.colorScheme.textSecondary,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
+private fun AnalyticsPanel(
+    analytics: AdminAnalytics?,
+    isRefreshing: Boolean,
+    onRefreshClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SectionCard(
+        title = "Аналитика",
+        modifier = modifier,
+        action = {
+            SectionActionButton(
+                title = if (isRefreshing) "Обновляем..." else "Обновить",
+                onClick = onRefreshClick,
+                enabled = !isRefreshing,
+                color = AppTheme.colorScheme.accent,
+            )
+        },
+    ) {
+        if (analytics == null) {
+            AppStateMessage(
+                title = "Загружаем аналитику",
+                isLoading = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 220.dp),
+            )
+            return@SectionCard
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
+        ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val compactMetrics = maxWidth < 680.dp
+
+                if (compactMetrics) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding / 2),
+                    ) {
+                        AnalyticsMetricCard(
+                            title = "Выдано заказов",
+                            value = analytics.soldOrdersCount.toString(),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Продано позиций",
+                            value = analytics.soldItemsCount.toString(),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Выручка",
+                            value = analytics.totalRevenue.format(2),
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding / 2),
+                    ) {
+                        AnalyticsMetricCard(
+                            title = "Выдано заказов",
+                            value = analytics.soldOrdersCount.toString(),
+                            modifier = Modifier.weight(1f),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Продано позиций",
+                            value = analytics.soldItemsCount.toString(),
+                            modifier = Modifier.weight(1f),
+                        )
+                        AnalyticsMetricCard(
+                            title = "Выручка",
+                            value = analytics.totalRevenue.format(2),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+
+            AnalyticsSalesSection(
+                title = "Продажи по напиткам",
+                rows = analytics.drinks,
+                name = DrinkAnalytics::positionName,
+                count = DrinkAnalytics::soldCount,
+                revenue = DrinkAnalytics::revenue,
+                emptyText = "Выданных напитков пока нет.",
+            )
+
+            AnalyticsSalesSection(
+                title = "Продажи по товарам",
+                rows = analytics.products,
+                name = ProductAnalytics::positionVariantName,
+                count = ProductAnalytics::soldCount,
+                revenue = ProductAnalytics::revenue,
+                emptyText = "Проданных товаров пока нет.",
+            )
+
+            AnalyticsWorkersSection(workers = analytics.workers)
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsMetricCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
+            .background(AppTheme.colorScheme.surfaceMuted)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
+            .padding(AppTheme.dimensions.basePadding),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+    ) {
+        Text(
+            text = title,
+            color = AppTheme.colorScheme.textSecondary,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = value,
+            color = AppTheme.colorScheme.warning,
+            style = MaterialTheme.typography.headlineSmall,
+        )
+    }
+}
+
+@Composable
+private fun <T> AnalyticsSalesSection(
+    title: String,
+    rows: List<T>,
+    name: (T) -> String,
+    count: (T) -> Int,
+    revenue: (T) -> Float,
+    emptyText: String,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        if (rows.isEmpty()) {
+            Text(
+                text = emptyText,
+                color = AppTheme.colorScheme.textSecondary,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            return@Column
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 260.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+        ) {
+            rows.forEach { row ->
+                SelectionSummary(
+                    title = name(row),
+                    subtitle = "${count(row)} шт • ${revenue(row).format(2)}",
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsWorkersSection(
+    workers: List<WorkerAnalytics>,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+    ) {
+        Text(
+            text = "Команда",
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        if (workers.isEmpty()) {
+            Text(
+                text = "Стендовики пока не добавлены.",
+                color = AppTheme.colorScheme.textSecondary,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            return@Column
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 320.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
+        ) {
+            workers.forEach { worker ->
+                SelectionSummary(
+                    title = worker.workerName,
+                    subtitle = buildString {
+                        append("Создал заказов: ${worker.createdOrdersCount}")
+                        append(" • ")
+                        append("Собрал заказов: ${worker.preparedOrdersCount}")
+                        append(" • ")
+                        append("Выдал заказов: ${worker.givenOrdersCount}")
+                        append(" • ")
+                        append("Приготовил напитков: ${worker.preparedDrinksCount}")
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PositionVariantsSelector(
     positionVariants: List<PositionVariant>,
     selectedPositionVariantIds: Set<String>,
@@ -859,8 +960,8 @@ private fun PositionVariantsSelector(
     SectionCard(title = "Товары для напитка") {
         if (positionVariants.isEmpty()) {
             Text(
-                text = "Сначала добавьте товары в соседнем разделе каталога.",
-                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider),
+                text = "Сначала добавьте товары в соответствующем разделе админки.",
+                style = MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.textSecondary),
             )
             return@SectionCard
         }
@@ -969,13 +1070,18 @@ private fun SelectionSummary(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    subtitleColor: Color = AppTheme.colorScheme.divider,
+    subtitleColor: Color = AppTheme.colorScheme.textSecondary,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(AppTheme.colorScheme.background)
+            .background(AppTheme.colorScheme.surfaceMuted)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .padding(AppTheme.dimensions.basePadding),
         verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.thinDivider * 4),
     ) {
@@ -1009,6 +1115,14 @@ private fun SwitchRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = AppTheme.colorScheme.accentGlow,
+                checkedTrackColor = AppTheme.colorScheme.accent.copy(alpha = 0.34f),
+                checkedBorderColor = AppTheme.colorScheme.accent,
+                uncheckedThumbColor = AppTheme.colorScheme.textSecondary,
+                uncheckedTrackColor = AppTheme.colorScheme.surfaceMuted,
+                uncheckedBorderColor = AppTheme.colorScheme.dividerStrong,
+            ),
         )
     }
 }
@@ -1025,6 +1139,11 @@ private fun SectionCard(
             .animateContentSize()
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
             .background(AppTheme.colorScheme.surface)
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
             .padding(AppTheme.dimensions.basePadding),
         verticalArrangement = Arrangement.spacedBy(AppTheme.dimensions.basePadding),
     ) {
@@ -1074,11 +1193,32 @@ private fun SectionActionButton(
     enabled: Boolean = true,
     color: Color = AppTheme.colorScheme.green,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-            .background(if (enabled) color else AppTheme.colorScheme.surfaceSelected)
-            .clickable(enabled = enabled, onClick = onClick)
+            .background(
+                if (enabled) {
+                    color.copy(alpha = if (isHovered) 0.20f else 0.14f)
+                } else {
+                    AppTheme.colorScheme.surfaceSelected.copy(alpha = 0.42f)
+                },
+            )
+            .border(
+                width = AppTheme.dimensions.thinDivider * 2,
+                color = if (enabled) color else AppTheme.colorScheme.divider,
+                shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+            )
+            .hoverable(interactionSource = interactionSource, enabled = enabled)
+            .focusable(interactionSource = interactionSource, enabled = enabled)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick,
+            )
             .padding(
                 horizontal = AppTheme.dimensions.basePadding,
                 vertical = AppTheme.dimensions.basePadding / 2,
@@ -1088,7 +1228,7 @@ private fun SectionActionButton(
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge.copy(
-                color = if (enabled) AppTheme.colorScheme.text else AppTheme.colorScheme.divider,
+                color = if (enabled) AppTheme.colorScheme.text else AppTheme.colorScheme.textSecondary,
             ),
         )
     }
@@ -1104,11 +1244,16 @@ private fun AppFormTextField(
     singleLine: Boolean = false,
     minLines: Int = 1,
 ) {
-    val borderColor = if (enabled) AppTheme.colorScheme.divider else AppTheme.colorScheme.surfaceSelected
+    var isFocused by remember { mutableStateOf(false) }
+    val borderColor = when {
+        !enabled -> AppTheme.colorScheme.divider
+        isFocused -> AppTheme.colorScheme.accent
+        else -> AppTheme.colorScheme.dividerStrong
+    }
     val textStyle = if (enabled) {
         MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.text)
     } else {
-        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.divider)
+        MaterialTheme.typography.bodyLarge.copy(color = AppTheme.colorScheme.textSecondary)
     }
 
     Column(
@@ -1117,16 +1262,16 @@ private fun AppFormTextField(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge.copy(color = AppTheme.colorScheme.textSecondary),
         )
 
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-                .background(AppTheme.colorScheme.background)
+                .background(AppTheme.colorScheme.surfaceMuted)
                 .border(
-                    width = AppTheme.dimensions.thinDivider,
+                    width = AppTheme.dimensions.thinDivider * 2,
                     color = borderColor,
                     shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
                 )
@@ -1137,6 +1282,7 @@ private fun AppFormTextField(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onFocusChanged { isFocused = it.isFocused }
                     .heightIn(min = if (singleLine) 24.dp else 96.dp),
                 enabled = enabled,
                 singleLine = singleLine,
@@ -1169,7 +1315,18 @@ private fun <T, K> SelectableList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(AppTheme.dimensions.cornerRadius))
-                    .background(if (isSelected) AppTheme.colorScheme.surfaceSelected else AppTheme.colorScheme.background)
+                    .background(
+                        if (isSelected) {
+                            AppTheme.colorScheme.surfaceSelected
+                        } else {
+                            AppTheme.colorScheme.surfaceMuted
+                        },
+                    )
+                    .border(
+                        width = AppTheme.dimensions.thinDivider * 2,
+                        color = if (isSelected) AppTheme.colorScheme.accent else AppTheme.colorScheme.divider,
+                        shape = RoundedCornerShape(AppTheme.dimensions.cornerRadius),
+                    )
                     .clickable { onItemClick(item) }
                     .padding(AppTheme.dimensions.basePadding),
                 verticalAlignment = Alignment.CenterVertically,
